@@ -1,0 +1,13 @@
+{
+    "servers": {
+        "my-mcp-server-1acda559": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "C:\\Source\\OracleAIAgent\\OracleAgentApp"
+            ]
+        }
+    }
+}
