@@ -11,5 +11,6 @@ namespace OracleAgent.Core.Interfaces
         Task<List<ColumnMetadata>> GetDataTypesAsync(string tableName);
         Task<List<ColumnMetadata>> GetNullabilityAsync(string tableName);
         Task<List<ColumnMetadata>> GetDefaultValuesAsync(string tableName);
+        Task<List<string>> GetTablesByColumnNameAsync(string columnNamePattern);
     }
 }

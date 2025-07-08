@@ -27,6 +27,7 @@ builder.Services.AddScoped<ITableDiscoveryService, TableDiscoveryService>();
 builder.Services.AddScoped<IViewEnumerationService, ViewEnumerationService>();
 builder.Services.AddScoped<IObjectRelationshipService, ObjectRelationshipService>();
 builder.Services.AddScoped<ITriggerService, TriggerService>();
+builder.Services.AddScoped<IRawSqlService, RawSqlService>();
 builder.Services.AddMemoryCache();
 var app = builder.Build();
 

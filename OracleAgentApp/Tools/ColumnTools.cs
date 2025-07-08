@@ -15,7 +15,6 @@ namespace OracleAgent.App.Tools
         [McpServerTool, Description("Fetches detailed metadata for all columns in the specified table, including name, data type, nullability, default value, and ordinal position.")]
         public static async Task<List<ColumnMetadata>> GetColumnMetadata(
             IColumnMetadataService service,  
-            IMcpServer server,
             [Description("The name of the table for which column metadata is to be retrieved.")] string tableName)
         {
             return await service.GetColumnMetadataAsync(tableName);
@@ -51,6 +50,14 @@ namespace OracleAgent.App.Tools
             [Description("The name of the table for which column default values are to be retrieved.")] string tableName)
         {
             return await service.GetDefaultValuesAsync(tableName);
+        }
+
+        [McpServerTool, Description("Find tables that contain the specified column name.")]
+        public static async Task<List<string>> GetTablesByColumnNameAsync(
+            IColumnMetadataService service,
+            [Description("Usign the column name, identify all tables that include the given column name.")] string columnName)
+        {
+            return await service.GetTablesByColumnNameAsync(columnName);
         }
     }
 }

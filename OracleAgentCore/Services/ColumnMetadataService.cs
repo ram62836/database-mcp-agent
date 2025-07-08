@@ -173,5 +173,32 @@ namespace OracleAgent.Core.Services
 
             return columnMetadataList;
         }
+        
+        public async Task<List<string>> GetTablesByColumnNameAsync(string columnNamePattern)
+        {
+            var tableNames = new List<string>();
+            using (var connection = new OracleConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+                    SELECT DISTINCT TABLE_NAME
+                    FROM USER_TAB_COLUMNS
+                    WHERE UPPER(COLUMN_NAME) LIKE :ColumnNamePattern";
+
+                using (var command = new OracleCommand(query, connection))
+                {
+                    command.Parameters.Add(new OracleParameter("ColumnNamePattern", $"%{columnNamePattern.ToUpper()}%"));
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            tableNames.Add(reader["TABLE_NAME"].ToString());
+                        }
+                    }
+                }
+            }
+            return tableNames;
+        }
     }
 }
