@@ -1,48 +1,50 @@
-# MCP SDK Solution
+# Oracle AI Agent
 
 ## Overview
-The MCP SDK Solution is a .NET-based library designed to facilitate database metadata retrieval and management. It provides a set of services that allow users to discover tables, retrieve column metadata, identify keys, list indexes, gather constraints, enumerate views, list synonyms, and retrieve stored procedures and functions.
 
-## Project Structure
-The solution consists of the following projects:
+Oracle AI Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata. It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more. The solution is modular, with a core library, an application server, and a client.
 
-- **McpSdkLibrary**: This project contains the core library with services and models for database metadata operations.
-- **McpSdkApp**: This project serves as the application entry point, utilizing the services provided by the McpSdkLibrary.
+## Projects
+
+- **OracleAgent.Core**: Contains interfaces, models, and services for Oracle database metadata operations (table discovery, index listing, relationship analysis, etc.).
+- **OracleAgent.App**: The main application server. Hosts tools for metadata analysis, dependency analysis, and cache refresh. Uses dependency injection and configuration via `appsettings.json`.
+- **OracleAgent.Client**: A simple .NET console client - WIP.
 
 ## Features
-- **Table Discovery**: Retrieve all user-defined tables in the database.
-- **Column Metadata Retrieval**: Fetch details about columns, including names, data types, nullability, and default values.
-- **Primary and Foreign Key Identification**: Identify primary keys and foreign key relationships within the database.
-- **Index Listing**: List all indexes and their associated columns.
-- **Constraint Gathering**: Gather information on unique constraints and check constraints.
-- **View Enumeration**: Enumerate views and their definitions.
-- **Synonym Listing**: List synonyms and their base objects.
-- **Stored Procedure and Function Retrieval**: Retrieve stored procedures and functions along with their parameters.
 
-## Setup Instructions
-1. Clone the repository to your local machine.
-2. Open the solution file `McpSdkSolution.sln` in your preferred .NET development environment.
-3. Restore the NuGet packages by running the following command in the Package Manager Console:
-   ```
-   dotnet restore
-   ```
-4. Build the solution to ensure all components are correctly set up:
-   ```
-   dotnet build
-   ```
+- **Metadata Discovery**: Enumerate tables, views, indexes, triggers, stored procedures, and functions.
+- **Dependency Analysis**: Analyze object dependencies (e.g., which procedures/functions/triggers reference a table).
+- **Metadata Caching**: Caches metadata in JSON files for performance. Tools are provided to refresh the cache for all or specific object types.
+- **Raw SQL Execution**: Execute raw SQL queries against the Oracle database.
+- **Extensible Tooling**: Tools are exposed via the application server for integration with LLM's in agent mode.
 
-## Usage
-To use the services provided by the MCP SDK, instantiate the desired service in your application and call the appropriate methods. For example:
+## Configuration
 
-```csharp
-var tableDiscoveryService = new TableDiscoveryService();
-var tables = tableDiscoveryService.GetAllUserDefinedTables();
-```
+The main configuration file is `OracleAgentApp/appsettings.json`:
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "<your-oracle-connection-string>"
+  },
+  ...
+}
+Update the `DefaultConnection` string to point to your Oracle database.
 
-Refer to the individual service classes for detailed method descriptions and usage examples.
+## Getting Started
 
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
+1. **.NET 8 SDK** is required.
+2. Restore NuGet packages:dotnet restore3. Build the solution:dotnet build4. Update `appsettings.json` with your Oracle connection details.
+5. Run the application server:dotnet run --project OracleAgentApp/OracleAgent.App.csproj
+## Main Components
+
+- **Services**: Implementations for metadata discovery, relationship analysis, and more (see `OracleAgentCore/Services`).
+- **Tools**: Application-level tools for metadata refresh, dependency analysis, and raw SQL (see `OracleAgentApp/Tools`).
+- **Models**: Data models for Oracle metadata (see `OracleAgentCore/Models`).
+
+## Extending
+
+- Add new tools in `OracleAgentApp/Tools`.
+- Implement new services in `OracleAgentCore/Services` and register them in `OracleAgentApp/Program.cs`.
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+
+This project is intended for internal or demonstration use. Please ensure you have the appropriate Oracle database access and credentials.
