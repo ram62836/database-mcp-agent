@@ -4,6 +4,15 @@ using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Services;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using Serilog;
+using System.Reflection;
+
+// Set up Serilog to log to a file in the executing assembly directory
+var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+var logPath = Path.Combine(exeDir ?? ".", "oracleagent.log");
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var config = new ConfigurationManager();
 config.SetBasePath(Directory.GetCurrentDirectory());
@@ -14,6 +23,7 @@ var settings = new HostApplicationBuilderSettings
 };
 
 var builder = Host.CreateEmptyApplicationBuilder(settings: settings);
+builder.Services.AddLogging(logging => logging.AddSerilog(Log.Logger, dispose: true));
 builder.Services.AddMcpServer()
   .WithStdioServerTransport()
     .WithToolsFromAssembly();
@@ -29,6 +39,8 @@ builder.Services.AddScoped<IObjectRelationshipService, ObjectRelationshipService
 builder.Services.AddScoped<ITriggerService, TriggerService>();
 builder.Services.AddScoped<IRawSqlService, RawSqlService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(Log.Logger);
+builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger, dispose: true));
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

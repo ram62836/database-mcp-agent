@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -9,6 +10,12 @@ namespace OracleAgentCore.Tests
 {
     public class KeyIdentificationServiceTests
     {
+        private static ILogger<KeyIdentificationService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<KeyIdentificationService>>();
+            return loggerMock.Object;
+        }
+
         [Theory, AutoData]
         public async Task GetPrimaryKeysAsync_Throws(string tableName)
         {
@@ -18,7 +25,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new KeyIdentificationService(configMock.Object);
+            var service = new KeyIdentificationService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetPrimaryKeysAsync(tableName));
         }
 
@@ -31,7 +38,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new KeyIdentificationService(configMock.Object);
+            var service = new KeyIdentificationService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetForeignKeysAsync(tableName));
         }
 
@@ -44,7 +51,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new KeyIdentificationService(configMock.Object);
+            var service = new KeyIdentificationService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetForeignKeyRelationshipsAsync());
         }
 
@@ -57,7 +64,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new KeyIdentificationService(configMock.Object);
+            var service = new KeyIdentificationService(configMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
     }

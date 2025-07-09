@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -9,6 +10,12 @@ namespace OracleAgentCore.Tests
 {
     public class SynonymListingServiceTests
     {
+        private static ILogger<SynonymListingService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<SynonymListingService>>();
+            return loggerMock.Object;
+        }
+
         [Fact]
         public async Task ListSynonymsAsync_Throws()
         {
@@ -18,7 +25,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new SynonymListingService(configMock.Object);
+            var service = new SynonymListingService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.ListSynonymsAsync());
         }
 
@@ -31,7 +38,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new SynonymListingService(configMock.Object);
+            var service = new SynonymListingService(configMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
     }

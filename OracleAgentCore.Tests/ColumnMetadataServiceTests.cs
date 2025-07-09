@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -10,6 +11,12 @@ namespace OracleAgentCore.Tests
 {
     public class ColumnMetadataServiceTests
     {
+        private static ILogger<ColumnMetadataService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<ColumnMetadataService>>();
+            return loggerMock.Object;
+        }
+
         [Theory, AutoData]
         public async Task GetColumnMetadataAsync_Throws(string tableName)
         {
@@ -19,7 +26,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetColumnMetadataAsync(tableName));
         }
 
@@ -32,7 +39,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetColumnNamesAsync(tableName));
         }
 
@@ -45,7 +52,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetDataTypesAsync(tableName));
         }
 
@@ -58,7 +65,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetNullabilityAsync(tableName));
         }
 
@@ -71,7 +78,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetDefaultValuesAsync(tableName));
         }
 
@@ -84,7 +91,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetTablesByColumnNameAsync(columnNamePattern));
         }
 
@@ -97,7 +104,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
 
@@ -111,7 +118,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             // The following mocks are illustrative and not used due to OracleConnection/OracleCommand being sealed and not interface-based.
             // In practice, you would need to refactor the service to allow injecting the connection/command for proper unit testing.
@@ -127,7 +134,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             // This test is illustrative; in practice, you would need to refactor the service to allow injecting the connection/command for proper unit testing.
             var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetColumnNamesAsync("SOMETABLE"));
@@ -142,7 +149,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetDataTypesAsync("SOMETABLE"));
             Assert.NotNull(result);
@@ -156,7 +163,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetNullabilityAsync("SOMETABLE"));
             Assert.NotNull(result);
@@ -170,7 +177,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetDefaultValuesAsync("SOMETABLE"));
             Assert.NotNull(result);
@@ -184,7 +191,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetTablesByColumnNameAsync("SOMECOLUMN"));
             Assert.NotNull(result);
@@ -199,7 +206,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             await Assert.ThrowsAnyAsync<Exception>(() => service.GetColumnMetadataAsync(tableName));
         }
@@ -213,7 +220,7 @@ namespace OracleAgentCore.Tests
             configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-            var service = new ColumnMetadataService(configMock.Object);
+            var service = new ColumnMetadataService(configMock.Object, CreateLogger());
 
             await Assert.ThrowsAnyAsync<Exception>(() => service.GetColumnNamesAsync(tableName));
         }

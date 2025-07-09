@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -10,6 +11,12 @@ namespace OracleAgentCore.Tests
 {
     public class ViewEnumerationServiceTests
     {
+        private static ILogger<ViewEnumerationService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<ViewEnumerationService>>();
+            return loggerMock.Object;
+        }
+
         [Fact]
         public async Task GetAllViewsAsync_Throws()
         {
@@ -19,7 +26,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ViewEnumerationService(configMock.Object);
+            var service = new ViewEnumerationService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetAllViewsAsync());
         }
 
@@ -32,7 +39,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new ViewEnumerationService(configMock.Object);
+            var service = new ViewEnumerationService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetViewsDefinitionAsync(viewNames));
         }
 
@@ -45,7 +52,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new ViewEnumerationService(configMock.Object);
+            var service = new ViewEnumerationService(configMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
     }

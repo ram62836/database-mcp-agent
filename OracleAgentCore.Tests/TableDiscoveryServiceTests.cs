@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -10,6 +11,12 @@ namespace OracleAgentCore.Tests
 {
     public class TableDiscoveryServiceTests
     {
+        private static ILogger<TableDiscoveryService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<TableDiscoveryService>>();
+            return loggerMock.Object;
+        }
+
         [Fact]
         public async Task GetAllUserDefinedTablesAsync_Throws()
         {
@@ -19,7 +26,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new TableDiscoveryService(configMock.Object);
+            var service = new TableDiscoveryService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetAllUserDefinedTablesAsync());
         }
 
@@ -32,7 +39,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new TableDiscoveryService(configMock.Object);
+            var service = new TableDiscoveryService(configMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetTablesByNameAsync(tableNames));
         }
 
@@ -45,7 +52,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new TableDiscoveryService(configMock.Object);
+            var service = new TableDiscoveryService(configMock.Object, CreateLogger());
             // Private method, test via reflection
             var method = typeof(TableDiscoveryService).GetMethod("GetTableDefinitionAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => (Task<string>)method.Invoke(service, new object[] { tableName }));
@@ -60,7 +67,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new TableDiscoveryService(configMock.Object);
+            var service = new TableDiscoveryService(configMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
     }

@@ -1,6 +1,7 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core.Services;
 using Xunit;
@@ -11,6 +12,12 @@ namespace OracleAgentCore.Tests
 {
     public class StoredProcedureFunctionServiceTests
     {
+        private static ILogger<StoredProcedureFunctionService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<StoredProcedureFunctionService>>();
+            return loggerMock.Object;
+        }
+
         [Theory, AutoData]
         public async Task GetAllStoredProceduresAsync_Throws()
         {
@@ -21,7 +28,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetAllStoredProceduresAsync());
         }
 
@@ -35,7 +42,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetAllFunctionsAsync());
         }
 
@@ -49,7 +56,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetStoredProceduresMetadataByNameAsync(names));
         }
 
@@ -63,7 +70,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetFunctionsMetadataByNameAsync(names));
         }
 
@@ -77,7 +84,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetStoredProcedureParametersAsync(name));
         }
 
@@ -91,7 +98,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetFunctionParametersAsync(name));
         }
 
@@ -105,7 +112,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
-            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object);
+            var service = new StoredProcedureFunctionService(configMock.Object, cacheMock.Object, CreateLogger());
             Assert.NotNull(service);
         }
     }

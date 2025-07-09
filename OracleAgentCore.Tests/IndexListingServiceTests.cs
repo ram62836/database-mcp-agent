@@ -1,5 +1,6 @@
 using AutoFixture.Xunit2;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Services;
@@ -8,6 +9,12 @@ namespace OracleAgentCore.Tests
 {
     public class IndexListingServiceTests
     {
+        private static ILogger<IndexListingService> CreateLogger()
+        {
+            var loggerMock = new Moq.Mock<ILogger<IndexListingService>>();
+            return loggerMock.Object;
+        }
+
         [Theory, AutoData]
         public async Task ListIndexesAsync_ReturnsIndexes(string tableName)
         {
@@ -18,7 +25,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new IndexListingService(configMock.Object);
+            var service = new IndexListingService(configMock.Object, CreateLogger());
 
             Assert.NotNull(service);
 
@@ -36,7 +43,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
 
-            var service = new IndexListingService(configMock.Object);
+            var service = new IndexListingService(configMock.Object, CreateLogger());
 
             // See above: can't mock OracleConnection, so just test that the method throws
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetIndexColumnsAsync(indexName));
@@ -53,7 +60,7 @@ namespace OracleAgentCore.Tests
             configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
 
             // Act
-            var service = new IndexListingService(configMock.Object);
+            var service = new IndexListingService(configMock.Object, CreateLogger());
 
             // Assert
             Assert.NotNull(service);
