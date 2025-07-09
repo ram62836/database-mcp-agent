@@ -4,6 +4,7 @@ using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace OracleAgent.Core.Services
@@ -11,14 +12,17 @@ namespace OracleAgent.Core.Services
     public class ObjectRelationshipService : IObjectRelationshipService
     {
         private readonly string _connectionString;
+        private readonly ILogger<ObjectRelationshipService> _logger;
 
-        public ObjectRelationshipService(IConfiguration config)
+        public ObjectRelationshipService(IConfiguration config, ILogger<ObjectRelationshipService> logger)
         {
             _connectionString = config.GetConnectionString("DefaultConnection");
+            _logger = logger;
         }
 
         public async Task<List<ObjectRelationshipMetadata>> GetReferenceObjects(string objectName, string objectType)
         {
+            _logger.LogInformation("Getting reference objects for: {ObjectName} of type {ObjectType}", objectName, objectType);
             if (string.IsNullOrWhiteSpace(objectName))
                 throw new ArgumentException("object name cannot be null or empty.", nameof(objectName));
 
@@ -38,27 +42,35 @@ namespace OracleAgent.Core.Services
                             AND d.referenced_owner NOT IN ('SYS', 'SYSTEM')   -- Exclude system-owned referenced objects
                         ORDER BY
                             d.name, d.type";
-            using (var connection = new OracleConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-                using (var command = new OracleCommand(query, connection))
+                using (var connection = new OracleConnection(_connectionString))
                 {
-                    command.Parameters.Add(new OracleParameter("objectName", objectName.ToUpper()));
-                    command.Parameters.Add(new OracleParameter("objectType", objectType.ToUpper()));
-                    using (var reader = await command.ExecuteReaderAsync())
+                    await connection.OpenAsync();
+                    using (var command = new OracleCommand(query, connection))
                     {
-                        while (await reader.ReadAsync())
+                        command.Parameters.Add(new OracleParameter("objectName", objectName.ToUpper()));
+                        command.Parameters.Add(new OracleParameter("objectType", objectType.ToUpper()));
+                        using (var reader = await command.ExecuteReaderAsync())
                         {
-                            objectRelationShips.Add(new ObjectRelationshipMetadata
+                            while (await reader.ReadAsync())
                             {
-                                ObjectName = reader["OBJECT_NAME"].ToString(),
-                                ObjectType = reader["OBJECT_TYPE"].ToString()
-                            });
+                                objectRelationShips.Add(new ObjectRelationshipMetadata
+                                {
+                                    ObjectName = reader["OBJECT_NAME"].ToString(),
+                                    ObjectType = reader["OBJECT_TYPE"].ToString()
+                                });
+                            }
                         }
                     }
                 }
+                _logger.LogInformation("Retrieved {Count} reference objects for {ObjectName} of type {ObjectType}", objectRelationShips.Count, objectName, objectType);
             }
-
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reference objects for: {ObjectName} of type {ObjectType}", objectName, objectType);
+                throw;
+            }
             return objectRelationShips;
         }
 
