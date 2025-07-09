@@ -5,11 +5,9 @@ using OracleAgent.Core.Services;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Serilog;
-using System.Reflection;
+using System;
 
-// Set up Serilog to log to a file in the executing assembly directory
-var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-var logPath = Path.Combine(exeDir ?? ".", "oracleagent.log");
+var logPath = Path.Combine(Directory.GetCurrentDirectory() ?? ".", "oracleagent.log");
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
     .CreateLogger();
