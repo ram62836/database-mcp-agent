@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OracleAgent.App", "OracleAg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OracleAgent.Client", "OracleAgent.Client\OracleAgent.Client.csproj", "{FB7A8862-C1AC-4734-9D68-A5D44DF16A8B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OracleAgentCore.Tests", "OracleAgentCore.Tests\OracleAgentCore.Tests.csproj", "{61F1F529-3DD2-4651-790B-A01422F0F567}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{FB7A8862-C1AC-4734-9D68-A5D44DF16A8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB7A8862-C1AC-4734-9D68-A5D44DF16A8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB7A8862-C1AC-4734-9D68-A5D44DF16A8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F1F529-3DD2-4651-790B-A01422F0F567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61F1F529-3DD2-4651-790B-A01422F0F567}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61F1F529-3DD2-4651-790B-A01422F0F567}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61F1F529-3DD2-4651-790B-A01422F0F567}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
