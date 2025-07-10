@@ -1,14 +1,9 @@
+using System.Data;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace OracleAgentCore.Tests
 {
@@ -32,24 +27,27 @@ namespace OracleAgentCore.Tests
             // Arrange
             // Ensure the cache file does not exist so the DB path is used
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            {
                 File.Delete(AppConstants.TablesMetadatJsonFile);
+            }
 
-            var data = new List<TableMetadata> { 
-                new TableMetadata { TableName = "T1", Definition = "DDL1" }, 
-                new TableMetadata { TableName = "T2", Definition = "DDL2" } 
+            List<TableMetadata> data = new()
+            {
+                new TableMetadata { TableName = "T1", Definition = "DDL1" },
+                new TableMetadata { TableName = "T2", Definition = "DDL2" }
             };
-            
+
             int callCount = -1;
-            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
-            _readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].TableName);
-            _readerMock.Setup(r => r["TABLE_DDL"]).Returns(() => data[callCount].Definition);
-            
+            _ = _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+            _ = _readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].TableName);
+            _ = _readerMock.Setup(r => r["TABLE_DDL"]).Returns(() => data[callCount].Definition);
+
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var result = await _service.GetAllUserDefinedTablesAsync();
+            List<TableMetadata> result = await _service.GetAllUserDefinedTablesAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -58,7 +56,7 @@ namespace OracleAgentCore.Tests
             Assert.Equal("DDL1", result[0].Definition);
             Assert.Equal("T2", result[1].TableName);
             Assert.Equal("DDL2", result[1].Definition);
-            
+
             // Verify the command setup
             _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
         }
@@ -68,28 +66,29 @@ namespace OracleAgentCore.Tests
         {
             // Arrange
             // Create a cache file with test data
-            var cacheData = new List<TableMetadata> { 
+            List<TableMetadata> cacheData = new()
+            {
                 new TableMetadata { TableName = "CACHED1", Definition = "CACHED_DDL1" },
                 new TableMetadata { TableName = "CACHED2", Definition = "CACHED_DDL2" }
             };
-            
-            Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile, 
+
+            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
-            
+
             // No database mock setup needed as it should use the cache
 
             try
             {
                 // Act
-                var result = await _service.GetAllUserDefinedTablesAsync();
+                List<TableMetadata> result = await _service.GetAllUserDefinedTablesAsync();
 
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(cacheData.Count, result.Count);
                 Assert.Equal("CACHED1", result[0].TableName);
                 Assert.Equal("CACHED_DDL1", result[0].Definition);
-                
+
                 // Verify that database was not called
                 _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
             }
@@ -97,7 +96,9 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.TablesMetadatJsonFile))
+                {
                     File.Delete(AppConstants.TablesMetadatJsonFile);
+                }
             }
         }
 
@@ -107,28 +108,32 @@ namespace OracleAgentCore.Tests
             // Arrange
             // Ensure the cache file does not exist
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            {
                 File.Delete(AppConstants.TablesMetadatJsonFile);
+            }
 
-            var allTables = new List<TableMetadata> { 
-                new TableMetadata { TableName = "EMPLOYEE", Definition = "DDL1" }, 
+            List<TableMetadata> allTables = new()
+            {
+                new TableMetadata { TableName = "EMPLOYEE", Definition = "DDL1" },
                 new TableMetadata { TableName = "CUSTOMER", Definition = "DDL2" },
                 new TableMetadata { TableName = "PRODUCT", Definition = "DDL3" }
             };
-            
+
             int callCount = -1;
-            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < allTables.Count);
-            _readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => allTables[callCount].TableName);
-            _readerMock.Setup(r => r["TABLE_DDL"]).Returns(() => allTables[callCount].Definition);
-            
+            _ = _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < allTables.Count);
+            _ = _readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => allTables[callCount].TableName);
+            _ = _readerMock.Setup(r => r["TABLE_DDL"]).Returns(() => allTables[callCount].Definition);
+
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Filter criteria
-            var tableNamesToFilter = new List<string> { "EMPLOYEE", "PRODUCT" };
+            List<string> tableNamesToFilter = new()
+            { "EMPLOYEE", "PRODUCT" };
 
             // Act
-            var result = await _service.GetTablesByNameAsync(tableNamesToFilter);
+            List<TableMetadata> result = await _service.GetTablesByNameAsync(tableNamesToFilter);
 
             // Assert
             Assert.NotNull(result);
@@ -143,15 +148,17 @@ namespace OracleAgentCore.Tests
         {
             // Arrange
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            {
                 File.Delete(AppConstants.TablesMetadatJsonFile);
-            
-            var expectedException = new InvalidOperationException("Test exception");
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+            }
+
+            InvalidOperationException expectedException = new("Test exception");
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
                 .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _service.GetAllUserDefinedTablesAsync());
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                _service.GetAllUserDefinedTablesAsync);
             Assert.Same(expectedException, exception);
         }
 
@@ -160,19 +167,20 @@ namespace OracleAgentCore.Tests
         {
             // Arrange
             // Create a cache file with test data to avoid DB call
-            var cacheData = new List<TableMetadata> { 
+            List<TableMetadata> cacheData = new()
+            {
                 new TableMetadata { TableName = "TABLE1", Definition = "DDL1" },
                 new TableMetadata { TableName = "TABLE2", Definition = "DDL2" }
             };
-            
-            Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile, 
+
+            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
-            
+
             try
             {
                 // Act
-                var result = await _service.GetTablesByNameAsync(new List<string> { "NONEXISTENT" });
+                List<TableMetadata> result = await _service.GetTablesByNameAsync(["NONEXISTENT"]);
 
                 // Assert
                 Assert.NotNull(result);
@@ -182,7 +190,9 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.TablesMetadatJsonFile))
+                {
                     File.Delete(AppConstants.TablesMetadatJsonFile);
+                }
             }
         }
 
@@ -190,7 +200,7 @@ namespace OracleAgentCore.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new TableDiscoveryService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
@@ -200,16 +210,18 @@ namespace OracleAgentCore.Tests
         {
             // Arrange
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            {
                 File.Delete(AppConstants.TablesMetadatJsonFile);
+            }
 
-            _readerMock.Setup(r => r.Read()).Returns(false);
-            
+            _ = _readerMock.Setup(r => r.Read()).Returns(false);
+
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var result = await _service.GetAllUserDefinedTablesAsync();
+            List<TableMetadata> result = await _service.GetAllUserDefinedTablesAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -218,9 +230,9 @@ namespace OracleAgentCore.Tests
 
         private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock)
         {
-            commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
-            commandMock.Setup(c => c.CreateParameter()).Returns(new Mock<IDbDataParameter>().Object);
-            commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
+            _ = commandMock.Setup(c => c.CreateParameter()).Returns(new Mock<IDbDataParameter>().Object);
+            _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
         }
     }
 }

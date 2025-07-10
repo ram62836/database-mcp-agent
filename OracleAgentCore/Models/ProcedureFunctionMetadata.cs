@@ -14,7 +14,7 @@ namespace OracleAgent.Core.Models
 
         public ProcedureFunctionMetadata()
         {
-            Parameters = new List<ParameterMetadata>();
+            Parameters = [];
         }
     }
 
@@ -24,6 +24,6 @@ namespace OracleAgent.Core.Models
         public string DataType { get; set; }
         public bool IsOutput { get; set; }
         public string Direction { get; set; }
-        
+
     }
 }

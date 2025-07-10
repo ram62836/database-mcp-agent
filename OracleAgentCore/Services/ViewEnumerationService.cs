@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using OracleAgent.Core.Models;
-using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Text.Json;
+using System.Data;
 using System.IO;
 using System.Linq;
-using System.Data;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -27,33 +27,29 @@ namespace OracleAgent.Core.Services
             _logger.LogInformation("Getting all views.");
             if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
-                var fileContent = await File.ReadAllTextAsync(AppConstants.ViewsMetadatJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.ViewsMetadatJsonFile);
                 List<ViewMetadata> cachedViewsMetadata = JsonSerializer.Deserialize<List<ViewMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} views from cache.", cachedViewsMetadata?.Count ?? 0);
                 return cachedViewsMetadata;
             }
 
-            var views = new List<ViewMetadata>();
+            List<ViewMetadata> views = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT VIEW_NAME, TEXT_VC FROM USER_VIEWS";
+                    string query = @"SELECT VIEW_NAME, TEXT_VC FROM USER_VIEWS";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        using (var reader = command.ExecuteReader())
+                        views.Add(new ViewMetadata
                         {
-                            while (reader.Read())
-                            {                            
-                                views.Add(new ViewMetadata
-                                {
-                                    ViewName = reader["VIEW_NAME"].ToString(),
-                                    Definition = reader["TEXT_VC"].ToString(),
-                                });
-                            }
-                        }
+                            ViewName = reader["VIEW_NAME"].ToString(),
+                            Definition = reader["TEXT_VC"].ToString(),
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} views.", views.Count);
@@ -63,7 +59,7 @@ namespace OracleAgent.Core.Services
                 _logger.LogError(ex, "Error getting all views.");
                 throw;
             }
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(views, options);
             await File.WriteAllTextAsync(AppConstants.ViewsMetadatJsonFile, json);
             return views;
@@ -72,8 +68,8 @@ namespace OracleAgent.Core.Services
         public async Task<List<ViewMetadata>> GetViewsDefinitionAsync(List<string> viewNames)
         {
             _logger.LogInformation("Getting views by name.");
-            var viewsMetadata = await GetAllViewsAsync();
-            var filteredViews = viewsMetadata
+            List<ViewMetadata> viewsMetadata = await GetAllViewsAsync();
+            List<ViewMetadata> filteredViews = viewsMetadata
                 .Where(view => viewNames.Any(name => view.ViewName.Contains(name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
             _logger.LogInformation("Filtered to {Count} views by name.", filteredViews.Count);

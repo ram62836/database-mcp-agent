@@ -1,5 +1,5 @@
-using Moq;
 using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace OracleAgentCore.Tests
 {

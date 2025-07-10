@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core;
-using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
-using Xunit;
 
 namespace OracleAgentCore.Tests
 {
@@ -35,94 +30,96 @@ namespace OracleAgentCore.Tests
         public async Task ListSynonymsAsync_ReturnsList()
         {
             // Arrange
-            var data = new List<SynonymMetadata> { 
-                new SynonymMetadata { 
-                    SynonymName = "SYN1", 
-                    TableOwner = "OWNER", 
-                    BaseObjectName = "TABLE1" 
-                } 
+            List<SynonymMetadata> data = new()
+            {
+                new SynonymMetadata {
+                    SynonymName = "SYN1",
+                    TableOwner = "OWNER",
+                    BaseObjectName = "TABLE1"
+                }
             };
-            
+
             SetupReaderForSynonymMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var result = await _service.ListSynonymsAsync();
-            
+            List<SynonymMetadata> result = await _service.ListSynonymsAsync();
+
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.Equal("SYN1", result[0].SynonymName);
             Assert.Equal("OWNER", result[0].TableOwner);
             Assert.Equal("TABLE1", result[0].BaseObjectName);
-            
+
             // Verify the command was set up correctly
             _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
         }
-        
+
         [Fact]
         public async Task ListSynonymsAsync_ThrowsException_WhenDbFails()
         {
             // Arrange
-            var expectedException = new InvalidOperationException("Test exception");
-            
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+            InvalidOperationException expectedException = new("Test exception");
+
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
                 .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _service.ListSynonymsAsync());
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                _service.ListSynonymsAsync);
             Assert.Same(expectedException, exception);
         }
-        
+
         [Fact]
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new SynonymListingService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
-        
+
         [Fact]
         public async Task ListSynonymsAsync_HandlesEmptyResult()
         {
             // Arrange
-            var data = new List<SynonymMetadata>();
-            
-            _readerMock.Setup(r => r.Read()).Returns(false); // No rows
+            List<SynonymMetadata> data = new();
+
+            _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var result = await _service.ListSynonymsAsync();
-            
+            List<SynonymMetadata> result = await _service.ListSynonymsAsync();
+
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
         }
-        
+
         [Fact]
         public async Task ListSynonymsAsync_HandlesMultipleResults()
         {
             // Arrange
-            var data = new List<SynonymMetadata> { 
+            List<SynonymMetadata> data = new()
+            {
                 new SynonymMetadata { SynonymName = "SYN1", TableOwner = "OWNER1", BaseObjectName = "TABLE1" },
                 new SynonymMetadata { SynonymName = "SYN2", TableOwner = "OWNER2", BaseObjectName = "TABLE2" },
                 new SynonymMetadata { SynonymName = "SYN3", TableOwner = "OWNER1", BaseObjectName = "TABLE3" }
             };
-            
+
             SetupReaderForSynonymMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var result = await _service.ListSynonymsAsync();
-            
+            List<SynonymMetadata> result = await _service.ListSynonymsAsync();
+
             // Assert
             Assert.NotNull(result);
             Assert.Equal(3, result.Count);
@@ -135,24 +132,24 @@ namespace OracleAgentCore.Tests
             Assert.Contains(result, s => s.BaseObjectName == "TABLE2");
             Assert.Contains(result, s => s.BaseObjectName == "TABLE3");
         }
-        
+
         private void SetupReaderForSynonymMetadata(Mock<IDataReader> readerMock, List<SynonymMetadata> data)
         {
             int callCount = -1;
-            readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
-            
+            _ = readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+
             if (data.Count > 0)
             {
-                readerMock.Setup(r => r["SYNONYM_NAME"]).Returns(() => data[callCount].SynonymName);
-                readerMock.Setup(r => r["TABLE_OWNER"]).Returns(() => data[callCount].TableOwner);
-                readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].BaseObjectName);
+                _ = readerMock.Setup(r => r["SYNONYM_NAME"]).Returns(() => data[callCount].SynonymName);
+                _ = readerMock.Setup(r => r["TABLE_OWNER"]).Returns(() => data[callCount].TableOwner);
+                _ = readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].BaseObjectName);
             }
         }
-        
+
         private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock)
         {
-            commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
-            commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
+            _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
         }
     }
 }

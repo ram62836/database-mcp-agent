@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using OracleAgent.Core.Models;
-using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System.Data;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -22,32 +22,28 @@ namespace OracleAgent.Core.Services
         public async Task<List<IndexMetadata>> ListIndexesAsync(string tableName)
         {
             _logger.LogInformation("Listing indexes for table: {TableName}", tableName);
-            var indexes = new List<IndexMetadata>();
+            List<IndexMetadata> indexes = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT INDEX_NAME, UNIQUENESS FROM ALL_INDEXES WHERE TABLE_NAME = :TableName";
+                    string query = @"SELECT INDEX_NAME, UNIQUENESS FROM ALL_INDEXES WHERE TABLE_NAME = :TableName";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    IDbDataParameter param = command.CreateParameter();
+                    param.ParameterName = "TableName";
+                    param.Value = tableName.ToUpper();
+                    _ = command.Parameters.Add(param);
+
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        var param = command.CreateParameter();
-                        param.ParameterName = "TableName";
-                        param.Value = tableName.ToUpper();
-                        command.Parameters.Add(param);
-
-                        using (var reader = command.ExecuteReader())
+                        indexes.Add(new IndexMetadata
                         {
-                            while (reader.Read())
-                            {
-                                indexes.Add(new IndexMetadata
-                                {
-                                    IndexName = reader["INDEX_NAME"].ToString(),
-                                    IsUnique = reader["UNIQUENESS"].ToString() == "UNIQUE"
-                                });
-                            }
-                        }
+                            IndexName = reader["INDEX_NAME"].ToString(),
+                            IsUnique = reader["UNIQUENESS"].ToString() == "UNIQUE"
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} indexes for table {TableName}", indexes.Count, tableName);
@@ -63,28 +59,24 @@ namespace OracleAgent.Core.Services
         public async Task<List<string>> GetIndexColumnsAsync(string indexName)
         {
             _logger.LogInformation("Getting index columns for index: {IndexName}", indexName);
-            var columns = new List<string>();
+            List<string> columns = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT COLUMN_NAME FROM ALL_IND_COLUMNS WHERE INDEX_NAME = :IndexName";
+                    string query = @"SELECT COLUMN_NAME FROM ALL_IND_COLUMNS WHERE INDEX_NAME = :IndexName";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    IDbDataParameter param = command.CreateParameter();
+                    param.ParameterName = "IndexName";
+                    param.Value = indexName.ToUpper();
+                    _ = command.Parameters.Add(param);
+
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        var param = command.CreateParameter();
-                        param.ParameterName = "IndexName";
-                        param.Value = indexName.ToUpper();
-                        command.Parameters.Add(param);
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                columns.Add(reader["COLUMN_NAME"].ToString());
-                            }
-                        }
+                        columns.Add(reader["COLUMN_NAME"].ToString());
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} columns for index {IndexName}", columns.Count, indexName);

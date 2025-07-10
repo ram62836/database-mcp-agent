@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace OracleAgent.Core.Models
 {
     public class KeyMetadata
@@ -9,7 +7,7 @@ namespace OracleAgent.Core.Models
 
         public string KeyType { get; set; }
         public string ReferencedConstraintName { get; set; }
-        
+
 
         public KeyMetadata()
         {

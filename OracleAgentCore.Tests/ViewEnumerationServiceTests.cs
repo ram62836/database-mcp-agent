@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
-using Xunit;
 
 namespace OracleAgentCore.Tests
 {
@@ -38,22 +33,25 @@ namespace OracleAgentCore.Tests
             // Arrange
             // Ensure cache file does not exist
             if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+            {
                 File.Delete(AppConstants.ViewsMetadatJsonFile);
+            }
 
-            var data = new List<ViewMetadata> {
+            List<ViewMetadata> data = new()
+            {
                 new ViewMetadata { ViewName = "V1", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "V2", Definition = "DEF2" }
             };
-            
+
             SetupReaderForViewMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             try
             {
                 // Act
-                var result = await _service.GetAllViewsAsync();
+                List<ViewMetadata> result = await _service.GetAllViewsAsync();
 
                 // Assert
                 Assert.NotNull(result);
@@ -62,10 +60,10 @@ namespace OracleAgentCore.Tests
                 Assert.Equal("DEF1", result[0].Definition);
                 Assert.Equal("V2", result[1].ViewName);
                 Assert.Equal("DEF2", result[1].Definition);
-                
+
                 // Verify the command was set up correctly
                 _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
-                
+
                 // Verify the cache file was created
                 Assert.True(File.Exists(AppConstants.ViewsMetadatJsonFile));
             }
@@ -73,37 +71,40 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+                {
                     File.Delete(AppConstants.ViewsMetadatJsonFile);
+                }
             }
         }
-        
+
         [Fact]
         public async Task GetAllViewsAsync_UsesCache_WhenCacheFileExists()
         {
             // Arrange
-            var cachedViews = new List<ViewMetadata> {
+            List<ViewMetadata> cachedViews = new()
+            {
                 new ViewMetadata { ViewName = "CACHED_VIEW", Definition = "CACHED DEFINITION" }
             };
 
             // Create cache directory if it doesn't exist
-            Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile, 
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
             {
                 // Act
-                var result = await _service.GetAllViewsAsync();
+                List<ViewMetadata> result = await _service.GetAllViewsAsync();
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Single(result);
+                _ = Assert.Single(result);
                 Assert.Equal("CACHED_VIEW", result[0].ViewName);
                 Assert.Equal("CACHED DEFINITION", result[0].Definition);
-                
+
                 // Verify no database connection was made
                 _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
             }
@@ -111,36 +112,40 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+                {
                     File.Delete(AppConstants.ViewsMetadatJsonFile);
+                }
             }
         }
-        
+
         [Fact]
         public async Task GetViewsDefinitionAsync_FiltersCorrectly()
         {
             // Arrange
             // Create cache file with test data
-            var cachedViews = new List<ViewMetadata> {
+            List<ViewMetadata> cachedViews = new()
+            {
                 new ViewMetadata { ViewName = "EMP_VIEW", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "DEPT_VIEW", Definition = "DEF2" },
                 new ViewMetadata { ViewName = "EMP_DEPT_VIEW", Definition = "DEF3" }
             };
 
             // Create cache directory if it doesn't exist
-            Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile, 
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
             {
                 // Names to filter by
-                var viewNames = new List<string> { "EMP" };
-                
+                List<string> viewNames = new()
+                { "EMP" };
+
                 // Act
-                var result = await _service.GetViewsDefinitionAsync(viewNames);
+                List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);
 
                 // Assert
                 Assert.NotNull(result);
@@ -153,55 +158,61 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+                {
                     File.Delete(AppConstants.ViewsMetadatJsonFile);
+                }
             }
         }
-        
+
         [Fact]
         public async Task GetAllViewsAsync_ThrowsException_WhenDbFails()
         {
             // Arrange
             // Ensure cache file does not exist
             if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+            {
                 File.Delete(AppConstants.ViewsMetadatJsonFile);
-                
-            var expectedException = new InvalidOperationException("Test exception");
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+            }
+
+            InvalidOperationException expectedException = new("Test exception");
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
                 .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _service.GetAllViewsAsync());
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                _service.GetAllViewsAsync);
             Assert.Same(expectedException, exception);
         }
-        
+
         [Fact]
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new ViewEnumerationService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
-        
+
         [Fact]
         public async Task GetAllViewsAsync_HandlesEmptyResult()
         {
             // Arrange
             // Ensure cache file does not exist
             if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+            {
                 File.Delete(AppConstants.ViewsMetadatJsonFile);
-            
-            _readerMock.Setup(r => r.Read()).Returns(false); // No rows
+            }
+
+            _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
             SetupMocksForCommand(_commandMock, _readerMock);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             try
             {
                 // Act
-                var result = await _service.GetAllViewsAsync();
-                
+                List<ViewMetadata> result = await _service.GetAllViewsAsync();
+
                 // Assert
                 Assert.NotNull(result);
                 Assert.Empty(result);
@@ -210,35 +221,39 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+                {
                     File.Delete(AppConstants.ViewsMetadatJsonFile);
+                }
             }
         }
-        
+
         [Fact]
         public async Task GetViewsDefinitionAsync_ReturnsEmptyList_WhenNoMatchesFound()
         {
             // Arrange
             // Create cache file with test data
-            var cachedViews = new List<ViewMetadata> {
+            List<ViewMetadata> cachedViews = new()
+            {
                 new ViewMetadata { ViewName = "VIEW1", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "VIEW2", Definition = "DEF2" }
             };
 
             // Create cache directory if it doesn't exist
-            Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile, 
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
             {
                 // Names to filter by
-                var viewNames = new List<string> { "NONEXISTENT" };
-                
+                List<string> viewNames = new()
+                { "NONEXISTENT" };
+
                 // Act
-                var result = await _service.GetViewsDefinitionAsync(viewNames);
+                List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);
 
                 // Assert
                 Assert.NotNull(result);
@@ -248,26 +263,28 @@ namespace OracleAgentCore.Tests
             {
                 // Clean up
                 if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+                {
                     File.Delete(AppConstants.ViewsMetadatJsonFile);
+                }
             }
         }
-        
+
         private void SetupReaderForViewMetadata(Mock<IDataReader> readerMock, List<ViewMetadata> data)
         {
             int callCount = -1;
-            readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
-            
+            _ = readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+
             if (data.Count > 0)
             {
-                readerMock.Setup(r => r["VIEW_NAME"]).Returns(() => data[callCount].ViewName);
-                readerMock.Setup(r => r["TEXT_VC"]).Returns(() => data[callCount].Definition);
+                _ = readerMock.Setup(r => r["VIEW_NAME"]).Returns(() => data[callCount].ViewName);
+                _ = readerMock.Setup(r => r["TEXT_VC"]).Returns(() => data[callCount].Definition);
             }
         }
-        
+
         private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock)
         {
-            commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
-            commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
+            _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
         }
     }
 }

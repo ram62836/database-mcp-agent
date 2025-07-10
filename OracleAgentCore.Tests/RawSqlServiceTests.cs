@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OracleAgent.Core;
-using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Services;
-using Xunit;
 
 namespace OracleAgentCore.Tests
 {
@@ -29,16 +24,16 @@ namespace OracleAgentCore.Tests
         public async Task ExecuteRawSelectAsync_ValidSelect_ReturnsJson()
         {
             string sql = "SELECT * FROM DUAL";
-            _readerMock.SetupSequence(r => r.Read()).Returns(true).Returns(false);
-            _readerMock.Setup(r => r.FieldCount).Returns(1);
-            _readerMock.Setup(r => r.GetName(0)).Returns("DUMMY");
-            _readerMock.Setup(r => r.IsDBNull(0)).Returns(false);
-            _readerMock.Setup(r => r.GetValue(0)).Returns("X");
-            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _readerMock.SetupSequence(r => r.Read()).Returns(true).Returns(false);
+            _ = _readerMock.Setup(r => r.FieldCount).Returns(1);
+            _ = _readerMock.Setup(r => r.GetName(0)).Returns("DUMMY");
+            _ = _readerMock.Setup(r => r.IsDBNull(0)).Returns(false);
+            _ = _readerMock.Setup(r => r.GetValue(0)).Returns("X");
+            _ = _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
             Assert.Contains("DUMMY", result);
             Assert.Contains("X", result);
             _commandMock.VerifySet(c => c.CommandText = sql);
@@ -50,22 +45,22 @@ namespace OracleAgentCore.Tests
             string sql = "SELECT * FROM EMPLOYEES";
             int readCount = 0;
 
-            _readerMock.Setup(r => r.Read()).Returns(() => readCount++ < 2);
-            _readerMock.Setup(r => r.FieldCount).Returns(2);
-            _readerMock.Setup(r => r.GetName(0)).Returns("ID");
-            _readerMock.Setup(r => r.GetName(1)).Returns("NAME");
+            _ = _readerMock.Setup(r => r.Read()).Returns(() => readCount++ < 2);
+            _ = _readerMock.Setup(r => r.FieldCount).Returns(2);
+            _ = _readerMock.Setup(r => r.GetName(0)).Returns("ID");
+            _ = _readerMock.Setup(r => r.GetName(1)).Returns("NAME");
 
-            _readerMock.Setup(r => r.IsDBNull(It.IsAny<int>())).Returns(false);
-            _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 0 && readCount == 1))).Returns(1);
-            _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 1 && readCount == 1))).Returns("John");
-            _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 0 && readCount == 2))).Returns(2);
-            _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 1 && readCount == 2))).Returns("Jane");
+            _ = _readerMock.Setup(r => r.IsDBNull(It.IsAny<int>())).Returns(false);
+            _ = _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 0 && readCount == 1))).Returns(1);
+            _ = _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 1 && readCount == 1))).Returns("John");
+            _ = _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 0 && readCount == 2))).Returns(2);
+            _ = _readerMock.Setup(r => r.GetValue(It.Is<int>(i => i == 1 && readCount == 2))).Returns("Jane");
 
-            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Contains("ID", result);
             Assert.Contains("NAME", result);
@@ -80,20 +75,20 @@ namespace OracleAgentCore.Tests
         {
             string sql = "SELECT * FROM EMPLOYEES WHERE ID = 1";
 
-            _readerMock.SetupSequence(r => r.Read()).Returns(true).Returns(false);
-            _readerMock.Setup(r => r.FieldCount).Returns(2);
-            _readerMock.Setup(r => r.GetName(0)).Returns("ID");
-            _readerMock.Setup(r => r.GetName(1)).Returns("DEPARTMENT");
+            _ = _readerMock.SetupSequence(r => r.Read()).Returns(true).Returns(false);
+            _ = _readerMock.Setup(r => r.FieldCount).Returns(2);
+            _ = _readerMock.Setup(r => r.GetName(0)).Returns("ID");
+            _ = _readerMock.Setup(r => r.GetName(1)).Returns("DEPARTMENT");
 
-            _readerMock.Setup(r => r.IsDBNull(0)).Returns(false);
-            _readerMock.Setup(r => r.IsDBNull(1)).Returns(true);
-            _readerMock.Setup(r => r.GetValue(0)).Returns(1);
+            _ = _readerMock.Setup(r => r.IsDBNull(0)).Returns(false);
+            _ = _readerMock.Setup(r => r.IsDBNull(1)).Returns(true);
+            _ = _readerMock.Setup(r => r.GetValue(0)).Returns(1);
 
-            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Contains("ID", result);
             Assert.Contains("DEPARTMENT", result);
@@ -105,7 +100,7 @@ namespace OracleAgentCore.Tests
         {
             string sql = "UPDATE EMPLOYEES SET NAME = 'John' WHERE ID = 1";
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Contains("Invalid", result, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("Only select", result, StringComparison.OrdinalIgnoreCase);
@@ -117,7 +112,7 @@ namespace OracleAgentCore.Tests
         {
             string sql = "";
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Contains("Invalid", result, StringComparison.OrdinalIgnoreCase);
             _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
@@ -128,7 +123,7 @@ namespace OracleAgentCore.Tests
         {
             string sql = "SELECT * FROM EMPLOYEES; DELETE FROM EMPLOYEES";
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Contains("Invalid", result, StringComparison.OrdinalIgnoreCase);
             _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
@@ -138,11 +133,11 @@ namespace OracleAgentCore.Tests
         public async Task ExecuteRawSelectAsync_ThrowsException_WhenDbFails()
         {
             string sql = "SELECT * FROM DUAL";
-            var expectedException = new InvalidOperationException("Test exception");
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+            InvalidOperationException expectedException = new("Test exception");
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
                 .ThrowsAsync(expectedException);
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _service.ExecuteRawSelectAsync(sql));
             Assert.Same(expectedException, exception);
         }
@@ -152,14 +147,14 @@ namespace OracleAgentCore.Tests
         {
             string sql = "SELECT * FROM EMPLOYEES WHERE 1=0";
 
-            _readerMock.Setup(r => r.Read()).Returns(false);
-            _readerMock.Setup(r => r.FieldCount).Returns(0);
+            _ = _readerMock.Setup(r => r.Read()).Returns(false);
+            _ = _readerMock.Setup(r => r.FieldCount).Returns(0);
 
-            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
-            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            _ = _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
-            var result = await _service.ExecuteRawSelectAsync(sql);
+            string result = await _service.ExecuteRawSelectAsync(sql);
 
             Assert.Equal("[]", result);
         }
@@ -167,7 +162,7 @@ namespace OracleAgentCore.Tests
         [Fact]
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
-            var exception = Assert.Throws<ArgumentNullException>(
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new RawSqlService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }

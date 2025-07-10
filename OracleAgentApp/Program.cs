@@ -1,26 +1,25 @@
+using System.IO;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Services;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 using Serilog;
-using System;
 
-var logPath = Path.Combine(Directory.GetCurrentDirectory() ?? ".", "oracleagent.log");
+string logPath = Path.Combine(Directory.GetCurrentDirectory() ?? ".", "oracleagent.log");
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
-var config = new ConfigurationManager();
+ConfigurationManager config = new();
 config.SetBasePath(Directory.GetCurrentDirectory());
 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-var settings = new HostApplicationBuilderSettings
+HostApplicationBuilderSettings settings = new()
 {
     Configuration = config
 };
 
-var builder = Host.CreateEmptyApplicationBuilder(settings: settings);
+HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(settings: settings);
 builder.Services.AddLogging(logging => logging.AddSerilog(Log.Logger, dispose: true));
 builder.Services.AddMcpServer()
   .WithStdioServerTransport()
@@ -39,20 +38,20 @@ builder.Services.AddScoped<IRawSqlService, RawSqlService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger, dispose: true));
-var app = builder.Build();
+IHost app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var storedProcedureFunctionsService = scope.ServiceProvider.GetRequiredService<IStoredProcedureFunctionService>();
-    var tableDiscoveryService = scope.ServiceProvider.GetRequiredService<ITableDiscoveryService>();
-    var triggerService = scope.ServiceProvider.GetRequiredService<ITriggerService>();
-    var viewsService = scope.ServiceProvider.GetRequiredService<IViewEnumerationService>();
-    
-    await storedProcedureFunctionsService.GetAllStoredProceduresAsync();
-    await storedProcedureFunctionsService.GetAllFunctionsAsync();
-    await tableDiscoveryService.GetAllUserDefinedTablesAsync();
-    await triggerService.GetAllTriggersAsync();
-    await viewsService.GetAllViewsAsync();
+    IStoredProcedureFunctionService storedProcedureFunctionsService = scope.ServiceProvider.GetRequiredService<IStoredProcedureFunctionService>();
+    ITableDiscoveryService tableDiscoveryService = scope.ServiceProvider.GetRequiredService<ITableDiscoveryService>();
+    ITriggerService triggerService = scope.ServiceProvider.GetRequiredService<ITriggerService>();
+    IViewEnumerationService viewsService = scope.ServiceProvider.GetRequiredService<IViewEnumerationService>();
+
+    _ = await storedProcedureFunctionsService.GetAllStoredProceduresAsync();
+    _ = await storedProcedureFunctionsService.GetAllFunctionsAsync();
+    _ = await tableDiscoveryService.GetAllUserDefinedTablesAsync();
+    _ = await triggerService.GetAllTriggersAsync();
+    _ = await viewsService.GetAllViewsAsync();
 }
 
 await app.RunAsync();

@@ -1,14 +1,14 @@
-using System.Collections.Generic;
-using OracleAgent.Core.Interfaces;
-using OracleAgent.Core.Models;
-using Microsoft.Extensions.Caching.Memory;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Text.Json;
+using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
-using System.Data;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -28,31 +28,29 @@ namespace OracleAgent.Core.Services
         public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()
         {
             _logger.LogInformation("Getting all stored procedures.");
-            if (File.Exists(AppConstants.ProceduresMetadatJsonFile)) 
+            if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
             {
-                var fileContent = await File.ReadAllTextAsync(AppConstants.ProceduresMetadatJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.ProceduresMetadatJsonFile);
                 List<ProcedureFunctionMetadata> cachedProceduresMetadata = JsonSerializer.Deserialize<List<ProcedureFunctionMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} stored procedures from cache.", cachedProceduresMetadata?.Count ?? 0);
                 return cachedProceduresMetadata;
             }
 
-            var proceduresMetadata = new List<ProcedureFunctionMetadata>();
+            List<ProcedureFunctionMetadata> proceduresMetadata = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var command = connection.CreateCommand();
+                    IDbCommand command = connection.CreateCommand();
                     command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND STATUS = 'VALID'";
-                    using (var reader = command.ExecuteReader())
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        proceduresMetadata.Add(new ProcedureFunctionMetadata
                         {
-                            proceduresMetadata.Add(new ProcedureFunctionMetadata
-                            {
-                                Name = reader["OBJECT_NAME"].ToString(),
-                                Definition = await GetProcedureDefinitionAsync(reader["OBJECT_NAME"].ToString())
-                            });
-                        }
+                            Name = reader["OBJECT_NAME"].ToString(),
+                            Definition = await GetProcedureDefinitionAsync(reader["OBJECT_NAME"].ToString())
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} stored procedures.", proceduresMetadata.Count);
@@ -62,7 +60,7 @@ namespace OracleAgent.Core.Services
                 _logger.LogError(ex, "Error getting all stored procedures.");
                 throw;
             }
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(proceduresMetadata, options);
             await File.WriteAllTextAsync(AppConstants.ProceduresMetadatJsonFile, json);
             return proceduresMetadata;
@@ -73,29 +71,27 @@ namespace OracleAgent.Core.Services
             _logger.LogInformation("Getting all functions.");
             if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
             {
-                var fileContent = await File.ReadAllTextAsync(AppConstants.FunctionsMetadataJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.FunctionsMetadataJsonFile);
                 List<ProcedureFunctionMetadata> cachedFunctionsMetadata = JsonSerializer.Deserialize<List<ProcedureFunctionMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} functions from cache.", cachedFunctionsMetadata?.Count ?? 0);
                 return cachedFunctionsMetadata;
             }
 
-            var functionsMetadata = new List<ProcedureFunctionMetadata>();
+            List<ProcedureFunctionMetadata> functionsMetadata = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var command = connection.CreateCommand();
+                    IDbCommand command = connection.CreateCommand();
                     command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'FUNCTION' AND STATUS = 'VALID'";
-                    using (var reader = command.ExecuteReader())
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        functionsMetadata.Add(new ProcedureFunctionMetadata
                         {
-                            functionsMetadata.Add(new ProcedureFunctionMetadata
-                            {
-                                Name = reader["OBJECT_NAME"].ToString(),
-                                Definition = await GetFunctionDefinitionAsync(reader["OBJECT_NAME"].ToString())
-                            });
-                        }
+                            Name = reader["OBJECT_NAME"].ToString(),
+                            Definition = await GetFunctionDefinitionAsync(reader["OBJECT_NAME"].ToString())
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} functions.", functionsMetadata.Count);
@@ -105,7 +101,7 @@ namespace OracleAgent.Core.Services
                 _logger.LogError(ex, "Error getting all functions.");
                 throw;
             }
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(functionsMetadata, options);
             await File.WriteAllTextAsync(AppConstants.FunctionsMetadataJsonFile, json);
             return functionsMetadata;
@@ -114,8 +110,8 @@ namespace OracleAgent.Core.Services
         public async Task<List<ProcedureFunctionMetadata>> GetStoredProceduresMetadataByNameAsync(List<string> names)
         {
             _logger.LogInformation("Getting stored procedures by name.");
-            var proceduresMetadata = await GetAllStoredProceduresAsync();
-            var filtredprocedures = proceduresMetadata
+            List<ProcedureFunctionMetadata> proceduresMetadata = await GetAllStoredProceduresAsync();
+            List<ProcedureFunctionMetadata> filtredprocedures = proceduresMetadata
                 .Where(procedure => names.Contains(procedure.Name, StringComparer.OrdinalIgnoreCase))
                 .ToList();
             _logger.LogInformation("Filtered to {Count} stored procedures by name.", filtredprocedures.Count);
@@ -125,8 +121,8 @@ namespace OracleAgent.Core.Services
         public async Task<List<ProcedureFunctionMetadata>> GetFunctionsMetadataByNameAsync(List<string> names)
         {
             _logger.LogInformation("Getting functions by name.");
-            var functionsMetadata = await GetAllFunctionsAsync();
-            var filteredfunctions = functionsMetadata
+            List<ProcedureFunctionMetadata> functionsMetadata = await GetAllFunctionsAsync();
+            List<ProcedureFunctionMetadata> filteredfunctions = functionsMetadata
                 .Where(function => names.Contains(function.Name, StringComparer.OrdinalIgnoreCase))
                 .ToList();
             _logger.LogInformation("Filtered to {Count} functions by name.", filteredfunctions.Count);
@@ -139,7 +135,7 @@ namespace OracleAgent.Core.Services
             {
                 throw new ArgumentException("The value cannot be an empty string", nameof(storedProcedureName));
             }
-            
+
             _logger.LogInformation("Getting parameters for stored procedure: {StoredProcedureName}", storedProcedureName);
             return await GetParametersAsync(storedProcedureName);
         }
@@ -150,7 +146,7 @@ namespace OracleAgent.Core.Services
             {
                 throw new ArgumentException("The value cannot be an empty string", nameof(functionName));
             }
-            
+
             _logger.LogInformation("Getting parameters for function: {FunctionName}", functionName);
             return await GetParametersAsync(functionName);
         }
@@ -161,31 +157,29 @@ namespace OracleAgent.Core.Services
             {
                 throw new ArgumentException("The value cannot be an empty string", nameof(objectName));
             }
-            
+
             _logger.LogInformation("Getting parameters for object: {ObjectName}", objectName);
-            var parameters = new List<ParameterMetadata>();
+            List<ParameterMetadata> parameters = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var command = connection.CreateCommand();
+                    IDbCommand command = connection.CreateCommand();
                     command.CommandText = @"SELECT ARGUMENT_NAME, DATA_TYPE, IN_OUT FROM ALL_ARGUMENTS WHERE OBJECT_NAME = :objectName AND PACKAGE_NAME IS NULL";
-                    var param = command.CreateParameter();
+                    IDbDataParameter param = command.CreateParameter();
                     param.ParameterName = "objectName";
                     param.Value = objectName;
-                    command.Parameters.Add(param);
+                    _ = command.Parameters.Add(param);
 
-                    using (var reader = command.ExecuteReader())
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        parameters.Add(new ParameterMetadata
                         {
-                            parameters.Add(new ParameterMetadata
-                            {
-                                Name = reader["ARGUMENT_NAME"].ToString(),
-                                DataType = reader["DATA_TYPE"].ToString(),
-                                Direction = reader["IN_OUT"].ToString()
-                            });
-                        }
+                            Name = reader["ARGUMENT_NAME"].ToString(),
+                            DataType = reader["DATA_TYPE"].ToString(),
+                            Direction = reader["IN_OUT"].ToString()
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} parameters for object {ObjectName}", parameters.Count, objectName);
@@ -204,21 +198,19 @@ namespace OracleAgent.Core.Services
             {
                 throw new ArgumentException("The value cannot be an empty string", nameof(procedureName));
             }
-            
+
             _logger.LogInformation("Getting procedure definition for: {ProcedureName}", procedureName);
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName) AS DDL FROM DUAL";
-                    var param = command.CreateParameter();
-                    param.ParameterName = "ProcedureName";
-                    param.Value = procedureName;
-                    command.Parameters.Add(param);
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                IDbCommand command = connection.CreateCommand();
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName) AS DDL FROM DUAL";
+                IDbDataParameter param = command.CreateParameter();
+                param.ParameterName = "ProcedureName";
+                param.Value = procedureName;
+                _ = command.Parameters.Add(param);
 
-                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
-                }
+                return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
             {
@@ -233,21 +225,19 @@ namespace OracleAgent.Core.Services
             {
                 throw new ArgumentException("The value cannot be an empty string", nameof(functionName));
             }
-            
+
             _logger.LogInformation("Getting function definition for: {FunctionName}", functionName);
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName) AS DDL FROM DUAL";
-                    var param = command.CreateParameter();
-                    param.ParameterName = "FunctionName";
-                    param.Value = functionName;
-                    command.Parameters.Add(param);
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                IDbCommand command = connection.CreateCommand();
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName) AS DDL FROM DUAL";
+                IDbDataParameter param = command.CreateParameter();
+                param.ParameterName = "FunctionName";
+                param.Value = functionName;
+                _ = command.Parameters.Add(param);
 
-                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
-                }
+                return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
             {

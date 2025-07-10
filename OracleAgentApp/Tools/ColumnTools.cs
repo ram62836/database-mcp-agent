@@ -1,10 +1,9 @@
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using ModelContextProtocol.Server;
 using OracleAgent.Core.Interfaces;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using OracleAgent.Core.Models;
-using ModelContextProtocol;
 
 namespace OracleAgent.App.Tools
 {
@@ -14,7 +13,7 @@ namespace OracleAgent.App.Tools
     {
         [McpServerTool, Description("Fetches detailed metadata for all columns in the specified table, including name, data type, nullability, default value, and ordinal position.")]
         public static async Task<List<ColumnMetadata>> GetColumnMetadata(
-            IColumnMetadataService service,  
+            IColumnMetadataService service,
             [Description("The name of the table for which column metadata is to be retrieved.")] string tableName)
         {
             return await service.GetColumnMetadataAsync(tableName);

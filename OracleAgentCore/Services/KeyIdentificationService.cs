@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using OracleAgent.Core.Models;
-using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System.Data;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -22,33 +22,29 @@ namespace OracleAgent.Core.Services
         public async Task<List<KeyMetadata>> GetPrimaryKeysAsync(string tableName)
         {
             _logger.LogInformation("Getting primary keys for table: {TableName}", tableName);
-            var primaryKeys = new List<KeyMetadata>();
+            List<KeyMetadata> primaryKeys = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'P' AND cons.TABLE_NAME = :TableName";
+                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'P' AND cons.TABLE_NAME = :TableName";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    IDbDataParameter param = command.CreateParameter();
+                    param.ParameterName = "TableName";
+                    param.Value = tableName.ToUpper();
+                    _ = command.Parameters.Add(param);
+
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        var param = command.CreateParameter();
-                        param.ParameterName = "TableName";
-                        param.Value = tableName.ToUpper();
-                        command.Parameters.Add(param);
-
-                        using (var reader = command.ExecuteReader())
+                        primaryKeys.Add(new KeyMetadata
                         {
-                            while (reader.Read())
-                            {
-                                primaryKeys.Add(new KeyMetadata
-                                {
-                                    ColumnName = reader["COLUMN_NAME"].ToString(),
-                                    ConstraintName = reader["CONSTRAINT_NAME"].ToString(),
-                                    KeyType = "Primary"
-                                });
-                            }
-                        }
+                            ColumnName = reader["COLUMN_NAME"].ToString(),
+                            ConstraintName = reader["CONSTRAINT_NAME"].ToString(),
+                            KeyType = "Primary"
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} primary keys for table {TableName}", primaryKeys.Count, tableName);
@@ -64,34 +60,30 @@ namespace OracleAgent.Core.Services
         public async Task<List<KeyMetadata>> GetForeignKeysAsync(string tableName)
         {
             _logger.LogInformation("Getting foreign keys for table: {TableName}", tableName);
-            var foreignKeys = new List<KeyMetadata>();
+            List<KeyMetadata> foreignKeys = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R' AND cons.TABLE_NAME = :TableName";
+                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R' AND cons.TABLE_NAME = :TableName";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    IDbDataParameter param = command.CreateParameter();
+                    param.ParameterName = "TableName";
+                    param.Value = tableName.ToUpper();
+                    _ = command.Parameters.Add(param);
+
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        var param = command.CreateParameter();
-                        param.ParameterName = "TableName";
-                        param.Value = tableName.ToUpper();
-                        command.Parameters.Add(param);
-
-                        using (var reader = command.ExecuteReader())
+                        foreignKeys.Add(new KeyMetadata
                         {
-                            while (reader.Read())
-                            {
-                                foreignKeys.Add(new KeyMetadata
-                                {
-                                    ColumnName = reader["COLUMN_NAME"].ToString(),
-                                    ConstraintName = reader["CONSTRAINT_NAME"].ToString(),
-                                    ReferencedConstraintName = reader["R_CONSTRAINT_NAME"].ToString(),
-                                    KeyType = "Foreign"
-                                });
-                            }
-                        }
+                            ColumnName = reader["COLUMN_NAME"].ToString(),
+                            ConstraintName = reader["CONSTRAINT_NAME"].ToString(),
+                            ReferencedConstraintName = reader["R_CONSTRAINT_NAME"].ToString(),
+                            KeyType = "Foreign"
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} foreign keys for table {TableName}", foreignKeys.Count, tableName);
@@ -103,35 +95,31 @@ namespace OracleAgent.Core.Services
             }
             return foreignKeys;
         }
-        
+
         public async Task<Dictionary<string, List<string>>> GetForeignKeyRelationshipsAsync()
         {
             _logger.LogInformation("Getting all foreign key relationships");
-            var relationships = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> relationships = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT cons.CONSTRAINT_NAME, cols.TABLE_NAME, cols.COLUMN_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R'";
+                    string query = @"SELECT cons.CONSTRAINT_NAME, cols.TABLE_NAME, cols.COLUMN_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R'";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        using (var reader = command.ExecuteReader())
+                        string constraintName = reader["CONSTRAINT_NAME"].ToString();
+                        string columnName = reader["COLUMN_NAME"].ToString();
+
+                        if (!relationships.ContainsKey(constraintName))
                         {
-                            while (reader.Read())
-                            {
-                                var constraintName = reader["CONSTRAINT_NAME"].ToString();
-                                var columnName = reader["COLUMN_NAME"].ToString();
-
-                                if (!relationships.ContainsKey(constraintName))
-                                {
-                                    relationships[constraintName] = new List<string>();
-                                }
-
-                                relationships[constraintName].Add(columnName);
-                            }
+                            relationships[constraintName] = [];
                         }
+
+                        relationships[constraintName].Add(columnName);
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} foreign key relationships", relationships.Count);

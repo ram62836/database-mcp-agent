@@ -16,7 +16,7 @@ namespace OracleAgent.Core
 
         public async Task<IDbConnection> CreateConnectionAsync()
         {
-            var connection = new OracleConnection(_connectionString);
+            OracleConnection connection = new(_connectionString);
             await connection.OpenAsync();
             return connection;
         }

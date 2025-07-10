@@ -1,13 +1,13 @@
-using System.Collections.Generic;
-using OracleAgent.Core.Models;
-using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.IO;
-using System.Data;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -27,33 +27,29 @@ namespace OracleAgent.Core.Services
             _logger.LogInformation("Getting all user-defined tables.");
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
             {
-                var fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
                 List<TableMetadata> cachedTableMetadata = JsonSerializer.Deserialize<List<TableMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} tables from cache.", cachedTableMetadata?.Count ?? 0);
                 return cachedTableMetadata;
             }
 
-            var tablesMetadata = new List<TableMetadata>();
+            List<TableMetadata> tablesMetadata = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT TABLE_NAME, DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) AS TABLE_DDL FROM USER_TABLES WHERE TEMPORARY = 'N' AND NESTED = 'NO' AND SECONDARY = 'N' AND TABLE_NAME NOT LIKE 'SYS\_%' ESCAPE '\'";
+                    string query = @"SELECT TABLE_NAME, DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) AS TABLE_DDL FROM USER_TABLES WHERE TEMPORARY = 'N' AND NESTED = 'NO' AND SECONDARY = 'N' AND TABLE_NAME NOT LIKE 'SYS\_%' ESCAPE '\'";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        using (var reader = command.ExecuteReader())
+                        tablesMetadata.Add(new TableMetadata
                         {
-                            while (reader.Read())
-                            {
-                                tablesMetadata.Add(new TableMetadata
-                                {
-                                    TableName = reader["TABLE_NAME"].ToString(),
-                                    Definition = reader["TABLE_DDL"].ToString()
-                                });
-                            }
-                        }
+                            TableName = reader["TABLE_NAME"].ToString(),
+                            Definition = reader["TABLE_DDL"].ToString()
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} user-defined tables.", tablesMetadata.Count);
@@ -63,7 +59,7 @@ namespace OracleAgent.Core.Services
                 _logger.LogError(ex, "Error getting user-defined tables.");
                 throw;
             }
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(tablesMetadata, options);
             await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile, json);
             return tablesMetadata;
@@ -72,8 +68,8 @@ namespace OracleAgent.Core.Services
         public async Task<List<TableMetadata>> GetTablesByNameAsync(List<string> tableNames)
         {
             _logger.LogInformation("Getting tables by name.");
-            var tablesMetadata = await GetAllUserDefinedTablesAsync();
-            var filteredTables = tablesMetadata
+            List<TableMetadata> tablesMetadata = await GetAllUserDefinedTablesAsync();
+            List<TableMetadata> filteredTables = tablesMetadata
                 .Where(table => tableNames.Any(name => table.TableName.Contains(name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
             _logger.LogInformation("Filtered to {Count} tables by name.", filteredTables.Count);
@@ -85,17 +81,15 @@ namespace OracleAgent.Core.Services
             _logger.LogInformation("Getting table definition for: {TableName}", tableName);
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL";
-                    var param = command.CreateParameter();
-                    param.ParameterName = "TableName";
-                    param.Value = tableName;
-                    command.Parameters.Add(param);
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                IDbCommand command = connection.CreateCommand();
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL";
+                IDbDataParameter param = command.CreateParameter();
+                param.ParameterName = "TableName";
+                param.Value = tableName;
+                _ = command.Parameters.Add(param);
 
-                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
-                }
+                return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
             {

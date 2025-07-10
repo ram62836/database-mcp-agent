@@ -7,7 +7,7 @@ namespace OracleAgent.Core.Models
         public string TableName { get; set; }
         public string Schema { get; set; }
         public string Description { get; set; }
-        public string Definition { get; set; }  
+        public string Definition { get; set; }
         public List<ColumnMetadata> Columns { get; set; }
         public List<KeyMetadata> Keys { get; set; }
         public List<IndexMetadata> Indexes { get; set; }
@@ -18,13 +18,13 @@ namespace OracleAgent.Core.Models
 
         public TableMetadata()
         {
-            Columns = new List<ColumnMetadata>();
-            Keys = new List<KeyMetadata>();
-            Indexes = new List<IndexMetadata>();
-            Constraints = new List<ConstraintMetadata>();
-            Views = new List<ViewMetadata>();
-            Synonyms = new List<SynonymMetadata>();
-            StoredProceduresAndFunctions = new List<ProcedureFunctionMetadata>();
+            Columns = [];
+            Keys = [];
+            Indexes = [];
+            Constraints = [];
+            Views = [];
+            Synonyms = [];
+            StoredProceduresAndFunctions = [];
         }
     }
 }

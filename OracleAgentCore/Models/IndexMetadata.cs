@@ -12,7 +12,7 @@ namespace OracleAgent.Core.Models
 
         public IndexMetadata()
         {
-            ColumnNames = new List<string>();
+            ColumnNames = [];
         }
     }
 }

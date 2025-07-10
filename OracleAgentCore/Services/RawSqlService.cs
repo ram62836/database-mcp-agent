@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OracleAgent.Core.Interfaces;
-using System.Data;
 
 namespace OracleAgent.Core.Services
 {
@@ -29,29 +29,23 @@ namespace OracleAgent.Core.Services
 
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
+                command.CommandText = rawSelectSql;
+                using IDataReader reader = command.ExecuteReader();
+                List<Dictionary<string, object>> results = new();
+                while (reader.Read())
                 {
-                    using (var command = connection.CreateCommand())
+                    Dictionary<string, object> row = new();
+                    for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        command.CommandText = rawSelectSql;
-                        using (var reader = command.ExecuteReader())
-                        {
-                            var results = new List<Dictionary<string, object>>();
-                            while (reader.Read())
-                            {
-                                var row = new Dictionary<string, object>();
-                                for (int i = 0; i < reader.FieldCount; i++)
-                                {
-                                    var value = reader.IsDBNull(i) ? null : reader.GetValue(i);
-                                    row[reader.GetName(i)] = value;
-                                }
-                                results.Add(row);
-                            }
-                            _logger.LogInformation("Raw select SQL executed successfully. Rows returned: {Count}", results.Count);
-                            return System.Text.Json.JsonSerializer.Serialize(results);
-                        }
+                        object value = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                        row[reader.GetName(i)] = value;
                     }
+                    results.Add(row);
                 }
+                _logger.LogInformation("Raw select SQL executed successfully. Rows returned: {Count}", results.Count);
+                return System.Text.Json.JsonSerializer.Serialize(results);
             }
             catch (Exception ex)
             {
@@ -60,16 +54,28 @@ namespace OracleAgent.Core.Services
             }
         }
 
-        static bool IsSelectOnly(string sql)
+        private static bool IsSelectOnly(string sql)
         {
-            if (string.IsNullOrWhiteSpace(sql)) return false;
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
             sql = sql.Trim().ToUpperInvariant();
 
-            if (!sql.StartsWith("SELECT")) return false;
+            if (!sql.StartsWith("SELECT"))
+            {
+                return false;
+            }
 
             string[] disallowed = { "INSERT", "UPDATE", "DELETE", "MERGE", "DROP", "ALTER", "TRUNCATE", "EXECUTE" };
-            foreach (var bad in disallowed)
-                if (sql.Contains(bad)) return false;
+            foreach (string bad in disallowed)
+            {
+                if (sql.Contains(bad))
+                {
+                    return false;
+                }
+            }
 
             return true;
         }

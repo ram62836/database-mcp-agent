@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace OracleAgent.Core.Models
 {
     public class ConstraintMetadata
@@ -7,6 +5,6 @@ namespace OracleAgent.Core.Models
         public string ConstraintName { get; set; }
         public string ConstraintType { get; set; }
         public string ColumnName { get; set; }
-        public string SearchCondition { get; set; }        
+        public string SearchCondition { get; set; }
     }
 }

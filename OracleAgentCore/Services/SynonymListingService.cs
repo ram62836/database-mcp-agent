@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using OracleAgent.Core.Models;
 using System.Data;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 
 namespace OracleAgent.Core.Services
 {
@@ -22,28 +22,24 @@ namespace OracleAgent.Core.Services
         public async Task<List<SynonymMetadata>> ListSynonymsAsync()
         {
             _logger.LogInformation("Listing synonyms.");
-            var synonyms = new List<SynonymMetadata>();
+            List<SynonymMetadata> synonyms = new();
             try
             {
-                using (var connection = await _connectionFactory.CreateConnectionAsync())
+                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    var query = @"SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS";
+                    string query = @"SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS";
 
-                    using (var command = connection.CreateCommand())
+                    using IDbCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    using IDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = query;
-                        using (var reader = command.ExecuteReader())
+                        synonyms.Add(new SynonymMetadata
                         {
-                            while (reader.Read())
-                            {
-                                synonyms.Add(new SynonymMetadata
-                                {
-                                    SynonymName = reader["SYNONYM_NAME"].ToString(),
-                                    TableOwner = reader["TABLE_OWNER"].ToString(),
-                                    BaseObjectName = reader["TABLE_NAME"].ToString()
-                                });
-                            }
-                        }
+                            SynonymName = reader["SYNONYM_NAME"].ToString(),
+                            TableOwner = reader["TABLE_OWNER"].ToString(),
+                            BaseObjectName = reader["TABLE_NAME"].ToString()
+                        });
                     }
                 }
                 _logger.LogInformation("Retrieved {Count} synonyms.", synonyms.Count);

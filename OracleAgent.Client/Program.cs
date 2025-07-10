@@ -1,33 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OracleAgent.App.Tools;
 using OracleAgent.Core.Interfaces;
-using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
 
 namespace OracleAgent.Client
 {
     internal static class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
 
             // Setup dependency injection
-            var services = new ServiceCollection();
-            var configuration = new ConfigurationBuilder()
+            ServiceCollection services = new();
+            IConfigurationRoot configuration = new ConfigurationBuilder()
                                     .SetBasePath(Directory.GetCurrentDirectory())
                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                                     .Build();
-            services.AddSingleton<IConfiguration>(configuration);
-            services.AddSingleton<IRawSqlService, RawSqlService>();
-            using var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
+            _ = services.AddSingleton<IConfiguration>(configuration);
+            _ = services.AddSingleton<IRawSqlService, RawSqlService>();
+            using ServiceProvider serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
             {
                 ValidateScopes = true
             });
-            var rawSqlService = serviceProvider.GetRequiredService<IRawSqlService>();
+            IRawSqlService rawSqlService = serviceProvider.GetRequiredService<IRawSqlService>();
 
             try
             {
