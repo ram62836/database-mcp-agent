@@ -1,7 +1,9 @@
+using System.Data.Common;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OracleAgent.Core;
 using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Services;
 using Serilog;
@@ -24,6 +26,7 @@ builder.Services.AddLogging(logging => logging.AddSerilog(Log.Logger, dispose: t
 builder.Services.AddMcpServer()
   .WithStdioServerTransport()
     .WithToolsFromAssembly();
+builder.Services.AddScoped<IDbConnectionFactory, OracleDbConnectionFactory>();
 builder.Services.AddScoped<IColumnMetadataService, ColumnMetadataService>();
 builder.Services.AddScoped<IConstraintGatheringService, ConstraintGatheringService>();
 builder.Services.AddScoped<IIndexListingService, IndexListingService>();
