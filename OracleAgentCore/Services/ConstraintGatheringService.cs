@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class ConstraintGatheringService : IConstraintGatheringService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ConstraintGatheringService> _logger;
 
-        public ConstraintGatheringService(IConfiguration config, ILogger<ConstraintGatheringService> logger)
+        public ConstraintGatheringService(IDbConnectionFactory connectionFactory, ILogger<ConstraintGatheringService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -26,25 +25,21 @@ namespace OracleAgent.Core.Services
             var uniqueConstraints = new List<ConstraintMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT AC.CONSTRAINT_NAME, COLUMN_NAME
-                                  FROM ALL_CONS_COLUMNS ACC
-                                  JOIN ALL_CONSTRAINTS AC
-                                  ON ACC.CONSTRAINT_NAME = AC.CONSTRAINT_NAME
-                                  WHERE ACC.TABLE_NAME = :TableName
-                                  AND AC.CONSTRAINT_TYPE = 'U'
-                                  AND AC.OWNER NOT IN ('SYS', 'SYSTEM', 'XDB', 'OUTLN', 'CTXSYS', 'DBSNMP', 'ORDDATA', 'ORDSYS', 'MDSYS', 'WMSYS', 'OLAPSYS', 'EXFSYS', 'SYSMAN', 'APEX_040000', 'FLOWS_FILES')
-                                  AND AC.OWNER NOT LIKE '%SYS%'";
+                    var query = @"SELECT AC.CONSTRAINT_NAME, COLUMN_NAME FROM ALL_CONS_COLUMNS ACC JOIN ALL_CONSTRAINTS AC ON ACC.CONSTRAINT_NAME = AC.CONSTRAINT_NAME WHERE ACC.TABLE_NAME = :TableName AND AC.CONSTRAINT_TYPE = 'U' AND AC.OWNER NOT IN ('SYS', 'SYSTEM', 'XDB', 'OUTLN', 'CTXSYS', 'DBSNMP', 'ORDDATA', 'ORDSYS', 'MDSYS', 'WMSYS', 'OLAPSYS', 'EXFSYS', 'SYSMAN', 'APEX_040000', 'FLOWS_FILES') AND AC.OWNER NOT LIKE '%SYS%'";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 uniqueConstraints.Add(new ConstraintMetadata
                                 {
@@ -72,21 +67,21 @@ namespace OracleAgent.Core.Services
             var checkConstraints = new List<ConstraintMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT CONSTRAINT_NAME, SEARCH_CONDITION
-                                  FROM ALL_CONSTRAINTS
-                                  WHERE TABLE_NAME = :TableName
-                                  AND CONSTRAINT_TYPE = 'C'";
+                    var query = @"SELECT CONSTRAINT_NAME, SEARCH_CONDITION FROM ALL_CONSTRAINTS WHERE TABLE_NAME = :TableName AND CONSTRAINT_TYPE = 'C'";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 checkConstraints.Add(new ConstraintMetadata
                                 {

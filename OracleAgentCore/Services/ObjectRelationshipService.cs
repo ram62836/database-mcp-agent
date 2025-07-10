@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class ObjectRelationshipService : IObjectRelationshipService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ObjectRelationshipService> _logger;
 
-        public ObjectRelationshipService(IConfiguration config, ILogger<ObjectRelationshipService> logger)
+        public ObjectRelationshipService(IDbConnectionFactory connectionFactory, ILogger<ObjectRelationshipService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -30,30 +29,25 @@ namespace OracleAgent.Core.Services
                 throw new ArgumentException("object type cannot be null or empty.", nameof(objectType));
 
             var objectRelationShips = new List<ObjectRelationshipMetadata>();
-            var query = @"SELECT DISTINCT
-                            d.name AS OBJECT_NAME,
-                            d.type AS OBJECT_TYPE
-                        FROM
-                            user_dependencies  d
-                        WHERE
-                            d.referenced_name = UPPER(:objectName)
-                            AND d.referenced_type = UPPER(:objectType)        -- Exclude system-owned objects
-                            AND d.name NOT LIKE 'BIN$%'                       -- Exclude dropped (flashback) objects
-                            AND d.referenced_owner NOT IN ('SYS', 'SYSTEM')   -- Exclude system-owned referenced objects
-                        ORDER BY
-                            d.name, d.type";
+            var query = @"SELECT DISTINCT d.name AS OBJECT_NAME, d.type AS OBJECT_TYPE FROM user_dependencies d WHERE d.referenced_name = UPPER(:objectName) AND d.referenced_type = UPPER(:objectType) AND d.name NOT LIKE 'BIN$%' AND d.referenced_owner NOT IN ('SYS', 'SYSTEM') ORDER BY d.name, d.type";
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("objectName", objectName.ToUpper()));
-                        command.Parameters.Add(new OracleParameter("objectType", objectType.ToUpper()));
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = query;
+                        var param1 = command.CreateParameter();
+                        param1.ParameterName = "objectName";
+                        param1.Value = objectName.ToUpper();
+                        command.Parameters.Add(param1);
+                        var param2 = command.CreateParameter();
+                        param2.ParameterName = "objectType";
+                        param2.Value = objectType.ToUpper();
+                        command.Parameters.Add(param2);
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 objectRelationShips.Add(new ObjectRelationshipMetadata
                                 {
@@ -73,6 +67,5 @@ namespace OracleAgent.Core.Services
             }
             return objectRelationShips;
         }
-
     }
 }

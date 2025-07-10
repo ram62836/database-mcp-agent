@@ -1,25 +1,24 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.IO;
 using System.Linq;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class ViewEnumerationService : IViewEnumerationService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ViewEnumerationService> _logger;
 
-        public ViewEnumerationService(IConfiguration config, ILogger<ViewEnumerationService> logger)
+        public ViewEnumerationService(IDbConnectionFactory connectionFactory, ILogger<ViewEnumerationService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -37,16 +36,16 @@ namespace OracleAgent.Core.Services
             var views = new List<ViewMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"SELECT VIEW_NAME, TEXT_VC FROM USER_VIEWS";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = query;
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {                            
                                 views.Add(new ViewMetadata
                                 {

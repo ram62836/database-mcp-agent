@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Interfaces;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class RawSqlService : IRawSqlService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<RawSqlService> _logger;
 
-        public RawSqlService(IConfiguration config, ILogger<RawSqlService> logger)
+        public RawSqlService(IDbConnectionFactory connectionFactory, ILogger<RawSqlService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -25,25 +24,25 @@ namespace OracleAgent.Core.Services
             if (!IsSelectOnly(rawSelectSql))
             {
                 _logger.LogWarning("Invalid select statement detected.");
-                return "Inavlid select statement. Only select statements are allowed.";
+                return "Invalid select statement. Only select statements are allowed.";
             }
 
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    using (var command = new OracleCommand(rawSelectSql, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = rawSelectSql;
+                        using (var reader = command.ExecuteReader())
                         {
                             var results = new List<Dictionary<string, object>>();
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 var row = new Dictionary<string, object>();
                                 for (int i = 0; i < reader.FieldCount; i++)
                                 {
-                                    var value = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+                                    var value = reader.IsDBNull(i) ? null : reader.GetValue(i);
                                     row[reader.GetName(i)] = value;
                                 }
                                 results.Add(row);

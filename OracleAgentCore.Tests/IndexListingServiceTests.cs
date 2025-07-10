@@ -1,129 +1,215 @@
-using AutoFixture.Xunit2;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Oracle.ManagedDataAccess.Client;
+using OracleAgent.Core;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
+using Xunit;
 
 namespace OracleAgentCore.Tests
 {
     public class IndexListingServiceTests
     {
-        private static ILogger<IndexListingService> CreateLogger()
+        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
+        private readonly Mock<IDbConnection> _connectionMock;
+        private readonly Mock<IDbCommand> _commandMock;
+        private readonly Mock<IDataReader> _readerMock;
+        private readonly Mock<ILogger<IndexListingService>> _loggerMock;
+        private readonly IndexListingService _service;
+
+        public IndexListingServiceTests()
         {
-            var loggerMock = new Moq.Mock<ILogger<IndexListingService>>();
-            return loggerMock.Object;
-        }
-
-        [Theory, AutoData]
-        public async Task ListIndexesAsync_ReturnsIndexes(string tableName)
-        {
-            // Arrange
-            var configMock = new Mock<IConfiguration>();
-            var configSectionMock = new Mock<IConfigurationSection>();
-            configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
-            configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
-            configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-
-            var service = new IndexListingService(configMock.Object, CreateLogger());
-
-            Assert.NotNull(service);
-
-            // Act & Assert
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.ListIndexesAsync(tableName));
-        }
-
-        [Theory, AutoData]
-        public async Task GetIndexColumnsAsync_ReturnsColumns(string indexName)
-        {
-            // Arrange
-            var configMock = new Mock<IConfiguration>();
-            var configSectionMock = new Mock<IConfigurationSection>();
-            configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
-            configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
-            configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-
-            var service = new IndexListingService(configMock.Object, CreateLogger());
-
-            // See above: can't mock OracleConnection, so just test that the method throws
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => service.GetIndexColumnsAsync(indexName));
+            _connectionFactoryMock = new Mock<IDbConnectionFactory>();
+            _connectionMock = new Mock<IDbConnection>();
+            _commandMock = new Mock<IDbCommand>();
+            _readerMock = new Mock<IDataReader>();
+            _loggerMock = TestHelper.CreateLoggerMock<IndexListingService>();
+            _service = new IndexListingService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
-        public void Constructor_SetsConnectionString()
+        public async Task ListIndexesAsync_ReturnsIndexes()
         {
             // Arrange
-            var configMock = new Mock<IConfiguration>();
-            var configSectionMock = new Mock<IConfigurationSection>();
-            configSectionMock.Setup(x => x.Value).Returns("TestConnectionString");
-            configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
-            configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
+            var tableName = "SAMPLE";
+            var data = new List<IndexMetadata> { new IndexMetadata { IndexName = "IDX1", IsUnique = true } };
+            
+            // Setup parameter mock
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            int callCount = -1;
+            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+            _readerMock.Setup(r => r["INDEX_NAME"]).Returns(() => data[callCount].IndexName);
+            _readerMock.Setup(r => r["UNIQUENESS"]).Returns(() => data[callCount].IsUnique ? "UNIQUE" : "NONUNIQUE");
+            SetupMocksForCommand(_commandMock, _readerMock, paramMock);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Act
-            var service = new IndexListingService(configMock.Object, CreateLogger());
-
+            var result = await _service.ListIndexesAsync(tableName);
+            
             // Assert
-            Assert.NotNull(service);
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("IDX1", result[0].IndexName);
+            Assert.True(result[0].IsUnique);
+            
+            // Verify the parameter was set correctly
+            paramMock.VerifySet(p => p.ParameterName = "TableName");
+            paramMock.VerifySet(p => p.Value = tableName.ToUpper());
         }
-    }
-    public class OracleParameterCollectionFake
-    {
-        private readonly List<OracleParameter> _parameters = new();
-
-        public int Add(OracleParameter value)
+        
+        [Fact]
+        public async Task GetIndexColumnsAsync_ReturnsColumns()
         {
-            _parameters.Add(value);
-            return _parameters.Count - 1;
+            // Arrange
+            var indexName = "IDX1";
+            var expectedColumns = new List<string> { "COL1", "COL2" };
+            
+            // Setup parameter mock
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            int callCount = -1;
+            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < expectedColumns.Count);
+            _readerMock.Setup(r => r["COLUMN_NAME"]).Returns(() => expectedColumns[callCount]);
+            SetupMocksForCommand(_commandMock, _readerMock, paramMock);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+
+            // Act
+            var result = await _service.GetIndexColumnsAsync(indexName);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedColumns.Count, result.Count);
+            Assert.Equal(expectedColumns, result);
+            
+            // Verify the parameter was set correctly
+            paramMock.VerifySet(p => p.ParameterName = "IndexName");
+            paramMock.VerifySet(p => p.Value = indexName.ToUpper());
         }
-
-        public void AddRange(IEnumerable<OracleParameter> values)
+        
+        [Fact]
+        public async Task ListIndexesAsync_ThrowsException_WhenDbFails()
         {
-            _parameters.AddRange(values);
+            // Arrange
+            var tableName = "ERROR_TABLE";
+            var expectedException = new InvalidOperationException("Test exception");
+            
+            // Setup parameter mock for completeness
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+                .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.ListIndexesAsync(tableName));
+            Assert.Same(expectedException, exception);
         }
-
-        public int Count => _parameters.Count;
-
-        public int IndexOf(string parameterName) => _parameters.FindIndex(p => p.ParameterName == parameterName);
-
-        public void RemoveAt(string parameterName)
+        
+        [Fact]
+        public async Task GetIndexColumnsAsync_ThrowsException_WhenDbFails()
         {
-            _parameters.RemoveAll(p => p.ParameterName == parameterName);
+            // Arrange
+            var indexName = "ERROR_INDEX";
+            var expectedException = new InvalidOperationException("Test exception");
+            
+            // Setup parameter mock for completeness
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+                .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.GetIndexColumnsAsync(indexName));
+            Assert.Same(expectedException, exception);
         }
-
-        public void RemoveAt(int index)
+        
+        [Fact]
+        public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
-            _parameters.RemoveAt(index);
+            // Arrange, Act & Assert
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new IndexListingService(null, _loggerMock.Object));
+            Assert.Equal("connectionFactory", exception.ParamName);
         }
-
-        public void Insert(int index, OracleParameter value)
+        
+        [Fact]
+        public async Task ListIndexesAsync_HandlesEmptyResult()
         {
-            _parameters.Insert(index, value);
+            // Arrange
+            var tableName = "EMPTY_TABLE";
+            var data = new List<IndexMetadata>();
+            
+            // Setup parameter mock
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            _readerMock.Setup(r => r.Read()).Returns(false);
+            SetupMocksForCommand(_commandMock, _readerMock, paramMock);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+
+            // Act
+            var result = await _service.ListIndexesAsync(tableName);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            
+            // Verify the parameter was set correctly
+            paramMock.VerifySet(p => p.ParameterName = "TableName");
+            paramMock.VerifySet(p => p.Value = tableName.ToUpper());
         }
-
-        public bool Contains(string parameterName) => _parameters.Exists(p => p.ParameterName == parameterName);
-
-        public bool Contains(OracleParameter value) => _parameters.Contains(value);
-
-        public void Clear() => _parameters.Clear();
-
-        public void CopyTo(OracleParameter[] array, int index) => _parameters.CopyTo(array, index);
-
-        public IEnumerator<OracleParameter> GetEnumerator() => _parameters.GetEnumerator();
-
-        public OracleParameter this[string parameterName]
+        
+        [Fact]
+        public async Task GetIndexColumnsAsync_HandlesEmptyResult()
         {
-            get => _parameters.Find(p => p.ParameterName == parameterName)!;
-            set
-            {
-                var idx = IndexOf(parameterName);
-                if (idx >= 0) _parameters[idx] = value;
-            }
+            // Arrange
+            var indexName = "EMPTY_INDEX";
+            
+            // Setup parameter mock
+            var paramMock = new Mock<IDbDataParameter>();
+            paramMock.SetupProperty(p => p.ParameterName);
+            paramMock.SetupProperty(p => p.Value);
+            
+            _readerMock.Setup(r => r.Read()).Returns(false);
+            SetupMocksForCommand(_commandMock, _readerMock, paramMock);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+
+            // Act
+            var result = await _service.GetIndexColumnsAsync(indexName);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            
+            // Verify the parameter was set correctly
+            paramMock.VerifySet(p => p.ParameterName = "IndexName");
+            paramMock.VerifySet(p => p.Value = indexName.ToUpper());
         }
-
-        public OracleParameter this[int index]
+        
+        private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock, Mock<IDbDataParameter> paramMock)
         {
-            get => _parameters[index];
-            set => _parameters[index] = value;
+            commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
+            commandMock.Setup(c => c.CreateParameter()).Returns(paramMock.Object);
+            commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
         }
     }
 }

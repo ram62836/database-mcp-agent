@@ -1,24 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace OracleAgent.Core.Services
 {
-
     public class ColumnMetadataService : IColumnMetadataService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ColumnMetadataService> _logger;
 
-        public ColumnMetadataService(IConfiguration config, ILogger<ColumnMetadataService> logger)
+        public ColumnMetadataService(IDbConnectionFactory connectionFactory, ILogger<ColumnMetadataService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
-            _logger = logger;
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<ColumnMetadata>> GetColumnMetadataAsync(string tableName)
@@ -27,21 +24,24 @@ namespace OracleAgent.Core.Services
             var columnMetadataList = new List<ColumnMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = $@"
+                    var query = @"
                         SELECT COLUMN_NAME, DATA_TYPE, NULLABLE, DATA_DEFAULT
                         FROM ALL_TAB_COLUMNS
                         WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName?.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columnMetadataList.Add(new ColumnMetadata
                                 {
@@ -70,21 +70,24 @@ namespace OracleAgent.Core.Services
             var columnNames = new List<string>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                         SELECT COLUMN_NAME
                         FROM ALL_TAB_COLUMNS
                         WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName?.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columnNames.Add(reader["COLUMN_NAME"].ToString());
                             }
@@ -107,21 +110,24 @@ namespace OracleAgent.Core.Services
             var columnMetadataList = new List<ColumnMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                         SELECT COLUMN_NAME, DATA_TYPE
                         FROM ALL_TAB_COLUMNS
                         WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName?.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columnMetadataList.Add(new ColumnMetadata
                                 {
@@ -148,21 +154,24 @@ namespace OracleAgent.Core.Services
             var columnMetadataList = new List<ColumnMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                         SELECT COLUMN_NAME, NULLABLE
                         FROM ALL_TAB_COLUMNS
                         WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName?.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columnMetadataList.Add(new ColumnMetadata
                                 {
@@ -189,21 +198,24 @@ namespace OracleAgent.Core.Services
             var columnMetadataList = new List<ColumnMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                         SELECT COLUMN_NAME, DATA_DEFAULT
                         FROM ALL_TAB_COLUMNS
                         WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName?.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columnMetadataList.Add(new ColumnMetadata
                                 {
@@ -223,28 +235,31 @@ namespace OracleAgent.Core.Services
             }
             return columnMetadataList;
         }
-        
+
         public async Task<List<string>> GetTablesByColumnNameAsync(string columnNamePattern)
         {
             _logger.LogInformation("Getting tables by column name pattern: {ColumnNamePattern}", columnNamePattern);
             var tableNames = new List<string>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                         SELECT DISTINCT TABLE_NAME
                         FROM USER_TAB_COLUMNS
                         WHERE UPPER(COLUMN_NAME) LIKE :ColumnNamePattern";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("ColumnNamePattern", $"%{columnNamePattern.ToUpper()}%"));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "ColumnNamePattern";
+                        param.Value = $"%{columnNamePattern?.ToUpper()}%";
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 tableNames.Add(reader["TABLE_NAME"].ToString());
                             }

@@ -4,22 +4,21 @@ using System.Linq;
 using System.Text.Json;
 using System.IO;
 using System.Threading.Tasks;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class TriggerService : ITriggerService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TriggerService> _logger;
 
-        public TriggerService(IConfiguration config, ILogger<TriggerService> logger)
+        public TriggerService(IDbConnectionFactory connectionFactory, ILogger<TriggerService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -37,16 +36,16 @@ namespace OracleAgent.Core.Services
             var triggers = new List<TriggerMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
                     var query = @"SELECT TRIGGER_NAME, TRIGGER_TYPE, TRIGGERING_EVENT, TABLE_NAME, DESCRIPTION FROM USER_TRIGGERS";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = query;
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 triggers.Add(new TriggerMetadata
                                 {

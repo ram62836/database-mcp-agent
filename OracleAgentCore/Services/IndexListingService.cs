@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class IndexListingService : IIndexListingService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<IndexListingService> _logger;
 
-        public IndexListingService(IConfiguration config, ILogger<IndexListingService> logger)
+        public IndexListingService(IDbConnectionFactory connectionFactory, ILogger<IndexListingService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -26,20 +25,21 @@ namespace OracleAgent.Core.Services
             var indexes = new List<IndexMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT INDEX_NAME, UNIQUENESS  
-                                  FROM ALL_INDEXES  
-                                  WHERE TABLE_NAME = :TableName";
+                    var query = @"SELECT INDEX_NAME, UNIQUENESS FROM ALL_INDEXES WHERE TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 indexes.Add(new IndexMetadata
                                 {
@@ -66,20 +66,21 @@ namespace OracleAgent.Core.Services
             var columns = new List<string>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT COLUMN_NAME  
-                                  FROM ALL_IND_COLUMNS  
-                                  WHERE INDEX_NAME = :IndexName";
+                    var query = @"SELECT COLUMN_NAME FROM ALL_IND_COLUMNS WHERE INDEX_NAME = :IndexName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("IndexName", indexName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "IndexName";
+                        param.Value = indexName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 columns.Add(reader["COLUMN_NAME"].ToString());
                             }

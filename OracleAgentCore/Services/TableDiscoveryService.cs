@@ -1,25 +1,24 @@
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Text.Json;
 using System.IO;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class TableDiscoveryService : ITableDiscoveryService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TableDiscoveryService> _logger;
 
-        public TableDiscoveryService(IConfiguration config, ILogger<TableDiscoveryService> logger)
+        public TableDiscoveryService(IDbConnectionFactory connectionFactory, ILogger<TableDiscoveryService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -37,18 +36,16 @@ namespace OracleAgent.Core.Services
             var tablesMetadata = new List<TableMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT TABLE_NAME, DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) AS TABLE_DDL
-                                  FROM USER_TABLES
-                                  WHERE TEMPORARY = 'N' AND NESTED = 'NO' AND SECONDARY = 'N' AND TABLE_NAME NOT LIKE 'SYS\_%' ESCAPE '\'";
+                    var query = @"SELECT TABLE_NAME, DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) AS TABLE_DDL FROM USER_TABLES WHERE TEMPORARY = 'N' AND NESTED = 'NO' AND SECONDARY = 'N' AND TABLE_NAME NOT LIKE 'SYS\_%' ESCAPE '\'";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = query;
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 tablesMetadata.Add(new TableMetadata
                                 {
@@ -88,13 +85,16 @@ namespace OracleAgent.Core.Services
             _logger.LogInformation("Getting table definition for: {TableName}", tableName);
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL", connection);
-                    command.Parameters.Add(new OracleParameter("TableName", tableName));
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL";
+                    var param = command.CreateParameter();
+                    param.ParameterName = "TableName";
+                    param.Value = tableName;
+                    command.Parameters.Add(param);
 
-                    return (await command.ExecuteScalarAsync())?.ToString() ?? string.Empty;
+                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
                 }
             }
             catch (Exception ex)

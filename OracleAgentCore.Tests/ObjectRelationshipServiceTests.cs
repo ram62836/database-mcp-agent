@@ -1,45 +1,245 @@
-using AutoFixture.Xunit2;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OracleAgent.Core;
+using OracleAgent.Core.Interfaces;
+using OracleAgent.Core.Models;
 using OracleAgent.Core.Services;
 using Xunit;
-using System.Threading.Tasks;
 
 namespace OracleAgentCore.Tests
 {
     public class ObjectRelationshipServiceTests
     {
-        private static ILogger<ObjectRelationshipService> CreateLogger()
-        {
-            var loggerMock = new Moq.Mock<ILogger<ObjectRelationshipService>>();
-            return loggerMock.Object;
-        }
+        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
+        private readonly Mock<IDbConnection> _connectionMock;
+        private readonly Mock<IDbCommand> _commandMock;
+        private readonly Mock<IDataReader> _readerMock;
+        private readonly Mock<ILogger<ObjectRelationshipService>> _loggerMock;
+        private readonly ObjectRelationshipService _service;
 
-        [Theory, AutoData]
-        public async Task GetReferenceObjects_Throws(string objectName, string objectType)
+        public ObjectRelationshipServiceTests()
         {
-            var configMock = new Mock<IConfiguration>();
-            var configSectionMock = new Mock<IConfigurationSection>();
-            configSectionMock.Setup(x => x.Value).Returns("FakeConnectionString");
-            configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
-            configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("FakeConnectionString");
-
-            var service = new ObjectRelationshipService(configMock.Object, CreateLogger());
-            await Assert.ThrowsAnyAsync<System.InvalidOperationException>(() => service.GetReferenceObjects(objectName, objectType));
+            _connectionFactoryMock = new Mock<IDbConnectionFactory>();
+            _connectionMock = new Mock<IDbConnection>();
+            _commandMock = new Mock<IDbCommand>();
+            _readerMock = new Mock<IDataReader>();
+            _loggerMock = TestHelper.CreateLoggerMock<ObjectRelationshipService>();
+            _service = new ObjectRelationshipService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
-        public void Constructor_SetsConnectionString()
+        public async Task GetReferenceObjects_ReturnsList()
         {
-            var configMock = new Mock<IConfiguration>();
-            var configSectionMock = new Mock<IConfigurationSection>();
-            configSectionMock.Setup(x => x.Value).Returns("TestConnectionString");
-            configMock.Setup(x => x.GetSection("ConnectionStrings")).Returns(configSectionMock.Object);
-            configMock.Setup(x => x["ConnectionStrings:DefaultConnection"]).Returns("TestConnectionString");
+            // Arrange
+            var objectName = "EMPLOYEES";
+            var objectType = "TABLE";
+            var data = new List<ObjectRelationshipMetadata> { 
+                new ObjectRelationshipMetadata { 
+                    ObjectName = "EMP_SALARY_VIEW", 
+                    ObjectType = "VIEW" 
+                } 
+            };
+            
+            // Setup parameter mocks
+            var paramNameMock = new Mock<IDbDataParameter>();
+            paramNameMock.SetupProperty(p => p.ParameterName);
+            paramNameMock.SetupProperty(p => p.Value);
+            
+            var paramTypeMock = new Mock<IDbDataParameter>();
+            paramTypeMock.SetupProperty(p => p.ParameterName);
+            paramTypeMock.SetupProperty(p => p.Value);
+            
+            // Setup reader
+            int callCount = -1;
+            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+            _readerMock.Setup(r => r["OBJECT_NAME"]).Returns(() => data[callCount].ObjectName);
+            _readerMock.Setup(r => r["OBJECT_TYPE"]).Returns(() => data[callCount].ObjectType);
+            
+            // Setup command to return different parameters for each call
+            int paramCounter = 0;
+            _commandMock.Setup(c => c.CreateParameter()).Returns(() => {
+                paramCounter++;
+                return paramCounter == 1 ? paramNameMock.Object : paramTypeMock.Object;
+            });
+            
+            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
-            var service = new ObjectRelationshipService(configMock.Object, CreateLogger());
-            Assert.NotNull(service);
+            // Act
+            var result = await _service.GetReferenceObjects(objectName, objectType);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("EMP_SALARY_VIEW", result[0].ObjectName);
+            Assert.Equal("VIEW", result[0].ObjectType);
+            
+            // Verify the parameters were set correctly
+            paramNameMock.VerifySet(p => p.ParameterName = "objectName");
+            paramNameMock.VerifySet(p => p.Value = objectName.ToUpper());
+            paramTypeMock.VerifySet(p => p.ParameterName = "objectType");
+            paramTypeMock.VerifySet(p => p.Value = objectType.ToUpper());
+        }
+        
+        [Fact]
+        public async Task GetReferenceObjects_ThrowsException_WhenDbFails()
+        {
+            // Arrange
+            var objectName = "ERROR_OBJECT";
+            var objectType = "TABLE";
+            var expectedException = new InvalidOperationException("Test exception");
+            
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
+                .ThrowsAsync(expectedException);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.GetReferenceObjects(objectName, objectType));
+            Assert.Same(expectedException, exception);
+        }
+        
+        [Fact]
+        public async Task GetReferenceObjects_ThrowsArgumentException_WhenObjectNameIsNull()
+        {
+            // Arrange
+            string objectName = null;
+            var objectType = "TABLE";
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => _service.GetReferenceObjects(objectName, objectType));
+            Assert.Contains("object name cannot be null or empty", exception.Message);
+        }
+        
+        [Fact]
+        public async Task GetReferenceObjects_ThrowsArgumentException_WhenObjectTypeIsNull()
+        {
+            // Arrange
+            var objectName = "EMPLOYEES";
+            string objectType = null;
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => _service.GetReferenceObjects(objectName, objectType));
+            Assert.Contains("object type cannot be null or empty", exception.Message);
+        }
+        
+        [Fact]
+        public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
+        {
+            // Arrange, Act & Assert
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new ObjectRelationshipService(null, _loggerMock.Object));
+            Assert.Equal("connectionFactory", exception.ParamName);
+        }
+        
+        [Fact]
+        public async Task GetReferenceObjects_HandlesEmptyResult()
+        {
+            // Arrange
+            var objectName = "UNUSED_OBJECT";
+            var objectType = "TABLE";
+            
+            // Setup parameter mocks
+            var paramNameMock = new Mock<IDbDataParameter>();
+            paramNameMock.SetupProperty(p => p.ParameterName);
+            paramNameMock.SetupProperty(p => p.Value);
+            
+            var paramTypeMock = new Mock<IDbDataParameter>();
+            paramTypeMock.SetupProperty(p => p.ParameterName);
+            paramTypeMock.SetupProperty(p => p.Value);
+            
+            // Setup reader to return no rows
+            _readerMock.Setup(r => r.Read()).Returns(false);
+            
+            // Setup command to return different parameters for each call
+            int paramCounter = 0;
+            _commandMock.Setup(c => c.CreateParameter()).Returns(() => {
+                paramCounter++;
+                return paramCounter == 1 ? paramNameMock.Object : paramTypeMock.Object;
+            });
+            
+            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+
+            // Act
+            var result = await _service.GetReferenceObjects(objectName, objectType);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            
+            // Verify the parameters were set correctly
+            paramNameMock.VerifySet(p => p.ParameterName = "objectName");
+            paramNameMock.VerifySet(p => p.Value = objectName.ToUpper());
+            paramTypeMock.VerifySet(p => p.ParameterName = "objectType");
+            paramTypeMock.VerifySet(p => p.Value = objectType.ToUpper());
+        }
+        
+        [Fact]
+        public async Task GetReferenceObjects_HandlesMultipleResults()
+        {
+            // Arrange
+            var objectName = "POPULAR_TABLE";
+            var objectType = "TABLE";
+            var data = new List<ObjectRelationshipMetadata> { 
+                new ObjectRelationshipMetadata { ObjectName = "VIEW1", ObjectType = "VIEW" },
+                new ObjectRelationshipMetadata { ObjectName = "PROC1", ObjectType = "PROCEDURE" },
+                new ObjectRelationshipMetadata { ObjectName = "VIEW2", ObjectType = "VIEW" }
+            };
+            
+            // Setup parameter mocks
+            var paramNameMock = new Mock<IDbDataParameter>();
+            paramNameMock.SetupProperty(p => p.ParameterName);
+            paramNameMock.SetupProperty(p => p.Value);
+            
+            var paramTypeMock = new Mock<IDbDataParameter>();
+            paramTypeMock.SetupProperty(p => p.ParameterName);
+            paramTypeMock.SetupProperty(p => p.Value);
+            
+            // Setup reader
+            int callCount = -1;
+            _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+            _readerMock.Setup(r => r["OBJECT_NAME"]).Returns(() => data[callCount].ObjectName);
+            _readerMock.Setup(r => r["OBJECT_TYPE"]).Returns(() => data[callCount].ObjectType);
+            
+            // Setup command to return different parameters for each call
+            int paramCounter = 0;
+            _commandMock.Setup(c => c.CreateParameter()).Returns(() => {
+                paramCounter++;
+                return paramCounter == 1 ? paramNameMock.Object : paramTypeMock.Object;
+            });
+            
+            _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+            _commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+            _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+
+            // Act
+            var result = await _service.GetReferenceObjects(objectName, objectType);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
+            Assert.Equal("VIEW1", result[0].ObjectName);
+            Assert.Equal("PROC1", result[1].ObjectName);
+            Assert.Equal("VIEW2", result[2].ObjectName);
+            Assert.Contains(result, r => r.ObjectType == "VIEW");
+            Assert.Contains(result, r => r.ObjectType == "PROCEDURE");
+            
+            // Verify the parameters were set correctly
+            paramNameMock.VerifySet(p => p.ParameterName = "objectName");
+            paramNameMock.VerifySet(p => p.Value = objectName.ToUpper());
+            paramTypeMock.VerifySet(p => p.ParameterName = "objectType");
+            paramTypeMock.VerifySet(p => p.Value = objectType.ToUpper());
         }
     }
 }

@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Models;
 using OracleAgent.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class KeyIdentificationService : IKeyIdentificationService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<KeyIdentificationService> _logger;
 
-        public KeyIdentificationService(IConfiguration config, ILogger<KeyIdentificationService> logger)
+        public KeyIdentificationService(IDbConnectionFactory connectionFactory, ILogger<KeyIdentificationService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
         }
 
@@ -26,23 +25,21 @@ namespace OracleAgent.Core.Services
             var primaryKeys = new List<KeyMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME  
-                                  FROM ALL_CONS_COLUMNS cols  
-                                  JOIN ALL_CONSTRAINTS cons  
-                                  ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME  
-                                  WHERE cons.CONSTRAINT_TYPE = 'P'  
-                                  AND cons.TABLE_NAME = :TableName";
+                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'P' AND cons.TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 primaryKeys.Add(new KeyMetadata
                                 {
@@ -70,23 +67,21 @@ namespace OracleAgent.Core.Services
             var foreignKeys = new List<KeyMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME  
-                                  FROM ALL_CONS_COLUMNS cols  
-                                  JOIN ALL_CONSTRAINTS cons  
-                                  ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME  
-                                  WHERE cons.CONSTRAINT_TYPE = 'R'  
-                                  AND cons.TABLE_NAME = :TableName";
+                    var query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R' AND cons.TABLE_NAME = :TableName";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        command.Parameters.Add(new OracleParameter("TableName", tableName.ToUpper()));
+                        command.CommandText = query;
+                        var param = command.CreateParameter();
+                        param.ParameterName = "TableName";
+                        param.Value = tableName.ToUpper();
+                        command.Parameters.Add(param);
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 foreignKeys.Add(new KeyMetadata
                                 {
@@ -115,20 +110,16 @@ namespace OracleAgent.Core.Services
             var relationships = new Dictionary<string, List<string>>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var query = @"SELECT cons.CONSTRAINT_NAME, cols.TABLE_NAME, cols.COLUMN_NAME  
-                                  FROM ALL_CONS_COLUMNS cols  
-                                  JOIN ALL_CONSTRAINTS cons  
-                                  ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME  
-                                  WHERE cons.CONSTRAINT_TYPE = 'R'";
+                    var query = @"SELECT cons.CONSTRAINT_NAME, cols.TABLE_NAME, cols.COLUMN_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R'";
 
-                    using (var command = new OracleCommand(query, connection))
+                    using (var command = connection.CreateCommand())
                     {
-                        using (var reader = await command.ExecuteReaderAsync())
+                        command.CommandText = query;
+                        using (var reader = command.ExecuteReader())
                         {
-                            while (await reader.ReadAsync())
+                            while (reader.Read())
                             {
                                 var constraintName = reader["CONSTRAINT_NAME"].ToString();
                                 var columnName = reader["COLUMN_NAME"].ToString();

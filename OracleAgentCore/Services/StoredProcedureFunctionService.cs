@@ -1,27 +1,28 @@
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using OracleAgent.Core.Interfaces;
 using OracleAgent.Core.Models;
-using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Text.Json;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Logging;
+using System.Data;
 
 namespace OracleAgent.Core.Services
 {
     public class StoredProcedureFunctionService : IStoredProcedureFunctionService
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<StoredProcedureFunctionService> _logger;
+        private readonly IMemoryCache _cache;
 
-        public StoredProcedureFunctionService(IConfiguration config, IMemoryCache cache, ILogger<StoredProcedureFunctionService> logger)
+        public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, IMemoryCache cache, ILogger<StoredProcedureFunctionService> logger)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
-            _logger = logger;
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()
@@ -38,16 +39,13 @@ namespace OracleAgent.Core.Services
             var proceduresMetadata = new List<ProcedureFunctionMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT OBJECT_NAME, OBJECT_TYPE  
-                                                   FROM USER_OBJECTS  
-                                                   WHERE OBJECT_TYPE = 'PROCEDURE'  
-                                                     AND STATUS = 'VALID'", connection);
-                    using (var reader = await command.ExecuteReaderAsync())
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND STATUS = 'VALID'";
+                    using (var reader = command.ExecuteReader())
                     {
-                        while (await reader.ReadAsync())
+                        while (reader.Read())
                         {
                             proceduresMetadata.Add(new ProcedureFunctionMetadata
                             {
@@ -84,16 +82,13 @@ namespace OracleAgent.Core.Services
             var functionsMetadata = new List<ProcedureFunctionMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT OBJECT_NAME, OBJECT_TYPE
-                                                    FROM USER_OBJECTS
-                                                    WHERE OBJECT_TYPE = 'FUNCTION'
-                                                      AND STATUS = 'VALID'", connection);
-                    using (var reader = await command.ExecuteReaderAsync())
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'FUNCTION' AND STATUS = 'VALID'";
+                    using (var reader = command.ExecuteReader())
                     {
-                        while (await reader.ReadAsync())
+                        while (reader.Read())
                         {
                             functionsMetadata.Add(new ProcedureFunctionMetadata
                             {
@@ -140,33 +135,49 @@ namespace OracleAgent.Core.Services
 
         public async Task<List<ParameterMetadata>> GetStoredProcedureParametersAsync(string storedProcedureName)
         {
+            if (string.IsNullOrEmpty(storedProcedureName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(storedProcedureName));
+            }
+            
             _logger.LogInformation("Getting parameters for stored procedure: {StoredProcedureName}", storedProcedureName);
             return await GetParametersAsync(storedProcedureName);
         }
 
         public async Task<List<ParameterMetadata>> GetFunctionParametersAsync(string functionName)
         {
+            if (string.IsNullOrEmpty(functionName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(functionName));
+            }
+            
             _logger.LogInformation("Getting parameters for function: {FunctionName}", functionName);
             return await GetParametersAsync(functionName);
         }
 
         private async Task<List<ParameterMetadata>> GetParametersAsync(string objectName)
         {
+            if (string.IsNullOrEmpty(objectName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(objectName));
+            }
+            
             _logger.LogInformation("Getting parameters for object: {ObjectName}", objectName);
             var parameters = new List<ParameterMetadata>();
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT ARGUMENT_NAME, DATA_TYPE, IN_OUT
-                                                   FROM ALL_ARGUMENTS
-                                                   WHERE OBJECT_NAME = :objectName AND PACKAGE_NAME IS NULL", connection);
-                    command.Parameters.Add(new OracleParameter("objectName", objectName));
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT ARGUMENT_NAME, DATA_TYPE, IN_OUT FROM ALL_ARGUMENTS WHERE OBJECT_NAME = :objectName AND PACKAGE_NAME IS NULL";
+                    var param = command.CreateParameter();
+                    param.ParameterName = "objectName";
+                    param.Value = objectName;
+                    command.Parameters.Add(param);
 
-                    using (var reader = await command.ExecuteReaderAsync())
+                    using (var reader = command.ExecuteReader())
                     {
-                        while (await reader.ReadAsync())
+                        while (reader.Read())
                         {
                             parameters.Add(new ParameterMetadata
                             {
@@ -189,17 +200,24 @@ namespace OracleAgent.Core.Services
 
         private async Task<string> GetProcedureDefinitionAsync(string procedureName)
         {
+            if (string.IsNullOrEmpty(procedureName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(procedureName));
+            }
+            
             _logger.LogInformation("Getting procedure definition for: {ProcedureName}", procedureName);
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName) AS DDL
-                                                   FROM DUAL", connection);
-                    command.Parameters.Add(new OracleParameter("ProcedureName", procedureName));
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName) AS DDL FROM DUAL";
+                    var param = command.CreateParameter();
+                    param.ParameterName = "ProcedureName";
+                    param.Value = procedureName;
+                    command.Parameters.Add(param);
 
-                    return (await command.ExecuteScalarAsync())?.ToString() ?? string.Empty;
+                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
                 }
             }
             catch (Exception ex)
@@ -211,17 +229,24 @@ namespace OracleAgent.Core.Services
 
         private async Task<string> GetFunctionDefinitionAsync(string functionName)
         {
+            if (string.IsNullOrEmpty(functionName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(functionName));
+            }
+            
             _logger.LogInformation("Getting function definition for: {FunctionName}", functionName);
             try
             {
-                using (var connection = new OracleConnection(_connectionString))
+                using (var connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    await connection.OpenAsync();
-                    var command = new OracleCommand(@"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName) AS DDL
-                                                   FROM DUAL", connection);
-                    command.Parameters.Add(new OracleParameter("FunctionName", functionName));
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName) AS DDL FROM DUAL";
+                    var param = command.CreateParameter();
+                    param.ParameterName = "FunctionName";
+                    param.Value = functionName;
+                    command.Parameters.Add(param);
 
-                    return (await command.ExecuteScalarAsync())?.ToString() ?? string.Empty;
+                    return command.ExecuteScalar()?.ToString() ?? string.Empty;
                 }
             }
             catch (Exception ex)
