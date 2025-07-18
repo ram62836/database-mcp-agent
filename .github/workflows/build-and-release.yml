@@ -19,14 +19,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, macos-latest]
         include:
           - os: windows-latest
             runtime: win-x64
             extension: .exe
-          - os: ubuntu-latest
-            runtime: linux-x64
-            extension: ''
           - os: macos-latest
             runtime: osx-x64
             extension: ''
@@ -64,19 +61,32 @@ jobs:
     - name: Copy configuration files
       shell: bash
       run: |
-        # Copy example configuration files to publish directory
-        cp appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.json
-        cp DatabaseMcp.Server/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.server.json
-        cp DatabaseMcp.Client/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.client.json
-        cp .vscode/mcp.example.json ./publish/${{ matrix.runtime }}/mcp.example.json
+        # Ensure publish directory exists
+        mkdir -p ./publish/${{ matrix.runtime }}
         
-        # Copy documentation
-        cp README.md ./publish/${{ matrix.runtime }}/
-        cp LICENSE ./publish/${{ matrix.runtime }}/
-        cp QUICK_REFERENCE.md ./publish/${{ matrix.runtime }}/
-        cp MCP_TOOLS_GUIDE.md ./publish/${{ matrix.runtime }}/
-        cp ORACLE_COMPATIBILITY.md ./publish/${{ matrix.runtime }}/
-        cp SECURITY.md ./publish/${{ matrix.runtime }}/
+        # Copy example configuration files to publish directory
+        if [ -f "appsettings.example.json" ]; then
+          cp appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.json
+        fi
+        
+        if [ -f "DatabaseMcp.Server/appsettings.example.json" ]; then
+          cp DatabaseMcp.Server/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.server.json
+        fi
+        
+        if [ -f "DatabaseMcp.Client/appsettings.example.json" ]; then
+          cp DatabaseMcp.Client/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.client.json
+        fi
+        
+        if [ -f ".vscode/mcp.example.json" ]; then
+          cp .vscode/mcp.example.json ./publish/${{ matrix.runtime }}/mcp.example.json
+        fi
+        
+        # Copy documentation files that exist
+        for doc in README.md LICENSE QUICK_REFERENCE.md MCP_TOOLS_GUIDE.md ORACLE_COMPATIBILITY.md SECURITY.md DEPLOYMENT.md; do
+          if [ -f "$doc" ]; then
+            cp "$doc" ./publish/${{ matrix.runtime }}/
+          fi
+        done
 
     - name: Create setup script (Windows)
       if: matrix.os == 'windows-latest'
@@ -197,16 +207,13 @@ jobs:
         ## What's New
         - Complete Oracle Database MCP Agent with 25+ analysis tools
         - Single-file executable for easy deployment
-        - Cross-platform support (Windows, Linux, macOS)
+        - Cross-platform support (Windows, macOS)
         - Comprehensive Oracle compatibility (11g R2 through 19c+)
         
         ## 📦 Download Options
         
         ### Windows
         - `database-mcp-agent-win-x64.zip` - Windows 64-bit executable
-        
-        ### Linux  
-        - `database-mcp-agent-linux-x64.tar.gz` - Linux 64-bit executable
         
         ### macOS
         - `database-mcp-agent-osx-x64.tar.gz` - macOS 64-bit executable
