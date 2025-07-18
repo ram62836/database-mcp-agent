@@ -1,6 +1,22 @@
 # Oracle Database MCP Agent
 
-Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with Oracle database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
+Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and i}
+```
+
+Restart Claude Desktop after configuration.
+
+## 🛠️ **Oracle Database Compatibility**
+
+**Supports Oracle 11g R2 through Oracle 19c+**
+
+| Oracle Version | Support Level | Status |
+|---------------|---------------|--------|
+| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
+| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
+| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
+| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
+
+**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**cle database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
 
 *Inspired by the [oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server) Python project, this .NET implementation provides enhanced features and cross-platform deployment capabilities.*
 
@@ -108,7 +124,55 @@ Configure Claude Desktop to use your Oracle Database Agent:
 }
 ```
 
-Restart Claude Desktop after configuration.e MCP Agent
+Restart Claude Desktop after configuration.
+
+**👉 See [examples/claude-desktop-config.json](examples/claude-desktop-config.json) for complete Claude Desktop configuration**
+
+### **💻 VS Code with GitHub Copilot Integration**
+
+**Prerequisites:**
+- GitHub Copilot extension installed and configured in VS Code
+- Oracle Database MCP Agent downloaded and extracted
+
+**Setup Steps:**
+
+1. **Install MCP Extension**: Install "MCP Client for VS Code" from the VS Code marketplace
+
+2. **Configure MCP Server**: 
+   - Open VS Code Settings (`Ctrl+,` / `Cmd+,`)
+   - Search for "mcp"
+   - Click "Edit in settings.json" for "MCP: Servers"
+
+3. **Add Configuration**: Add this to your `settings.json`:
+
+```json
+{
+  "mcp.servers": {
+    "oracle-agent-server": {
+      "type": "stdio",
+      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "C:\\Tools\\database-mcp-agent",
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      },
+      "description": "Oracle Database MCP Agent for GitHub Copilot"
+    }
+  }
+}
+```
+
+4. **Restart VS Code** to activate the MCP connection
+
+**Usage with GitHub Copilot:**
+- Use `@oracle-agent` in GitHub Copilot Chat
+- Example prompts:
+  - `@oracle-agent Show me the CUSTOMERS table structure`
+  - `@oracle-agent Find all tables with EMAIL column`
+  - `@oracle-agent What procedures depend on the ORDERS table?`
+  - `@oracle-agent Analyze foreign key relationships`
+
+**👉 See [examples/vscode-settings.json](examples/vscode-settings.json) for complete VS Code setup guide**
 
 Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
@@ -246,55 +310,185 @@ Add this to your Claude Desktop configuration file:
 }
 ```
 
-### Option 2: Using Built Executable
-
-First, publish the application:
-
-```bash
-dotnet publish DatabaseMcp.Server -c Release -o ./publish
-```
-
-Then configure Claude Desktop:
-
-```json
-## 🛠️ **Oracle Database Compatibility**
-
-**Supports Oracle 11g R2 through Oracle 19c+**
-
-| Oracle Version | Support Level | Status |
-|---------------|---------------|--------|
-| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
-| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
-| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
-| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
-
-**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
+Restart Claude Desktop after configuration.
 
 ## 🚀 **Features & Capabilities**
 
 The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
 
-### 📊 **Database Discovery & Analysis**
-- **Table Metadata**: Get detailed table information, structure, and properties
-- **Column Analysis**: Analyze data types, nullability, defaults, and find tables by column name
-- **Schema Relationships**: Map foreign keys and table relationships across your database
+## 🛠️ **Complete MCP Tools Reference**
 
-### 🔍 **Advanced Database Intelligence** 
-- **Dependency Analysis**: Understand object dependencies and impact analysis before changes
-- **Constraint Analysis**: Discover primary keys, foreign keys, unique constraints, and check constraints
-- **Index Optimization**: Analyze index structures and column compositions for performance tuning
+### 📊 **Table & Metadata Discovery**
 
-### ⚙️ **Stored Code Analysis**
-- **Procedures & Functions**: Get complete definitions, parameters, and source code
-- **Triggers**: Analyze trigger definitions and their relationships
-- **Views**: Understand view structures and underlying SQL
+#### **GetTablesByName**
+- **Purpose**: Retrieve comprehensive metadata for specific tables by name
+- **Use Cases**: Analyze table structure, understand data types, review constraints
+- **Example**: *"Show me the CUSTOMERS table structure with all columns and data types"*
 
-### 🚀 **Operational Tools**
-- **Raw SQL Execution**: Execute SELECT statements directly
-- **Metadata Caching**: Refresh database metadata cache for optimal performance
-- **Synonym Management**: Discover and analyze database synonyms
+#### **GetColumnMetadata** 
+- **Purpose**: Get detailed column information including data types, nullability, default values, and ordinal positions
+- **Use Cases**: Schema analysis, data migration planning, field validation
+- **Example**: *"Get all column details for the ORDERS table including constraints"*
 
-**👉 For complete tool documentation with 100+ sample prompts, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
+#### **GetTablesByColumnName**
+- **Purpose**: Find all tables that contain a specific column name across the entire database
+- **Use Cases**: Impact analysis, finding related tables, schema exploration
+- **Example**: *"Find all tables with EMAIL column"*
+
+#### **GetColumnNames**
+- **Purpose**: Quick retrieval of just the column names for a specific table
+- **Use Cases**: Fast schema overview, code generation, quick reference
+- **Example**: *"List all column names in the PRODUCTS table"*
+
+#### **GetDataTypes**
+- **Purpose**: Get data type information for all columns in a table
+- **Use Cases**: Data type analysis, migration planning, schema documentation
+- **Example**: *"Show me all data types used in the USER_ACCOUNTS table"*
+
+#### **GetNullability**
+- **Purpose**: Analyze which columns allow NULL values and which are required
+- **Use Cases**: Data validation rules, required field identification, schema analysis
+- **Example**: *"Which columns in EMPLOYEES table are nullable?"*
+
+#### **GetDefaultValues**
+- **Purpose**: Retrieve default values configured for table columns
+- **Use Cases**: Understanding data initialization, schema documentation, migration planning
+- **Example**: *"Show default values for all columns in SETTINGS table"*
+
+### 🔗 **Relationships & Dependencies**
+
+#### **GetForeignKeyRelationships**
+- **Purpose**: Map all foreign key relationships across the entire database
+- **Use Cases**: Understanding data relationships, schema visualization, impact analysis
+- **Example**: *"Show me all table relationships in the database"*
+
+#### **GetForeignKeys**
+- **Purpose**: Get foreign key constraints for a specific table
+- **Use Cases**: Relationship analysis, referential integrity checking, schema understanding
+- **Example**: *"What foreign keys exist on the ORDERS table?"*
+
+#### **GetPrimaryKeys**
+- **Purpose**: Retrieve primary key information for tables
+- **Use Cases**: Unique identifier analysis, index optimization, schema documentation
+- **Example**: *"Show primary key for CUSTOMERS table"*
+
+#### **DependentObjectsAnalysis**
+- **Purpose**: Analyze what database objects depend on a specific table, view, or procedure
+- **Use Cases**: Impact analysis before changes, dependency mapping, safe refactoring
+- **Example**: *"What procedures and views depend on the USERS table?"*
+
+#### **GetObjectsRelationships**
+- **Purpose**: Understand relationships and dependencies for specific database objects
+- **Use Cases**: Object dependency mapping, impact analysis, schema understanding
+- **Example**: *"Show all objects that reference the CUSTOMER_ADDRESS table"*
+
+### 🔒 **Constraints & Validation**
+
+#### **GetUniqueConstraints**
+- **Purpose**: Discover unique constraints defined on tables
+- **Use Cases**: Data uniqueness validation, index analysis, constraint documentation
+- **Example**: *"Show unique constraints on PRODUCTS table"*
+
+#### **GetCheckConstraints**
+- **Purpose**: Retrieve check constraints that enforce data validation rules
+- **Use Cases**: Business rule analysis, data validation understanding, compliance checking
+- **Example**: *"What check constraints are defined on EMPLOYEE_SALARY table?"*
+
+### 📈 **Performance & Indexing**
+
+#### **ListIndexes**
+- **Purpose**: Get comprehensive index information for tables including index types and columns
+- **Use Cases**: Performance optimization, query tuning, index analysis
+- **Example**: *"Show all indexes on the ORDERS table with their columns"*
+
+#### **GetIndexColumns**
+- **Purpose**: Get the specific columns that make up an index
+- **Use Cases**: Index composition analysis, query optimization, performance tuning
+- **Example**: *"What columns are in the IDX_CUSTOMER_EMAIL index?"*
+
+### ⚙️ **Stored Procedures & Functions**
+
+#### **GetStoredProceduresMetadataByName**
+- **Purpose**: Get complete metadata for stored procedures including parameters and source code
+- **Use Cases**: Code analysis, parameter understanding, procedure documentation
+- **Example**: *"Show me details for the PROCESS_ORDER procedure"*
+
+#### **GetStoredProcedureParameters**
+- **Purpose**: Get parameter information for stored procedures
+- **Use Cases**: Integration planning, API development, parameter validation
+- **Example**: *"What parameters does the UPDATE_CUSTOMER procedure accept?"*
+
+#### **GetFunctionsMetadataByName**
+- **Purpose**: Retrieve comprehensive function metadata including return types and parameters
+- **Use Cases**: Function analysis, integration planning, code documentation
+- **Example**: *"Show details for the CALCULATE_TAX function"*
+
+#### **GetFunctionParameters**
+- **Purpose**: Get parameter details for database functions
+- **Use Cases**: Function integration, parameter understanding, code analysis
+- **Example**: *"What parameters does GET_CUSTOMER_BALANCE function require?"*
+
+### 👁️ **Views & Virtual Objects**
+
+#### **GetViewDefinition**
+- **Purpose**: Get view definitions including underlying SQL and structure
+- **Use Cases**: View analysis, query understanding, virtual table documentation
+- **Example**: *"Show me the definition of CUSTOMER_SUMMARY view"*
+
+### 🔄 **Triggers & Automation**
+
+#### **GetTriggersByName**
+- **Purpose**: Get trigger definitions, timing, and associated tables
+- **Use Cases**: Automation analysis, trigger understanding, schema documentation
+- **Example**: *"Show me the AUDIT_EMPLOYEE_CHANGES trigger definition"*
+
+### � **Synonyms & Aliases**
+
+#### **GetSynonymMetadata**
+- **Purpose**: Discover database synonyms and their target objects
+- **Use Cases**: Object mapping, schema understanding, alias resolution
+- **Example**: *"Show all synonyms pointing to EMPLOYEE table"*
+
+### 💾 **Data Access & Queries**
+
+#### **ExecuteRawSelect**
+- **Purpose**: Execute SELECT statements directly against the database
+- **Use Cases**: Data exploration, query testing, quick data analysis
+- **Example**: *"Execute: SELECT COUNT(*) FROM ORDERS WHERE STATUS = 'PENDING'"*
+
+### 🔄 **Cache Management**
+
+#### **RefreshFullDBMetadata**
+- **Purpose**: Refresh all cached database metadata for optimal performance
+- **Use Cases**: Cache maintenance, ensuring fresh metadata, performance optimization
+- **Example**: *"Refresh all database metadata cache"*
+
+#### **RefreshTablesMetadata**
+- **Purpose**: Refresh only table metadata cache
+- **Use Cases**: Targeted cache refresh, table structure updates, performance tuning
+- **Example**: *"Refresh table metadata after schema changes"*
+
+#### **RefreshStoredProceduresMetadata**
+- **Purpose**: Refresh stored procedure metadata cache
+- **Use Cases**: Procedure cache maintenance, code deployment updates
+- **Example**: *"Refresh procedure cache after deployment"*
+
+#### **RefreshFunctionsMetadata**
+- **Purpose**: Refresh function metadata cache
+- **Use Cases**: Function cache maintenance, code updates
+- **Example**: *"Refresh function metadata cache"*
+
+#### **RefreshTriggersMetadata**
+- **Purpose**: Refresh trigger metadata cache
+- **Use Cases**: Trigger cache maintenance, automation updates
+- **Example**: *"Refresh trigger metadata after changes"*
+
+#### **RefreshViewsMetadata**
+- **Purpose**: Refresh view metadata cache
+- **Use Cases**: View cache maintenance, virtual object updates
+- **Example**: *"Refresh view metadata cache"*
+
+**👉 For 100+ sample prompts and detailed examples, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
 
 ## 📋 **Requirements**
 

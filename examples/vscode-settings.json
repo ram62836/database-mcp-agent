@@ -1,0 +1,45 @@
+{
+  "_comment": "VS Code MCP Configuration for Oracle Database Agent with GitHub Copilot",
+  "_instructions": [
+    "=== PREREQUISITES ===",
+    "1. GitHub Copilot extension installed and configured in VS Code",
+    "2. Oracle Database MCP Agent downloaded from: https://github.com/ram62836/database-mcp-agent/releases/latest",
+    "3. Agent extracted to a folder (e.g., C:\\Tools\\database-mcp-agent)",
+    "",
+    "=== SETUP STEPS ===",
+    "1. Install 'MCP Client for VS Code' extension from VS Code marketplace",
+    "2. Open VS Code Settings (File > Preferences > Settings or Ctrl+,)",
+    "3. Search for 'mcp' in settings",
+    "4. Click 'Edit in settings.json' for 'MCP: Servers'",
+    "5. Add the configuration below to your settings.json",
+    "6. Update paths to match your installation directory",
+    "7. Restart VS Code",
+    "",
+    "=== USAGE WITH GITHUB COPILOT ===",
+    "• Use @oracle-agent in GitHub Copilot Chat",
+    "• GitHub Copilot will automatically use MCP tools for database queries",
+    "• Example prompts:",
+    "  - '@oracle-agent What tables exist in my database?'",
+    "  - '@oracle-agent Show me the structure of the EMPLOYEES table'",
+    "  - '@oracle-agent Find all foreign key relationships'",
+    "  - '@oracle-agent What procedures depend on the CUSTOMERS table?'",
+    "",
+    "=== TROUBLESHOOTING ===",
+    "• Check VS Code Output panel for MCP connection errors",
+    "• Ensure Oracle connection string is configured in appsettings.json",
+    "• Verify the executable path is correct",
+    "• Make sure the working directory contains appsettings.json"
+  ],
+  "mcp.servers": {
+    "oracle-agent-server": {
+      "type": "stdio",
+      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "C:\\Tools\\database-mcp-agent",
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      },
+      "description": "Oracle Database MCP Agent for GitHub Copilot integration"
+    }
+  }
+}

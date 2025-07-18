@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "database-mcp-agent": {
+      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "C:\\Tools\\database-mcp-agent"
+    }
+  }
+}
