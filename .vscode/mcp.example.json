@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "oracle-agent-server": {
+      "type": "stdio",
+      "command": "path/to/your/built/DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "path/to/your/project/directory"
+    }
+  }
+}

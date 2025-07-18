@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "database-mcp-agent": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "C:\\Source\\oracle-ai-agent\\DatabaseMcp.Server"
+      ]
+    }
+  }
+}
