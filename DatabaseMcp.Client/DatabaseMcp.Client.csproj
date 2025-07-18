@@ -11,10 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DatabaseMcp.Server\DatabaseMcp.Server.csproj" />
     <ProjectReference Include="..\DatabaseMcp.Core\DatabaseMcp.Core.csproj" />
   </ItemGroup>
 
