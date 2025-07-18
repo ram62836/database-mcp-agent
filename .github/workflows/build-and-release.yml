@@ -49,15 +49,15 @@ jobs:
     - name: Publish single-file executable
       shell: bash
       run: |
-        dotnet publish ${{ env.PROJECT_PATH }} \
+        dotnet publish "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
           --configuration Release \
           --runtime ${{ matrix.runtime }} \
           --self-contained true \
-          --output ./publish/${{ matrix.runtime }} \
-          /p:PublishSingleFile=true \
-          /p:IncludeNativeLibrariesForSelfExtract=true \
-          /p:PublishTrimmed=false \
-          /p:EnableCompressionInSingleFile=true
+          --output "./publish/${{ matrix.runtime }}" \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=false \
+          -p:EnableCompressionInSingleFile=true
 
     - name: Copy configuration files
       shell: bash
