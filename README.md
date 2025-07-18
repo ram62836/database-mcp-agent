@@ -1,43 +1,19 @@
 # Oracle Database MCP Agent
 
-Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model C}
-```
+Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
-## 💬 Sample AI Prompts
+## �️ **Oracle Database Compatibility**
 
-Once connected to Claude Desktop, you can use natural language prompts like:
+**Supports Oracle 11g R2 through Oracle 19c+**
 
-### 🔍 **Database Discovery**
-```
-"Find all tables that have an 'EMAIL' column"
-"Show me the structure of the CUSTOMERS table"
-"What are the foreign key relationships in my database?"
-```
+| Oracle Version | Support Level | Status |
+|---------------|---------------|--------|
+| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
+| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
+| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
+| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
 
-### 📊 **Schema Analysis** 
-```
-"Analyze the ORDERS table - show me columns, constraints, and relationships"
-"What would be affected if I modify the USER_PROFILES table?"
-"Get the complete metadata for tables related to user management"
-```
-
-### ⚙️ **Code Analysis**
-```
-"Show me all stored procedures that reference the PRODUCTS table"
-"Get the definition and parameters for the CALCULATE_TAX function"
-"What triggers are defined on the AUDIT_LOG table?"
-```
-
-### 🚀 **Advanced Analysis**
-```
-"Perform impact analysis before I modify the PAYMENT_METHODS table"
-"Show me all indexes on high-traffic tables for performance optimization"
-"Execute: SELECT COUNT(*) FROM ORDERS WHERE STATUS = 'PENDING'"
-```
-
-**👉 [See 100+ more sample prompts in MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
-
-## ConfigurationMCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
+**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
 
 ## Features
 

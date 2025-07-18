@@ -1,5 +1,8 @@
 # 🚀 Oracle Database MCP Agent - Quick Reference
 
+## 🗄️ Oracle Compatibility
+**Supports Oracle 11g R2 through Oracle 19c+** | **✅ Fully Compatible with all major Oracle versions**
+
 ## Most Popular Tools
 
 | Tool | Purpose | Sample Prompt |
