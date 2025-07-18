@@ -1,6 +1,43 @@
 # Oracle Database MCP Agent
 
-Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
+Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model C}
+```
+
+## 💬 Sample AI Prompts
+
+Once connected to Claude Desktop, you can use natural language prompts like:
+
+### 🔍 **Database Discovery**
+```
+"Find all tables that have an 'EMAIL' column"
+"Show me the structure of the CUSTOMERS table"
+"What are the foreign key relationships in my database?"
+```
+
+### 📊 **Schema Analysis** 
+```
+"Analyze the ORDERS table - show me columns, constraints, and relationships"
+"What would be affected if I modify the USER_PROFILES table?"
+"Get the complete metadata for tables related to user management"
+```
+
+### ⚙️ **Code Analysis**
+```
+"Show me all stored procedures that reference the PRODUCTS table"
+"Get the definition and parameters for the CALCULATE_TAX function"
+"What triggers are defined on the AUDIT_LOG table?"
+```
+
+### 🚀 **Advanced Analysis**
+```
+"Perform impact analysis before I modify the PAYMENT_METHODS table"
+"Show me all indexes on high-traffic tables for performance optimization"
+"Execute: SELECT COUNT(*) FROM ORDERS WHERE STATUS = 'PENDING'"
+```
+
+**👉 [See 100+ more sample prompts in MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
+
+## ConfigurationMCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
 ## Features
 
@@ -23,6 +60,32 @@ Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and in
 - .NET 8.0 SDK or later
 - Oracle Database (tested with Oracle 11g and later)
 - Oracle.ManagedDataAccess.Core NuGet package
+
+## Available MCP Tools
+
+The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
+
+### 📊 **Database Discovery & Analysis**
+- **Table Metadata**: Get detailed table information, structure, and properties
+- **Column Analysis**: Analyze data types, nullability, defaults, and find tables by column name
+- **Schema Relationships**: Map foreign keys and table relationships across your database
+
+### 🔍 **Advanced Database Intelligence** 
+- **Dependency Analysis**: Understand object dependencies and impact analysis before changes
+- **Constraint Analysis**: Discover primary keys, foreign keys, unique constraints, and check constraints
+- **Index Optimization**: Analyze index structures and column compositions for performance tuning
+
+### ⚙️ **Stored Code Analysis**
+- **Procedures & Functions**: Get complete definitions, parameters, and source code
+- **Triggers**: Analyze trigger definitions and their relationships
+- **Views**: Understand view structures and underlying SQL
+
+### 🚀 **Operational Tools**
+- **Raw SQL Execution**: Execute SELECT statements directly
+- **Metadata Caching**: Refresh database metadata cache for optimal performance
+- **Synonym Management**: Discover and analyze database synonyms
+
+**👉 For complete tool documentation with sample prompts, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
 
 ## Quick Start
 
