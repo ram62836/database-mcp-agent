@@ -1,22 +1,10 @@
 # Oracle Database MCP Agent
 
-Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and i}
-```
+Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with Oracle database metadata through the Model Context**👉 See [examples/vscode-settings.json](examples/vscode-settings.json) for complete VS Code setup guide**
 
-Restart Claude Desktop after configuration.
+## FeaturesP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
-## 🛠️ **Oracle Database Compatibility**
-
-**Supports Oracle 11g R2 through Oracle 19c+**
-
-| Oracle Version | Support Level | Status |
-|---------------|---------------|--------|
-| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
-| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
-| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
-| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
-
-**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**cle database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
+## Features Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
 
 *Inspired by the [oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server) Python project, this .NET implementation provides enhanced features and cross-platform deployment capabilities.*
 
@@ -75,6 +63,19 @@ DatabaseMcp.Server.exe --console
 ```
 
 **✅ That's it! Your Oracle Database MCP Agent is ready to use.**
+
+## 🛠️ **Oracle Database Compatibility**
+
+**Supports Oracle 11g R2 through Oracle 19c+**
+
+| Oracle Version | Support Level | Status |
+|---------------|---------------|--------|
+| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
+| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
+| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
+| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
+
+**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
 
 ## 🖥️ **Claude Desktop Integration**
 
@@ -211,7 +212,7 @@ Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and in
 - Oracle Database (tested with Oracle 11g and later)
 - Oracle.ManagedDataAccess.Core NuGet package
 
-## Available MCP Tools
+## 🚀 **Features & Capabilities**
 
 The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
 
@@ -236,6 +237,8 @@ The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive 
 - **Synonym Management**: Discover and analyze database synonyms
 
 **👉 For complete tool documentation with sample prompts, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
+
+## 🛠️ **Complete MCP Tools Reference**
 
 ## Quick Start
 
