@@ -2,6 +2,8 @@
 
 Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with Oracle database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
 
+*Inspired by the [oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server) Python project, this .NET implementation provides enhanced features and cross-platform deployment capabilities.*
+
 ## 🚀 **Quick Start (2 Minutes Setup)**
 
 ### 1. Download Pre-Built Release
@@ -408,7 +410,22 @@ If you encounter any issues or have questions:
    - Error messages (sanitized)
    - Steps to reproduce
 
-## 🗺️ **Roadmap**
+## � **Credits & Inspiration**
+
+This .NET implementation was inspired by the excellent Python project:
+
+**[oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server)** by [danielmeppiel](https://github.com/danielmeppiel)
+
+The Python version provided the initial concept and approach for creating an Oracle database MCP server. This .NET version expands on that foundation with:
+- ✅ **Cross-platform single-file executables**
+- ✅ **Enhanced metadata caching and performance**
+- ✅ **25+ comprehensive database analysis tools**
+- ✅ **Extensive documentation and user guides**
+- ✅ **Enterprise-ready deployment options**
+
+Thank you to the original author for the inspiration and for showing the community how powerful Oracle + MCP integration can be!
+
+## �🗺️ **Roadmap**
 
 - [ ] Add support for SQL Server databases
 - [ ] Add support for PostgreSQL databases  
