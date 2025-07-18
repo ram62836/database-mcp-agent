@@ -1,14 +1,25 @@
-# Oracle Database MCP Agent
+# Database MCP Agent
 
-Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with Oracle database metadata through the Model Context**👉 See [examples/vscode-settings.json](examples/vscode-settings.json) for complete VS Code setup guide**
+Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
 
-## FeaturesP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
+**Currently supports Oracle databases** with planned support for SQL Server, PostgreSQL, and MySQL.
 
-## Features Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
+*Inspired by the [oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server) Python project, this .NET implementation provides enhanced features, cross-platform deployment capabilities, and a multi-database architecture.*
 
-*Inspired by the [oracle-mcp-server](https://github.com/danielmeppiel/oracle-mcp-server) Python project, this .NET implementation provides enhanced features and cross-platform deployment capabilities.*
+## 🚀 **Quick Start (2 Minute## 🗺️ **Roadmap**
 
-## 🚀 **Quick Start (2 Minutes Setup)**
+### **Database Support Expansion**
+- [x] **Oracle Database** - Fully supported (11g R2 - 19c+)
+- [ ] **SQL Server** - In development
+- [ ] **PostgreSQL** - Planned
+- [ ] **MySQL** - Planned
+
+### **Feature Enhancements**
+- [ ] Implement more advanced dependency analysis
+- [ ] Add database schema comparison tools
+- [ ] Improve caching mechanisms for multi-database scenarios
+- [ ] Add web-based dashboard
+- [ ] Cross-database migration analysis tools**
 
 ### 1. Download Pre-Built Release
 
@@ -40,13 +51,15 @@ cd database-mcp-agent-osx-x64
 
 ### 3. Configure Your Database
 
-Edit `appsettings.json` with your Oracle database connection:
+Edit `appsettings.json` with your database connection:
 
+**Oracle Database:**
 ```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-oracle-host)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service-name)));Persist Security Info=True;User Id=your-username;Password=your-password;"
-  }
+  },
+  "DatabaseProvider": "Oracle"
 }
 ```
 
@@ -64,7 +77,9 @@ DatabaseMcp.Server.exe --console
 
 **✅ That's it! Your Oracle Database MCP Agent is ready to use.**
 
-## 🛠️ **Oracle Database Compatibility**
+## 🛠️ **Database Support**
+
+### **Currently Supported: Oracle Database**
 
 **Supports Oracle 11g R2 through Oracle 19c+**
 
@@ -75,11 +90,19 @@ DatabaseMcp.Server.exe --console
 | **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
 | **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
 
+### **Planned Database Support**
+
+| Database | Status | Timeline |
+|----------|--------|----------|
+| **SQL Server** | 🔄 **In Development** | Next Release |
+| **PostgreSQL** | 📋 **Planned** | Future Release |
+| **MySQL** | 📋 **Planned** | Future Release |
+
 **👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
 
 ## 🖥️ **Claude Desktop Integration**
 
-Configure Claude Desktop to use your Oracle Database Agent:
+Configure Claude Desktop to use your Database MCP Agent:
 
 **Configuration File Location:**
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
@@ -90,7 +113,7 @@ Configure Claude Desktop to use your Oracle Database Agent:
 ```json
 {
   "mcpServers": {
-    "oracle-database-agent": {
+    "database-mcp-agent": {
       "command": "/path/to/extracted/DatabaseMcp.Server.exe",
       "args": ["--console"],
       "cwd": "/path/to/extracted/folder"
@@ -103,7 +126,7 @@ Configure Claude Desktop to use your Oracle Database Agent:
 ```json
 {
   "mcpServers": {
-    "oracle-database-agent": {
+    "database-mcp-agent": {
       "command": "C:\Tools\database-mcp-agent\DatabaseMcp.Server.exe",
       "args": ["--console"],
       "cwd": "C:\Tools\database-mcp-agent"
@@ -116,7 +139,7 @@ Configure Claude Desktop to use your Oracle Database Agent:
 ```json
 {
   "mcpServers": {
-    "oracle-database-agent": {
+    "database-mcp-agent": {
       "command": "/Users/yourname/Tools/database-mcp-agent/DatabaseMcp.Server",
       "args": ["--console"],
       "cwd": "/Users/yourname/Tools/database-mcp-agent"
@@ -133,7 +156,7 @@ Restart Claude Desktop after configuration.
 
 **Prerequisites:**
 - GitHub Copilot extension installed and configured in VS Code
-- Oracle Database MCP Agent downloaded and extracted
+- Database MCP Agent downloaded and extracted
 
 **Setup Steps:**
 
@@ -149,7 +172,7 @@ Restart Claude Desktop after configuration.
 ```json
 {
   "mcp.servers": {
-    "oracle-agent-server": {
+    "database-agent-server": {
       "type": "stdio",
       "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
       "args": ["--console"],
@@ -157,7 +180,7 @@ Restart Claude Desktop after configuration.
       "env": {
         "DOTNET_ENVIRONMENT": "Production"
       },
-      "description": "Oracle Database MCP Agent for GitHub Copilot"
+      "description": "Database MCP Agent for GitHub Copilot"
     }
   }
 }
@@ -166,12 +189,12 @@ Restart Claude Desktop after configuration.
 4. **Restart VS Code** to activate the MCP connection
 
 **Usage with GitHub Copilot:**
-- Use `@oracle-agent` in GitHub Copilot Chat
+- Use `@database-agent` in GitHub Copilot Chat
 - Example prompts:
-  - `@oracle-agent Show me the CUSTOMERS table structure`
-  - `@oracle-agent Find all tables with EMAIL column`
-  - `@oracle-agent What procedures depend on the ORDERS table?`
-  - `@oracle-agent Analyze foreign key relationships`
+  - `@database-agent Show me the CUSTOMERS table structure`
+  - `@database-agent Find all tables with EMAIL column`
+  - `@database-agent What procedures depend on the ORDERS table?`
+  - `@database-agent Analyze foreign key relationships`
 
 **👉 See [examples/vscode-settings.json](examples/vscode-settings.json) for complete VS Code setup guide**
 
@@ -214,7 +237,7 @@ Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and in
 
 ## 🚀 **Features & Capabilities**
 
-The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
+The Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
 
 ### 📊 **Database Discovery & Analysis**
 - **Table Metadata**: Get detailed table information, structure, and properties
@@ -495,8 +518,8 @@ The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive 
 
 ## 📋 **Requirements**
 
-- **Oracle Database**: 11g R2 or later
-- **Network Access**: Connection to your Oracle database
+- **Database**: Oracle 11g R2 or later (additional databases coming soon)
+- **Network Access**: Connection to your database server
 - **Database Permissions**: CONNECT, RESOURCE, and SELECT access on system views
 - **Operating System**: Windows 10+ or macOS 10.15+
 
