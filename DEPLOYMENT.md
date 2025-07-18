@@ -1,33 +1,47 @@
 # 🚀 Deployment Guide
 
-## Automated Builds & Releases
+## ⚡ **Getting Started (Users)**
+
+**👉 Most users should download pre-built releases instead of building from source.**
+
+### **Download Pre-Built Releases**
+1. **Go to releases**: [GitHub Releases](https://github.com/ram62836/database-mcp-agent/releases/latest)
+2. **Download for your platform**:
+   - Windows: `database-mcp-agent-win-x64.zip`
+   - macOS: `database-mcp-agent-osx-x64.tar.gz`
+3. **Extract and run**: Use the included setup scripts
+4. **Configure**: Edit `appsettings.json` with your database connection
+5. **Run**: Execute `DatabaseMcp.Server.exe` (Windows) or `./DatabaseMcp.Server` (macOS)
+
+**✅ No compilation, no dependencies, no .NET installation required!**
+
+---
+
+## 🏗️ **For Developers: Build Pipeline**
 
 The Oracle Database MCP Agent uses GitHub Actions to automatically build and release cross-platform executables.
 
-## 📦 Build Pipeline Features
-
-### **Automated Builds**
+### **Automated Build Features**
 - ✅ **Triggered on**: Push to main, tags, pull requests, manual workflow dispatch
-- ✅ **Platforms**: Windows, Linux, macOS
+- ✅ **Platforms**: Windows and macOS
 - ✅ **Single-file executables** with all dependencies included
 - ✅ **Configuration files** included with each release
 - ✅ **Documentation** bundled with executables
 
 ### **Release Packages**
 
-Each release includes three platform-specific packages:
+Each release includes two platform-specific packages:
 
 | Platform | Package | Executable |
 |----------|---------|------------|
 | **Windows** | `database-mcp-agent-win-x64.zip` | `DatabaseMcp.Server.exe` |
-| **Linux** | `database-mcp-agent-linux-x64.tar.gz` | `DatabaseMcp.Server` |
 | **macOS** | `database-mcp-agent-osx-x64.tar.gz` | `DatabaseMcp.Server` |
 
 ### **Package Contents**
 
 Each package contains:
 ```
-DatabaseMcp.Server[.exe]         # Main executable
+DatabaseMcp.Server[.exe]         # Main executable (self-contained)
 appsettings.json                 # Example configuration
 setup.[bat|sh]                   # Platform setup script
 README.md                        # Complete documentation
@@ -38,7 +52,7 @@ SECURITY.md                     # Security best practices
 LICENSE                         # MIT License
 ```
 
-## 🔄 Creating a Release
+## 🔄 **Creating a Release**
 
 ### **Automatic Release (Recommended)**
 1. Create a new tag following semantic versioning:
@@ -48,59 +62,70 @@ LICENSE                         # MIT License
    ```
 
 2. GitHub Actions will automatically:
-   - Build for all platforms
+   - Build for Windows and macOS platforms
    - Run tests
    - Create release packages
-   - Publish GitHub release with binaries
+   - Publish GitHub release with binaries and comprehensive release notes
 
-### **Manual Build (Development)**
+### **Manual Build (Development Only)**
 ```bash
 # Build single-file executable for current platform
 dotnet publish DatabaseMcp.Server \
   --configuration Release \
   --self-contained true \
-  /p:PublishSingleFile=true \
-  /p:IncludeNativeLibrariesForSelfExtract=true \
-  /p:EnableCompressionInSingleFile=true
+  --runtime win-x64 \
+  -p:PublishSingleFile=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:EnableCompressionInSingleFile=true
 ```
 
-## 📋 Build Requirements
+## 📋 **Build Requirements**
+
+### **For Users: None!**
+- ✅ **Pre-built releases** available on GitHub
+- ✅ **Self-contained executables** - no .NET installation needed
+- ✅ **No compilation** required
+
+### **For Developers: Local Build**
+- ✅ .NET 8.0 SDK or later
+- ✅ Git (for version tagging)
+- ✅ Oracle database for testing
 
 ### **GitHub Actions Environment**
 - ✅ .NET 8.0 SDK
-- ✅ Cross-platform runners (Windows, Ubuntu, macOS)
+- ✅ Cross-platform runners (Windows, macOS)
 - ✅ GitHub token for releases (automatic)
 
-### **Local Build Requirements**
-- ✅ .NET 8.0 SDK or later
-- ✅ Git (for version tagging)
+## 🎯 **Deployment Scenarios**
 
-## 🎯 Deployment Scenarios
+### **1. End-User Deployment (Recommended)**
+**Download ready-to-use releases:**
+1. **Download**: Go to [GitHub Releases](https://github.com/ram62836/database-mcp-agent/releases/latest)
+2. **Extract**: Unzip the platform-specific package
+3. **Setup**: Run `setup.bat` (Windows) or `./setup.sh` (macOS)
+4. **Configure**: Edit `appsettings.json` with your database connection
+5. **Run**: Launch `DatabaseMcp.Server.exe` or `./DatabaseMcp.Server`
 
-### **1. End-User Deployment**
-Users download pre-built releases from GitHub:
-1. Download platform-specific package
-2. Extract archive
-3. Run setup script
-4. Configure database connection
-5. Launch executable
+**✅ Zero compilation, zero dependencies!**
 
 ### **2. Development Deployment**
-Developers can build locally:
+**For developers who want to build from source:**
 ```bash
 git clone https://github.com/ram62836/database-mcp-agent.git
 cd database-mcp-agent
-./setup.sh  # or setup.bat on Windows
+dotnet restore
+dotnet build
 dotnet run --project DatabaseMcp.Server
 ```
 
 ### **3. Enterprise Deployment**
-Organizations can:
-- Download and redistribute packages internally
+**Organizations can:**
+- Download and redistribute pre-built packages internally
 - Build from source with custom configurations
-- Deploy via corporate software distribution
+- Deploy via corporate software distribution systems
+- Use in Docker containers or server environments
 
-## 🔧 Build Configuration
+## 🔧 **Build Configuration Details**
 
 ### **Single-File Publishing Settings**
 ```xml
@@ -111,32 +136,57 @@ Organizations can:
 ```
 
 ### **Platform-Specific Runtime Identifiers**
-- **Windows**: `win-x64`
-- **Linux**: `linux-x64`
-- **macOS**: `osx-x64`
+- **Windows**: `win-x64` (64-bit Intel/AMD)
+- **macOS**: `osx-x64` (64-bit Intel/AMD and Apple Silicon via Rosetta)
 
-## 📊 Build Artifacts
+### **Supported Platforms**
+| Platform | Architecture | Executable Format | Status |
+|----------|-------------|-------------------|--------|
+| Windows 10+ | x64 | `.exe` | ✅ Fully Supported |
+| macOS 10.15+ | x64/ARM64 | Binary | ✅ Fully Supported |
+
+## 📊 **Build Artifacts & Storage**
 
 ### **GitHub Actions Artifacts**
-- Build artifacts are stored for 30 days
+- Build artifacts stored for 30 days
 - Available for download from workflow runs
-- Include all platform builds
+- Include logs and debug information
 
 ### **Release Assets**
-- Permanently stored with GitHub releases
-- Automatically generated for tagged releases
-- Include comprehensive release notes
+- **Permanently stored** with GitHub releases
+- **Automatically generated** for tagged releases
+- **Comprehensive release notes** with setup instructions
 
-## 🛠️ Troubleshooting Builds
+### **File Sizes**
+- Windows executable: ~15-20 MB (self-contained)
+- macOS executable: ~15-20 MB (self-contained)
+- Documentation: ~200 KB total
 
-### **Common Issues**
-1. **Build fails**: Check .NET version and dependencies
-2. **Tests fail**: Verify Oracle connectivity in test environment
-3. **Publishing fails**: Check runtime identifier and platform compatibility
+## 🛠️ **Troubleshooting**
 
-### **Build Logs**
-- View detailed logs in GitHub Actions
-- Check individual job outputs for platform-specific issues
+### **For Users: Download Issues**
+| Issue | Solution |
+|-------|----------|
+| File won't download | ✅ Check internet connection, try different browser |
+| Executable won't run | ✅ Check antivirus settings, ensure file permissions |
+| Configuration errors | ✅ Follow setup scripts, verify database credentials |
+
+### **For Developers: Build Issues**
+| Issue | Solution |
+|-------|----------|
+| Build fails | ✅ Check .NET 8.0 SDK installation |
+| Tests fail | ✅ Verify Oracle database connectivity |
+| Publishing fails | ✅ Check runtime identifier and platform |
+
+### **Getting Help**
+1. **Check documentation** in this repository
+2. **Review logs** in GitHub Actions for build failures
+3. **Open an issue** with detailed error information
+4. **Provide context**: OS version, .NET version, error messages
+
+---
+
+**🚀 Users: Download releases • Developers: Build from source • Everyone: Get Oracle database intelligence with AI!**
 - Test artifacts available for debugging
 
 ## 📞 Support

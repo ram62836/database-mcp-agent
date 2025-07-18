@@ -1,5 +1,113 @@
 # Oracle Database MCP Agent
 
+Oracle Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with Oracle database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
+
+## 🚀 **Quick Start (2 Minutes Setup)**
+
+### 1. Download Pre-Built Release
+
+**No compilation needed!** Download the latest release for your platform:
+
+**[📥 Download Latest Release](https://github.com/ram62836/database-mcp-agent/releases/latest)**
+
+- **Windows**: `database-mcp-agent-win-x64.zip`
+- **macOS**: `database-mcp-agent-osx-x64.tar.gz`
+
+### 2. Extract and Setup
+
+**Windows:**
+```cmd
+# Extract the zip file
+# Run the setup script
+setup.bat
+```
+
+**macOS:**
+```bash
+# Extract the archive
+tar -xzf database-mcp-agent-osx-x64.tar.gz
+cd database-mcp-agent-osx-x64
+
+# Run the setup script
+./setup.sh
+```
+
+### 3. Configure Your Database
+
+Edit `appsettings.json` with your Oracle database connection:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-oracle-host)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service-name)));Persist Security Info=True;User Id=your-username;Password=your-password;"
+  }
+}
+```
+
+### 4. Run the Agent
+
+**Windows:**
+```cmd
+DatabaseMcp.Server.exe --console
+```
+
+**macOS:**
+```bash
+./DatabaseMcp.Server --console
+```
+
+**✅ That's it! Your Oracle Database MCP Agent is ready to use.**
+
+## 🖥️ **Claude Desktop Integration**
+
+Configure Claude Desktop to use your Oracle Database Agent:
+
+**Configuration File Location:**
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**Add this configuration:**
+
+```json
+{
+  "mcpServers": {
+    "oracle-database-agent": {
+      "command": "/path/to/extracted/DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "/path/to/extracted/folder"
+    }
+  }
+}
+```
+
+**Windows Example:**
+```json
+{
+  "mcpServers": {
+    "oracle-database-agent": {
+      "command": "C:\Tools\database-mcp-agent\DatabaseMcp.Server.exe",
+      "args": ["--console"],
+      "cwd": "C:\Tools\database-mcp-agent"
+    }
+  }
+}
+```
+
+**macOS Example:**
+```json
+{
+  "mcpServers": {
+    "oracle-database-agent": {
+      "command": "/Users/yourname/Tools/database-mcp-agent/DatabaseMcp.Server",
+      "args": ["--console"],
+      "cwd": "/Users/yourname/Tools/database-mcp-agent"
+    }
+  }
+}
+```
+
+Restart Claude Desktop after configuration.e MCP Agent
+
 Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
 ## �️ **Oracle Database Compatibility**
@@ -147,78 +255,134 @@ dotnet publish DatabaseMcp.Server -c Release -o ./publish
 Then configure Claude Desktop:
 
 ```json
+## 🛠️ **Oracle Database Compatibility**
+
+**Supports Oracle 11g R2 through Oracle 19c+**
+
+| Oracle Version | Support Level | Status |
+|---------------|---------------|--------|
+| **Oracle 19c** | ✅ **Fully Supported** | Recommended (Latest LTS) |
+| **Oracle 18c** | ✅ **Fully Supported** | All features work perfectly |
+| **Oracle 12c R2/R1** | ✅ **Fully Supported** | Extensively tested |
+| **Oracle 11g R2** | ✅ **Fully Supported** | Minimum recommended version |
+
+**👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
+
+## 🚀 **Features & Capabilities**
+
+The Oracle Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
+
+### 📊 **Database Discovery & Analysis**
+- **Table Metadata**: Get detailed table information, structure, and properties
+- **Column Analysis**: Analyze data types, nullability, defaults, and find tables by column name
+- **Schema Relationships**: Map foreign keys and table relationships across your database
+
+### 🔍 **Advanced Database Intelligence** 
+- **Dependency Analysis**: Understand object dependencies and impact analysis before changes
+- **Constraint Analysis**: Discover primary keys, foreign keys, unique constraints, and check constraints
+- **Index Optimization**: Analyze index structures and column compositions for performance tuning
+
+### ⚙️ **Stored Code Analysis**
+- **Procedures & Functions**: Get complete definitions, parameters, and source code
+- **Triggers**: Analyze trigger definitions and their relationships
+- **Views**: Understand view structures and underlying SQL
+
+### 🚀 **Operational Tools**
+- **Raw SQL Execution**: Execute SELECT statements directly
+- **Metadata Caching**: Refresh database metadata cache for optimal performance
+- **Synonym Management**: Discover and analyze database synonyms
+
+**👉 For complete tool documentation with 100+ sample prompts, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
+
+## 📋 **Requirements**
+
+- **Oracle Database**: 11g R2 or later
+- **Network Access**: Connection to your Oracle database
+- **Database Permissions**: CONNECT, RESOURCE, and SELECT access on system views
+- **Operating System**: Windows 10+ or macOS 10.15+
+
+**No .NET installation required** - Single-file executables are self-contained!
+
+## 🔧 **Configuration Reference**
+
+The agent uses a simple JSON configuration file (`appsettings.json`):
+
+```json
 {
-  "mcpServers": {
-    "oracle-database-agent": {
-      "command": "C:\\path\\to\\your\\oracle-ai-agent\\publish\\DatabaseMcp.Server.exe",
-      "args": ["--console"]
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));Persist Security Info=True;User Id=hr;Password=password;"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning"
     }
   }
 }
 ```
 
-For a complete setup guide, see the example configuration in `.vscode/mcp.example.json`.
+**Common Connection String Examples:**
 
-## Configuration
-
-The main configuration file is `DatabaseMcp.Server/appsettings.json`:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "your-oracle-connection-string-here"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
-    }
-  },
-  "AllowedHosts": "*"
-}
+**Standard Connection:**
+```
+Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=hostname)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=servicename)));User Id=username;Password=password;
 ```
 
-## Available MCP Tools
+**Connection with SID:**
+```
+Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=hostname)(PORT=1521))(CONNECT_DATA=(SID=sid)));User Id=username;Password=password;
+```
 
-The server exposes the following tools for use with AI agents:
+**Oracle Cloud (OCI):**
+```
+Data Source=(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=hostname))(connect_data=(service_name=servicename))(security=(ssl_server_cert_dn=certificatedn)));User Id=username;Password=password;
+```
 
-- **GetTablesByName**: Retrieve metadata for specific tables
-- **GetColumnMetadata**: Get detailed column information for tables
-- **GetForeignKeyRelationships**: Analyze foreign key relationships
-- **GetPrimaryKeys**: Retrieve primary key information
-- **DependentObjectsAnalysis**: Analyze object dependencies
-- **ExecuteRawSelect**: Execute SELECT statements
-- **RefreshFullDBMetadata**: Refresh cached metadata
-- And many more...
+## 🧪 **Testing Your Setup**
 
-## Testing
+After configuration, test your connection:
 
-Run the unit tests to verify everything is working:
+1. **Run the agent**: `DatabaseMcp.Server.exe --console`
+2. **Look for**: `Connected to Oracle database successfully`
+3. **Test with AI**: Ask Claude "Show me all tables in the database"
 
+If you see connection errors, verify:
+- ✅ Database hostname and port are correct
+- ✅ Service name or SID is accurate  
+- ✅ Username and password are valid
+- ✅ Network connectivity to the database server
+- ✅ Database permissions are sufficient
+
+## 🔨 **For Developers: Building from Source**
+
+If you prefer to build from source or contribute to the project:
+
+### Prerequisites
+- .NET 8.0 SDK
+- Git
+
+### Build Steps
+```bash
+git clone https://github.com/ram62836/database-mcp-agent.git
+cd database-mcp-agent
+dotnet restore
+dotnet build
+dotnet run --project DatabaseMcp.Server
+```
+
+### Running Tests
 ```bash
 dotnet test
 ```
 
-## Getting Started
+## 📚 **Documentation**
 
-1. **Prerequisites**: Ensure you have .NET 8 SDK installed
-2. **Clone**: Clone this repository to your local machine
-3. **Configure**: Copy example config files and update with your database details
-4. **Build**: Run `dotnet build` to build the solution
-5. **Test**: Run `dotnet test` to verify everything works
-6. **Run**: Start the MCP server with `dotnet run --project DatabaseMcp.Server`
+- **[MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)** - Complete tools documentation with 100+ sample prompts
+- **[ORACLE_COMPATIBILITY.md](ORACLE_COMPATIBILITY.md)** - Database version compatibility guide
+- **[SECURITY.md](SECURITY.md)** - Security best practices and recommendations
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick command reference
 
-## Architecture
-
-The solution follows a clean architecture pattern:
-
-- **Core Layer** (`DatabaseMcp.Core`): Contains business logic, interfaces, and models
-- **Server Layer** (`DatabaseMcp.Server`): MCP server implementation and tool definitions
-- **Client Layer** (`DatabaseMcp.Client`): Console application for testing and standalone usage
-- **Tests Layer** (`DatabaseMcp.Core.Tests`): Unit tests for core functionality
-
-## Contributing
+## 🤝 **Contributing**
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
@@ -228,23 +392,33 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🆘 **Support**
 
-If you encounter any issues or have questions, please open an issue on the GitHub repository.
+If you encounter any issues or have questions:
 
-## Roadmap
+1. **Check the documentation** in this repository
+2. **Review common issues** in [SECURITY.md](SECURITY.md)
+3. **Open an issue** on the GitHub repository with:
+   - Your operating system
+   - Oracle database version
+   - Error messages (sanitized)
+   - Steps to reproduce
+
+## 🗺️ **Roadmap**
 
 - [ ] Add support for SQL Server databases
-- [ ] Add support for PostgreSQL databases
+- [ ] Add support for PostgreSQL databases  
 - [ ] Implement more advanced dependency analysis
 - [ ] Add database schema comparison tools
 - [ ] Improve caching mechanisms
-- [ ] Add REST API endpoints
+- [ ] Add web-based dashboard
 
 ---
 
-**Note**: This project is designed to work with Oracle databases. Ensure you have the appropriate database access and credentials configured before using.
+**🌟 Star this repository if you find it useful!**
+
+**Need help?** Check our comprehensive guides or open an issue for support.

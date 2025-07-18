@@ -1,10 +1,23 @@
 {
+  "_comment": "Example Claude Desktop configuration for Oracle Database MCP Agent",
+  "_instructions": [
+    "1. Download the latest release from: https://github.com/ram62836/database-mcp-agent/releases/latest",
+    "2. Extract the downloaded zip/tar.gz file to a folder",
+    "3. Update the 'command' path below to point to your extracted DatabaseMcp.Server.exe",
+    "4. Update the 'cwd' path to point to your extracted folder",
+    "5. Save this file as claude_desktop_config.json in your Claude config directory:",
+    "   Windows: %APPDATA%\\Claude\\claude_desktop_config.json",
+    "   macOS: ~/Library/Application Support/Claude/claude_desktop_config.json"
+  ],
   "servers": {
     "oracle-agent-server": {
       "type": "stdio",
-      "command": "path/to/your/built/DatabaseMcp.Server.exe",
+      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
       "args": ["--console"],
-      "cwd": "path/to/your/project/directory"
+      "cwd": "C:\\Tools\\database-mcp-agent",
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      }
     }
   }
 }
