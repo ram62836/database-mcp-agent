@@ -48,12 +48,6 @@ namespace DatabaseMcp.Core.Services
                 "3. ConnectionStrings:DefaultConnection in appsettings.json");
         }
 
-        public bool IsCachingEnabled()
-        {
-            var cachingEnabled = _configuration["DatabaseMcp:EnableCaching"];
-            return string.IsNullOrEmpty(cachingEnabled) || bool.Parse(cachingEnabled);
-        }
-
         public int GetCacheExpirationMinutes()
         {
             var cacheExpiration = _configuration["DatabaseMcp:CacheExpirationMinutes"];

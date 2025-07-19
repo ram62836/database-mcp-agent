@@ -11,28 +11,14 @@
         "stdio"
       ],
       "env": {
-        "ORACLE_DATABASE_HOST": "localhost",
-        "ORACLE_DATABASE_PORT": "1521",
-        "ORACLE_DATABASE_SERVICE_NAME": "xe",
-        "ORACLE_DATABASE_USERNAME": "testuser",
-        "ORACLE_DATABASE_PASSWORD": "testpass",
-        "DatabaseMcp__EnableCaching": "true",
-        "DatabaseMcp__CacheExpirationMinutes": "30",
-        "DatabaseMcp__MaxConnectionRetries": "3"
+        "ConnectionStrings__OracleConnection": "Host=localhost;Port=1521;Database=xe;User Id=testuser;Password=testpass;"
       }
     },
     "database-mcp-agent-global-tool": {
       "command": "database-mcp-agent",
       "args": ["stdio"],
       "env": {
-        "ORACLE_DATABASE_HOST": "localhost",
-        "ORACLE_DATABASE_PORT": "1521", 
-        "ORACLE_DATABASE_SERVICE_NAME": "xe",
-        "ORACLE_DATABASE_USERNAME": "testuser",
-        "ORACLE_DATABASE_PASSWORD": "testpass",
-        "DatabaseMcp__EnableCaching": "true",
-        "DatabaseMcp__CacheExpirationMinutes": "30",
-        "DatabaseMcp__MaxConnectionRetries": "3"
+        "ConnectionStrings__OracleConnection": "Host=localhost;Port=1521;Database=xe;User Id=testuser;Password=testpass;"
       }
     }
   }

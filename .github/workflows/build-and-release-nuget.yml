@@ -183,7 +183,6 @@ jobs:
         - `ConnectionStrings__OracleConnection` - Oracle database connection string
 
         **Optional:**
-        - `DatabaseMcp__EnableCaching` - Enable metadata caching (default: true)
         - `DatabaseMcp__CacheExpirationMinutes` - Cache expiration (default: 30)
         - `DatabaseMcp__MaxConnectionRetries` - Connection retry attempts (default: 3)
         - `Logging__LogLevel__Default` - Logging level (default: Information)

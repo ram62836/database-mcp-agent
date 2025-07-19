@@ -60,7 +60,6 @@ export ORACLE_DATABASE_PASSWORD=password
 ### Optional Configuration
 ```bash
 # Performance settings
-export DatabaseMcp__EnableCaching=true
 export DatabaseMcp__CacheExpirationMinutes=30
 export DatabaseMcp__MaxConnectionRetries=3
 

@@ -38,12 +38,6 @@
     },
     {
       "type": "promptString",
-      "id": "enable-caching",
-      "description": "Enable metadata caching for improved performance (true/false, default: true)",
-      "password": false
-    },
-    {
-      "type": "promptString",
       "id": "cache-expiration",
       "description": "Metadata cache expiration time in minutes (default: 30)",
       "password": false
@@ -78,7 +72,6 @@
         "ORACLE_DATABASE_SERVICE_NAME": "${input:database-service}",
         "ORACLE_DATABASE_USERNAME": "${input:database-username}",
         "ORACLE_DATABASE_PASSWORD": "${input:database-password}",
-        "DatabaseMcp__EnableCaching": "${input:enable-caching}",
         "DatabaseMcp__CacheExpirationMinutes": "${input:cache-expiration}",
         "DatabaseMcp__MaxConnectionRetries": "${input:max-retries}",
         "Logging__LogLevel__Default": "${input:log-level}"
