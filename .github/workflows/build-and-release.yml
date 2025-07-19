@@ -1,8 +1,8 @@
-name: Build and Release
+name: Build and Release NuGet Package
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, distribute-using-nuget ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
@@ -11,22 +11,12 @@ on:
 env:
   DOTNET_VERSION: '8.0.x'
   PROJECT_PATH: 'DatabaseMcp.Server'
-  OUTPUT_NAME: 'DatabaseMcp.Server'
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
 
 jobs:
-  build:
-    name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
-        include:
-          - os: windows-latest
-            runtime: win-x64
-            extension: .exe
-          - os: macos-latest
-            runtime: osx-x64
-            extension: ''
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -46,58 +36,88 @@ jobs:
     - name: Run tests
       run: dotnet test --configuration Release --no-build --verbosity normal
 
-    - name: Publish single-file executable
-      shell: bash
+  # Legacy executable build for backwards compatibility (commented out)
+  # build-executables:
+  #   name: Build Executables for ${{ matrix.os }}
+  #   runs-on: ${{ matrix.os }}
+  #   needs: build-and-test
+  #   if: startsWith(github.ref, 'refs/tags/v')
+  #   strategy:
+  #     matrix:
+  #       os: [windows-latest, macos-latest]
+  #       include:
+  #         - os: windows-latest
+  #           runtime: win-x64
+  #           extension: .exe
+  #         - os: macos-latest
+  #           runtime: osx-x64
+  #           extension: ''
+  #
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   
+  #   - name: Setup .NET
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: ${{ env.DOTNET_VERSION }}
+  #   
+  #   - name: Restore dependencies
+  #     run: dotnet restore
+  #   
+  #   - name: Publish single-file executable
+  #     shell: bash
+  #     run: |
+  #       dotnet publish "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
+  #         --configuration Release \
+  #         --runtime ${{ matrix.runtime }} \
+  #         --self-contained true \
+  #         --output "./publish/${{ matrix.runtime }}" \
+  #         -p:PublishSingleFile=true \
+  #         -p:IncludeNativeLibrariesForSelfExtract=true \
+  #         -p:PublishTrimmed=false \
+  #         -p:EnableCompressionInSingleFile=true
+
+  pack-nuget:
+    name: Pack NuGet Package
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Create output directory
+      run: mkdir -p ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: Pack NuGet package
       run: |
-        dotnet publish "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
+        dotnet pack "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
           --configuration Release \
-          --runtime ${{ matrix.runtime }} \
-          --self-contained true \
-          --output "./publish/${{ matrix.runtime }}" \
-          -p:PublishSingleFile=true \
-          -p:IncludeNativeLibrariesForSelfExtract=true \
-          -p:PublishTrimmed=false \
-          -p:EnableCompressionInSingleFile=true
+          --no-build \
+          --no-restore \
+          --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }} \
+          --verbosity normal
 
-    - name: Copy configuration files
-      shell: bash
+    - name: List package contents
       run: |
-        # Ensure publish directory exists
-        mkdir -p ./publish/${{ matrix.runtime }}
-        
-        # Copy example configuration files to publish directory
-        if [ -f "appsettings.example.json" ]; then
-          cp appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.json
-        fi
-        
-        if [ -f "DatabaseMcp.Server/appsettings.example.json" ]; then
-          cp DatabaseMcp.Server/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.server.json
-        fi
-        
-        if [ -f "DatabaseMcp.Client/appsettings.example.json" ]; then
-          cp DatabaseMcp.Client/appsettings.example.json ./publish/${{ matrix.runtime }}/appsettings.client.json
-        fi
-        
-        if [ -f ".vscode/mcp.example.json" ]; then
-          cp .vscode/mcp.example.json ./publish/${{ matrix.runtime }}/mcp.example.json
-        fi
-        
-        # Copy documentation files that exist
-        for doc in README.md LICENSE QUICK_REFERENCE.md MCP_TOOLS_GUIDE.md ORACLE_COMPATIBILITY.md SECURITY.md DEPLOYMENT.md; do
-          if [ -f "$doc" ]; then
-            cp "$doc" ./publish/${{ matrix.runtime }}/
-          fi
-        done
+        echo "Generated NuGet packages:"
+        ls -la ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
-    - name: Create setup script (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: bash
-      run: |
-        cat > ./publish/${{ matrix.runtime }}/setup.bat << 'EOF'
-        @echo off
-        echo 🚀 Oracle Database MCP Agent Setup
-        echo ==================================
-        echo.
+    - name: Upload NuGet package artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg
+        retention-days: 30
         echo Setting up configuration files...
         
         if not exist "appsettings.json" (

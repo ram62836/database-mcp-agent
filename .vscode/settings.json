@@ -1,0 +1,39 @@
+{
+  "mcp.servers": {
+    "database-mcp-agent-local-project": {
+      "command": "dotnet",
+      "args": [
+        "tool",
+        "run",
+        "--project",
+        "C:\\Source\\oracle-ai-agent\\DatabaseMcp.Server",
+        "--",
+        "stdio"
+      ],
+      "env": {
+        "ORACLE_DATABASE_HOST": "localhost",
+        "ORACLE_DATABASE_PORT": "1521",
+        "ORACLE_DATABASE_SERVICE_NAME": "xe",
+        "ORACLE_DATABASE_USERNAME": "testuser",
+        "ORACLE_DATABASE_PASSWORD": "testpass",
+        "DatabaseMcp__EnableCaching": "true",
+        "DatabaseMcp__CacheExpirationMinutes": "30",
+        "DatabaseMcp__MaxConnectionRetries": "3"
+      }
+    },
+    "database-mcp-agent-global-tool": {
+      "command": "database-mcp-agent",
+      "args": ["stdio"],
+      "env": {
+        "ORACLE_DATABASE_HOST": "localhost",
+        "ORACLE_DATABASE_PORT": "1521", 
+        "ORACLE_DATABASE_SERVICE_NAME": "xe",
+        "ORACLE_DATABASE_USERNAME": "testuser",
+        "ORACLE_DATABASE_PASSWORD": "testpass",
+        "DatabaseMcp__EnableCaching": "true",
+        "DatabaseMcp__CacheExpirationMinutes": "30",
+        "DatabaseMcp__MaxConnectionRetries": "3"
+      }
+    }
+  }
+}

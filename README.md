@@ -1,8 +1,74 @@
 # Database MCP Agent
 
-Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **zero setup** - just download and run!
+Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **easy NuGet installation** - just install the package and configure your connection!
 
 **Currently supports Oracle databases** with planned support for SQL Server, PostgreSQL, and MySQL.
+
+## � **Quick Start (NuGet Installation)**
+
+### Option 1: Global Tool Installation (Recommended)
+
+```bash
+# Install globally as .NET tool
+dotnet tool install -g Hala.DatabaseMcpAgent
+
+# Set your Oracle connection string
+export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=username;Password=password;"
+
+# Run the MCP server
+database-mcp-agent
+```
+
+### Option 2: Project-specific Installation
+
+```bash
+# Add to your project
+dotnet add package Hala.DatabaseMcpAgent
+
+# Configure environment variables (see below)
+# Run from your project directory
+dotnet run --project DatabaseMcp.Server
+```
+
+### Option 3: VS Code MCP Integration (Recommended)
+
+1. **Install via MCP**: The package will be automatically installed when VS Code detects the MCP server
+2. **Configuration**: Use the `proper-mcp-distribution-config.json` from the examples directory
+3. **Setup**: Copy the configuration to your VS Code MCP settings
+4. **Environment Variables**: VS Code will prompt for your Oracle connection details
+5. **Automatic Management**: The `dnx` command handles package installation and updates
+
+The MCP integration uses `dnx` command with automatic package management:
+
+## 🔧 **Environment Configuration**
+
+The MCP agent uses environment variables for configuration. Set these before running:
+
+### Required Configuration
+```bash
+# Primary connection string (choose one method)
+export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=hr;Password=password;"
+
+# OR configure individual components
+export ORACLE_DATABASE_HOST=localhost
+export ORACLE_DATABASE_PORT=1521
+export ORACLE_DATABASE_SERVICE_NAME=ORCL
+export ORACLE_DATABASE_USERNAME=hr
+export ORACLE_DATABASE_PASSWORD=password
+```
+
+### Optional Configuration
+```bash
+# Performance settings
+export DatabaseMcp__EnableCaching=true
+export DatabaseMcp__CacheExpirationMinutes=30
+export DatabaseMcp__MaxConnectionRetries=3
+
+# Logging
+export Logging__LogLevel__Default=Information
+```
+
+For complete connection examples and troubleshooting, see [Database Connection Guide](examples/DATABASE_CONNECTION_GUIDE.md).
 
 ## 💡 **Useful Prompts**
 
@@ -30,63 +96,20 @@ Unleash your creativity with over 25 powerful tools designed to help you craft m
 
 These prompts leverage the agent's capabilities for metadata discovery, dependency analysis, constraint validation, performance optimization, and comprehensive database intelligence gathering.
 
-## 🚀 **Quick Start (2 Minutes)**
+## � **Legacy Executable Distribution**
 
-### 1. Download Pre-Built Release
+If you prefer the previous executable distribution method, you can still download pre-built releases:
 
-**No compilation needed!** Download the latest release for your platform:
-
-**[📥 Download Latest Release](https://github.com/ram62836/database-mcp-agent/releases/latest)**
+**[📥 Download Latest Executable Release](https://github.com/ram62836/database-mcp-agent/releases/latest)**
 
 - **Windows**: `database-mcp-agent-win-x64.zip`
 - **macOS**: `database-mcp-agent-osx-x64.tar.gz`
 
-### 2. Extract and Setup
-
-**Windows:**
-```cmd
-# Extract the zip file
-# Run the setup script
-setup.bat
-```
-
-**macOS:**
-```bash
-# Extract the archive
-tar -xzf database-mcp-agent-osx-x64.tar.gz
-cd database-mcp-agent-osx-x64
-
-# Run the setup script
-./setup.sh
-```
-
-### 3. Configure Your Database
-
-Edit `appsettings.json` with your database connection:
-
-**Oracle Database:**
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-oracle-host)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service-name)));Persist Security Info=True;User Id=your-username;Password=your-password;"
-  },
-  "DatabaseProvider": "Oracle"
-}
-```
-
-### 4. Run the Agent
-
-**Windows:**
-```cmd
-DatabaseMcp.Server.exe --console
-```
-
-**macOS:**
-```bash
-./DatabaseMcp.Server --console
-```
-
-**✅ That's it! Your Oracle Database MCP Agent is ready to use.**
+### Legacy Setup (Executables)
+1. Download and extract the appropriate package
+2. Run the setup script (`setup.bat` on Windows, `setup.sh` on Unix)
+3. Edit `appsettings.configured.json` with your database connection
+4. Run: `DatabaseMcp.Server --console`
 
 ## 🛠️ **Database Support**
 

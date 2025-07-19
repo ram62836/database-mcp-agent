@@ -1,7 +1,9 @@
+using System;
 using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Oracle.ManagedDataAccess.Client;
+using DatabaseMcp.Core.Services;
 
 namespace DatabaseMcp.Core
 {
@@ -9,9 +11,9 @@ namespace DatabaseMcp.Core
     {
         private readonly string _connectionString;
 
-        public OracleDbConnectionFactory(IConfiguration configuration)
+        public OracleDbConnectionFactory(DatabaseConnectionService connectionService)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _connectionString = connectionService.GetOracleConnectionString();
         }
 
         public async Task<IDbConnection> CreateConnectionAsync()

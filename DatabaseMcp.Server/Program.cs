@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using DatabaseMcp.Core;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Services;
-using ModelContextProtocol.Protocol.Types;
 using Serilog;
 
 // Use the executable directory for all file operations
@@ -32,7 +31,8 @@ Log.Information("appsettings.json exists: {AppSettingsExists}", File.Exists(Path
 
 ConfigurationManager config = new();
 config.SetBasePath(executableDirectory);
-config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+config.AddEnvironmentVariables(); // Add environment variables support
 HostApplicationBuilderSettings settings = new()
 {
     Configuration = config
@@ -44,6 +44,7 @@ builder.Services.AddMcpServer()
   .WithStdioServerTransport()
   .WithToolsFromAssembly();
 builder.Services.AddScoped<IDbConnectionFactory, OracleDbConnectionFactory>();
+builder.Services.AddScoped<DatabaseMcp.Core.Services.DatabaseConnectionService>();
 builder.Services.AddScoped<IColumnMetadataService, ColumnMetadataService>();
 builder.Services.AddScoped<IConstraintGatheringService, ConstraintGatheringService>();
 builder.Services.AddScoped<IIndexListingService, IndexListingService>();

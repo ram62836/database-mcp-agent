@@ -5,6 +5,30 @@
     <RootNamespace>DatabaseMcp.Server</RootNamespace>
     <AssemblyName>DatabaseMcp.Server</AssemblyName>
     
+    <!-- NuGet Package Properties -->
+    <PackageId>Hala.DatabaseMcpAgent</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <PackageType>McpServer</PackageType>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>database-mcp-agent</ToolCommandName>
+    
+    <!-- Package Metadata -->
+    <Title>Oracle Database MCP Agent</Title>
+    <Description>Oracle Database MCP Agent - Comprehensive Oracle database analysis and metadata management server with 25+ MCP tools for AI-powered database intelligence. Supports Oracle 11g R2 through 19c+ with features including metadata discovery, dependency analysis, constraint validation, performance optimization, and comprehensive database intelligence gathering.</Description>
+    <Authors>Ram Babu</Authors>
+    <Company>Ram Babu</Company>
+    <Product>Database MCP Agent</Product>
+    <Copyright>Copyright © 2025 Ram Babu</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ram62836/database-mcp-agent</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ram62836/database-mcp-agent</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>oracle;database;mcp;metadata;analysis;ai;sql;schema;dotnet;csharp;model-context-protocol</PackageTags>
+    <PackageReleaseNotes>Initial NuGet release with 25+ MCP tools for Oracle database analysis and AI integration.</PackageReleaseNotes>
+    
     <!-- Application metadata -->
     <AssemblyTitle>Oracle Database MCP Agent</AssemblyTitle>
     <AssemblyDescription>AI-powered Oracle database analysis and metadata management via Model Context Protocol</AssemblyDescription>
@@ -22,13 +46,23 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\DatabaseMcp.Core\DatabaseMcp.Core.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="..\.mcp\server.json" Pack="true" PackagePath="\.mcp\server.json" />
+    <None Include="..\README.md" Pack="true" PackagePath="\README.md" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\LICENSE" />
+    <None Include="..\MCP_TOOLS_GUIDE.md" Pack="true" PackagePath="\MCP_TOOLS_GUIDE.md" />
+    <None Include="..\ORACLE_COMPATIBILITY.md" Pack="true" PackagePath="\ORACLE_COMPATIBILITY.md" />
+    <None Include="..\QUICK_REFERENCE.md" Pack="true" PackagePath="\QUICK_REFERENCE.md" />
+    <None Include="..\SECURITY.md" Pack="true" PackagePath="\SECURITY.md" />
   </ItemGroup>	
 </Project>

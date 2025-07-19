@@ -1,0 +1,121 @@
+{
+  "description": "Oracle Database MCP Agent - Comprehensive Oracle database analysis and metadata management server with 25+ MCP tools for AI-powered database intelligence",
+  "name": "io.github.ram62836/database-mcp-agent", 
+  "packages": [
+    {
+      "registry_name": "nuget",
+      "name": "Hala.DatabaseMcpAgent",
+      "version": "1.0.0",
+      "package_arguments": ["--version", "1.0.0", "--yes"],
+      "environment_variables": [
+        {
+          "name": "ConnectionStrings__OracleConnection",
+          "description": "Oracle database connection string (e.g., 'Host=localhost;Port=1521;Database=ORCL;User Id=username;Password=password;')",
+          "is_required": true,
+          "is_secret": true
+        },
+        {
+          "name": "ORACLE_DATABASE_HOST",
+          "description": "Oracle database host/server address",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "ORACLE_DATABASE_PORT",
+          "description": "Oracle database port (default: 1521)",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "ORACLE_DATABASE_SERVICE_NAME",
+          "description": "Oracle database service name or SID",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "ORACLE_DATABASE_USERNAME",
+          "description": "Oracle database username",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "ORACLE_DATABASE_PASSWORD",
+          "description": "Oracle database password",
+          "is_required": false,
+          "is_secret": true
+        },
+        {
+          "name": "DatabaseMcp__EnableCaching",
+          "description": "Enable metadata caching for improved performance (true/false, default: true)",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "DatabaseMcp__CacheExpirationMinutes",
+          "description": "Metadata cache expiration time in minutes (default: 30)",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "DatabaseMcp__MaxConnectionRetries",
+          "description": "Maximum number of connection retry attempts (default: 3)",
+          "is_required": false,
+          "is_secret": false
+        },
+        {
+          "name": "Logging__LogLevel__Default",
+          "description": "Application logging level (Trace, Debug, Information, Warning, Error, Critical, None)",
+          "is_required": false,
+          "is_secret": false
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/ram62836/database-mcp-agent",
+    "source": "github"
+  },
+  "version_detail": {
+    "version": "1.0.0"
+  },
+  "keywords": [
+    "oracle",
+    "database",
+    "mcp",
+    "metadata",
+    "analysis",
+    "ai",
+    "sql",
+    "schema",
+    "dotnet",
+    "csharp"
+  ],
+  "license": "MIT",
+  "category": "database",
+  "capabilities": {
+    "tools": [
+      "table_discovery",
+      "column_metadata",
+      "constraint_analysis",
+      "index_analysis",
+      "view_enumeration",
+      "stored_procedure_functions",
+      "trigger_analysis",
+      "synonym_listing",
+      "object_relationships",
+      "dependency_analysis",
+      "raw_sql_execution",
+      "metadata_refresh"
+    ],
+    "databases": [
+      "oracle"
+    ],
+    "features": [
+      "metadata_caching",
+      "performance_optimization",
+      "dependency_tracking",
+      "schema_analysis",
+      "ai_integration"
+    ]
+  }
+}
