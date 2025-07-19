@@ -30,7 +30,7 @@
     "• Verify the executable path is correct",
     "• Make sure the working directory contains appsettings.json"
   ],
-  "mcp.servers": {
+  "servers": {
     "oracle-agent-server": {
       "type": "stdio",
       "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
@@ -38,8 +38,7 @@
       "cwd": "C:\\Tools\\database-mcp-agent",
       "env": {
         "DOTNET_ENVIRONMENT": "Production"
-      },
-      "description": "Oracle Database MCP Agent for GitHub Copilot integration"
+      }
     }
   }
 }

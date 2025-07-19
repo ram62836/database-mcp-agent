@@ -20,8 +20,15 @@ Log.Logger = new LoggerConfiguration()
 
 Log.Information("Starting DatabaseMcp.Server from directory: {ExecutableDirectory}", executableDirectory);
 
-// Debug: Show where the application is looking for files
-DatabaseMcp.Core.PathDiagnostics.LogPathInformation();
+// Log path diagnostics to file instead of stdout to avoid MCP protocol interference
+Log.Information("=== Path Diagnostics ===");
+Log.Information("Current Directory: {CurrentDirectory}", Directory.GetCurrentDirectory());
+Log.Information("AppDomain BaseDirectory: {BaseDirectory}", AppDomain.CurrentDomain.BaseDirectory);
+Log.Information("Assembly Location: {AssemblyLocation}", System.Reflection.Assembly.GetEntryAssembly()?.Location);
+Log.Information("Assembly Directory: {AssemblyDirectory}", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location));
+Log.Information("Executable Directory: {ExecutableDirectory}", executableDirectory);
+Log.Information("Expected appsettings.json path: {AppSettingsPath}", Path.Combine(executableDirectory, "appsettings.json"));
+Log.Information("appsettings.json exists: {AppSettingsExists}", File.Exists(Path.Combine(executableDirectory, "appsettings.json")));
 
 ConfigurationManager config = new();
 config.SetBasePath(executableDirectory);
