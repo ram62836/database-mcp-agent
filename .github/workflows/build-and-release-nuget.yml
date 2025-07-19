@@ -60,8 +60,6 @@ jobs:
       run: |
         dotnet pack "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
           --configuration Release \
-          --no-build \
-          --no-restore \
           --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }} \
           --verbosity normal
 
@@ -69,6 +67,8 @@ jobs:
       run: |
         echo "Generated NuGet packages:"
         ls -la ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        echo "Also checking default pack location:"
+        ls -la ${{ env.PROJECT_PATH }}/bin/Release/
 
     - name: Upload NuGet package artifacts
       uses: actions/upload-artifact@v4

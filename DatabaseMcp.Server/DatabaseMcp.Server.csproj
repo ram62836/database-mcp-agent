@@ -57,12 +57,12 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="..\.mcp\server.json" Pack="true" PackagePath="\.mcp\server.json" />
-    <None Include="..\README.md" Pack="true" PackagePath="\README.md" />
-    <None Include="..\LICENSE" Pack="true" PackagePath="\LICENSE" />
-    <None Include="..\MCP_TOOLS_GUIDE.md" Pack="true" PackagePath="\MCP_TOOLS_GUIDE.md" />
-    <None Include="..\ORACLE_COMPATIBILITY.md" Pack="true" PackagePath="\ORACLE_COMPATIBILITY.md" />
-    <None Include="..\QUICK_REFERENCE.md" Pack="true" PackagePath="\QUICK_REFERENCE.md" />
-    <None Include="..\SECURITY.md" Pack="true" PackagePath="\SECURITY.md" />
+    <None Include="..\.mcp\server.json" Pack="true" PackagePath="\.mcp\server.json" Condition="Exists('..\.mcp\server.json')" />
+    <None Include="..\README.md" Pack="true" PackagePath="\README.md" Condition="Exists('..\README.md')" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\LICENSE" Condition="Exists('..\LICENSE')" />
+    <None Include="..\MCP_TOOLS_GUIDE.md" Pack="true" PackagePath="\MCP_TOOLS_GUIDE.md" Condition="Exists('..\MCP_TOOLS_GUIDE.md')" />
+    <None Include="..\ORACLE_COMPATIBILITY.md" Pack="true" PackagePath="\ORACLE_COMPATIBILITY.md" Condition="Exists('..\ORACLE_COMPATIBILITY.md')" />
+    <None Include="..\QUICK_REFERENCE.md" Pack="true" PackagePath="\QUICK_REFERENCE.md" Condition="Exists('..\QUICK_REFERENCE.md')" />
+    <None Include="..\SECURITY.md" Pack="true" PackagePath="\SECURITY.md" Condition="Exists('..\SECURITY.md')" />
   </ItemGroup>	
 </Project>
