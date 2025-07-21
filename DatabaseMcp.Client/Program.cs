@@ -18,10 +18,11 @@ namespace OracleAgent.Client
 
             // Setup dependency injection
             ServiceCollection services = new();
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                                    .Build();
+            
+            // Use ConfigurationManager which can read environment variables by default
+            ConfigurationManager configuration = new();
+            configuration.AddEnvironmentVariables();
+            
             _ = services.AddSingleton<IConfiguration>(configuration);
             _ = services.AddSingleton<IRawSqlService, RawSqlService>();
             

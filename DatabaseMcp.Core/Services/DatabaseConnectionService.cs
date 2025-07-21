@@ -9,26 +9,21 @@ namespace DatabaseMcp.Core.Services
 
         public DatabaseConnectionService(IConfiguration configuration)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public string GetOracleConnectionString()
         {
-            // First try to get the full connection string from environment variable
+            // Try to get the full connection string from environment variable via IConfiguration
+            // IConfiguration automatically reads from environment variables
             var fullConnectionString = _configuration.GetConnectionString("OracleConnection");
             if (!string.IsNullOrEmpty(fullConnectionString))
             {
                 return fullConnectionString;
             }
 
-            // Fall back to the legacy appsettings.json DefaultConnection
-            var legacyConnectionString = _configuration.GetConnectionString("DefaultConnection");
-            if (!string.IsNullOrEmpty(legacyConnectionString))
-            {
-                return legacyConnectionString;
-            }
-
             // Build connection string from individual environment variables
+            // IConfiguration automatically reads from environment variables with these keys
             var host = _configuration["ORACLE_DATABASE_HOST"];
             var port = _configuration["ORACLE_DATABASE_PORT"] ?? "1521";
             var serviceName = _configuration["ORACLE_DATABASE_SERVICE_NAME"];
@@ -44,8 +39,7 @@ namespace DatabaseMcp.Core.Services
             throw new InvalidOperationException(
                 "No Oracle connection configuration found. Please provide either:\n" +
                 "1. ConnectionStrings__OracleConnection environment variable with full connection string, OR\n" +
-                "2. Individual environment variables: ORACLE_DATABASE_HOST, ORACLE_DATABASE_SERVICE_NAME, ORACLE_DATABASE_USERNAME, ORACLE_DATABASE_PASSWORD, OR\n" +
-                "3. ConnectionStrings:DefaultConnection in appsettings.json");
+                "2. Individual environment variables: ORACLE_DATABASE_HOST, ORACLE_DATABASE_SERVICE_NAME, ORACLE_DATABASE_USERNAME, ORACLE_DATABASE_PASSWORD");
         }
     }
 }

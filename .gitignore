@@ -252,12 +252,6 @@ serilog.local.json
 /EM.UI.MVC/Content/Angular/.vscode
 /EM.UI.MVC/Content/Angular/dist/**/*
 
-# Configuration files with sensitive data
-appsettings.json
-appsettings.Development.json
-appsettings.Production.json
-.vscode/mcp.json
-
 # Environment variables
 .env
 .env.local

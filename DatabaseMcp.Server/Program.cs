@@ -11,6 +11,11 @@ using Serilog;
 // Use the executable directory for all file operations
 string executableDirectory = AppConstants.ExecutableDirectory;
 
+// Create the configuration first to read logging settings
+ConfigurationManager loggingConfig = new();
+loggingConfig.AddJsonFile(Path.Combine(executableDirectory, "appsettings.json"), optional: true, reloadOnChange: true);
+loggingConfig.AddEnvironmentVariables(); 
+
 // Get log directory from environment variable or use executable directory as default
 string logDirectory = Environment.GetEnvironmentVariable("LogFilePath") ?? executableDirectory;
 string logPath = Path.Combine(logDirectory, "DatabaseMcp.Server.log");
@@ -18,8 +23,10 @@ string logPath = Path.Combine(logDirectory, "DatabaseMcp.Server.log");
 // Ensure the log directory exists
 Directory.CreateDirectory(logDirectory);
 
+// Configure Serilog using appsettings.json
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+    .ReadFrom.Configuration(loggingConfig) // Read from appsettings.json first
+    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day) // Default if not specified in config
     .CreateLogger();
 
 Log.Information("Starting DatabaseMcp.Server from directory: {ExecutableDirectory}", executableDirectory);
