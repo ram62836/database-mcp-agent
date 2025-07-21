@@ -166,7 +166,7 @@ Configure Claude Desktop to use your Database MCP Agent:
     "Hala.DatabaseAgent.OracleMcpServer": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.12-preview",
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.0",
         "--yes"
       ],
       "env": {

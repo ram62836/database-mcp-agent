@@ -11,11 +11,11 @@ Add to your VS Code MCP settings to automatically install and configure:
   "servers": {
     "oracle-agent-server": {
       "command": "dnx",
-      "args": ["Hala.DatabaseAgent.OracleMcpServer", "--version", "1.0.12-preview", "--yes"],
+      "args": ["Hala.DatabaseAgent.OracleMcpServer", "--version", "1.0.0", "--yes"],
       "env": {
         "OracleConnectionString": "your-oracle-connection-string",
         "MetadataCacheJsonPath": "directory-path-to-store-metadata-cache",
-        "LogFilePath": "log-file-path"
+        "LogFilePath": "log-file-directory"
       }
     }
   }
@@ -51,7 +51,7 @@ Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=server)(PORT=1521))(CONNEC
 If you prefer to install manually:
 
 ```bash
-dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer --version 1.0.10-preview
+dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer --version 1.0.0
 ```
 
 Then run directly: `oracle-mcp-server`
