@@ -3,7 +3,7 @@
     "Hala.DatabaseMcpAgent": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "Hala.DatabaseMcpAgent@1.0.9-preview",
         "--yes"
       ],
       "env": {
