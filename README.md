@@ -1,60 +1,74 @@
 # Database MCP Agent
 
-Database MCP Agent is a powerful, ready-to-use tool for analyzing and interacting with database metadata through the Model Context Protocol (MCP). Get comprehensive database intelligence for AI agents with **easy NuGet installation** - just install the package and configure your connection!
+A powerful Model Context Protocol (MCP) server that provides AI assistants with comprehensive Oracle database intelligence capabilities.
+
+[![NuGet Version](https://img.shields.io/nuget/v/Hala.DatabaseMcpAgent.svg)](https://www.nuget.org/packages/Hala.DatabaseMcpAgent)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**Database MCP Agent** enables AI agents to:
+- Analyze database schema, tables, columns, and relationships
+- Map dependencies between database objects
+- Execute SQL queries and analyze results
+- Discover and document stored procedures, views, and triggers
 
 **Currently supports Oracle databases** with planned support for SQL Server, PostgreSQL, and MySQL.
 
-## � **Quick Start (NuGet Installation)**
+![Database MCP Agent Demo](https://your-site.com/demo-image.png)
 
-### Option 1: Global Tool Installation (Recommended)
+## Quick Start
 
-```bash
-# Install globally as .NET tool
-dotnet tool install -g Hala.DatabaseMcpAgent
+### VS Code Integration
 
-# Set your Oracle connection string
-export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=username;Password=password;"
+1. Create a file at `.vscode/mcp.json` in your workspace with:
 
-# Run the MCP server
-database-mcp-agent
+```json
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "oracle-connection-string",
+      "description": "Oracle database connection string",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "metadata-json-path",
+      "description": "Path to metadata JSON file cache",
+      "password": false
+    },
+    {
+      "type": "promptString",
+      "id": "log-file-path",
+      "description": "Path to store log files",
+      "password": false
+    }
+  ],
+  "servers": {
+    "Hala.DatabaseMcpAgent": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "--yes"
+      ],
+      "env": {
+        "OracleConnectionString": "${input:oracle-connection-string}",
+        "MetadataCacheJsonPath": "${input:metadata-json-path}",
+        "LogFilePath": "${input:log-file-path}"
+      }
+    }
+  }
+}
 ```
 
-### Option 2: Project-specific Installation
+## Environment Configuration
 
-```bash
-# Add to your project
-dotnet add package Hala.DatabaseMcpAgent
-
-# Configure environment variables (see below)
-# Run from your project directory
-dotnet run --project DatabaseMcp.Server
-```
-
-### Option 3: VS Code MCP Integration (Recommended)
-
-1. **Install via MCP**: The package will be automatically installed when VS Code detects the MCP server
-2. **Configuration**: Use the `proper-mcp-distribution-config.json` from the examples directory
-3. **Setup**: Copy the configuration to your VS Code MCP settings
-4. **Environment Variables**: VS Code will prompt for your Oracle connection details
-5. **Automatic Management**: The `dnx` command handles package installation and updates
-
-The MCP integration uses `dnx` command with automatic package management:
-
-## 🔧 **Environment Configuration**
-
-The MCP agent uses environment variables for configuration. Set these before running:
+The MCP agent uses environment variables for configuration:
 
 ### Required Configuration
 ```bash
-# Primary connection string (choose one method)
+# Oracle connection string
 export OracleConnectionString="Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=hr;Password=password;"
-
-# OR configure individual components
-export ORACLE_DATABASE_HOST=localhost
-export ORACLE_DATABASE_PORT=1521
-export ORACLE_DATABASE_SERVICE_NAME=ORCL
-export ORACLE_DATABASE_USERNAME=hr
-export ORACLE_DATABASE_PASSWORD=password
 ```
 
 ### Optional Configuration
@@ -62,24 +76,12 @@ export ORACLE_DATABASE_PASSWORD=password
 # Cache and log file paths
 export MetadataCacheJsonPath="/path/to/metadata/cache"
 export LogFilePath="/path/to/logs"
-
-# Performance settings
-export DatabaseMcp__CacheExpirationMinutes=30
-export DatabaseMcp__MaxConnectionRetries=3
-
-# Logging
-export Logging__LogLevel__Default=Information
 ```
 
-### Logging Configuration
-By default, the MCP agent:
-- Logs warnings, errors, and critical messages to console
-- Logs all information-level and above messages to log files
-- Uses positional formatting parameters for log messages (`{0}`, `{1}`, etc.)
-
-This configuration keeps console output clean while maintaining detailed logs for troubleshooting.
-
-For complete connection examples and troubleshooting, see [Database Connection Guide](examples/DATABASE_CONNECTION_GUIDE.md).
+### Logging
+The MCP agent implements a clean logging approach:
+- Console output limited to warnings and errors
+- Detailed logs in log files for troubleshooting
 
 ## 💡 **Useful Prompts**
 
@@ -107,23 +109,7 @@ Unleash your creativity with over 25 powerful tools designed to help you craft m
 
 These prompts leverage the agent's capabilities for metadata discovery, dependency analysis, constraint validation, performance optimization, and comprehensive database intelligence gathering.
 
-## � **Legacy Executable Distribution**
 
-If you prefer the previous executable distribution method, you can still download pre-built releases:
-
-**[📥 Download Latest Executable Release](https://github.com/ram62836/database-mcp-agent/releases/latest)**
-
-- **Windows**: `database-mcp-agent-win-x64.zip`
-- **macOS**: `database-mcp-agent-osx-x64.tar.gz`
-
-### Legacy Setup (Executables)
-1. Download and extract the appropriate package
-2. Run the setup script (`setup.bat` on Windows, `setup.sh` on Unix)
-3. Set the required environment variables:
-   - `OracleConnectionString` - Your Oracle database connection string
-   - `MetadataCacheJsonPath` - Path to store metadata cache files
-   - `LogFilePath` - Path to store log files
-4. Run: `DatabaseMcp.Server --console`
 
 ## 🛠️ **Database Support**
 
@@ -148,7 +134,7 @@ If you prefer the previous executable distribution method, you can still downloa
 
 **👉 [Complete compatibility guide with feature matrix](ORACLE_COMPATIBILITY.md)**
 
-## 🖥️ **Claude Desktop Integration**
+## Claude Desktop Integration
 
 Configure Claude Desktop to use your Database MCP Agent:
 
@@ -161,50 +147,16 @@ Configure Claude Desktop to use your Database MCP Agent:
 ```json
 {
   "mcpServers": {
-    "database-mcp-agent": {
-      "command": "/path/to/extracted/DatabaseMcp.Server.exe",
-      "args": ["--console"],
-      "cwd": "/path/to/extracted/folder",
+    "Hala.DatabaseMcpAgent": {
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "--yes"
+      ],
       "env": {
-        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-server)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service)));User Id=username;Password=password;",
-        "MetadataCacheJsonPath": "/path/to/metadata/cache",
-        "LogFilePath": "/path/to/logs"
-      }
-    }
-  }
-}
-```
-
-**Windows Example:**
-```json
-{
-  "mcpServers": {
-    "database-mcp-agent": {
-      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
-      "args": ["--console"],
-      "cwd": "C:\\Tools\\database-mcp-agent",
-      "env": {
-        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=username;Password=password;",
-        "MetadataCacheJsonPath": "C:\\Tools\\database-mcp-agent\\metadata",
-        "LogFilePath": "C:\\Tools\\database-mcp-agent\\logs"
-      }
-    }
-  }
-}
-```
-
-**macOS Example:**
-```json
-{
-  "mcpServers": {
-    "database-mcp-agent": {
-      "command": "/Users/yourname/Tools/database-mcp-agent/DatabaseMcp.Server",
-      "args": ["--console"],
-      "cwd": "/Users/yourname/Tools/database-mcp-agent",
-      "env": {
-        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=username;Password=password;",
-        "MetadataCacheJsonPath": "/Users/yourname/Tools/database-mcp-agent/metadata",
-        "LogFilePath": "/Users/yourname/Tools/database-mcp-agent/logs"
+        "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
+        "MetadataCacheJsonPath": "YOUR_METADATA_JSON_PATH_HERE", 
+        "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
       }
     }
   }
@@ -213,53 +165,61 @@ Configure Claude Desktop to use your Database MCP Agent:
 
 Restart Claude Desktop after configuration.
 
-**👉 See [examples/claude-desktop-config.json](examples/claude-desktop-config.json) for complete Claude Desktop configuration**
+For complete examples, see [examples/claude-desktop-config.json](examples/claude-desktop-config.json)
 
-### **💻 VS Code with GitHub Copilot Integration**
+## VS Code with GitHub Copilot Integration
 
-**Prerequisites:**
-- GitHub Copilot extension installed and configured in VS Code
-- Database MCP Agent downloaded and extracted
+1. **Install GitHub Copilot Chat**: Install the GitHub Copilot Chat extension from the VS Code marketplace
 
-**Setup Steps:**
-
-1. **Install MCP Extension**: Install "MCP Client for VS Code" from the VS Code marketplace
-
-2. **Configure MCP Server**: 
-   - Open VS Code Settings (`Ctrl+,` / `Cmd+,`)
-   - Search for "mcp"
-   - Click "Edit in settings.json" for "MCP: Servers"
-
-3. **Add Configuration**: Add this to your `settings.json`:
+2. **Create MCP Configuration File**: Create a file at `.vscode/mcp.json` in your workspace with the following content:
 
 ```json
 {
-  "mcp.servers": {
-    "database-agent-server": {
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "oracle-connection-string",
+      "description": "Oracle database connection string",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "metadata-json-path",
+      "description": "Path to metadata JSON file cache",
+      "password": false
+    },
+    {
+      "type": "promptString",
+      "id": "log-file-path",
+      "description": "Path to store log files",
+      "password": false
+    }
+  ],
+  "servers": {
+    "Hala.DatabaseMcpAgent": {
       "type": "stdio",
-      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
-      "args": ["--console"],
-      "cwd": "C:\\Tools\\database-mcp-agent",
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "--yes"
+      ],
       "env": {
-        "DOTNET_ENVIRONMENT": "Production"
-      },
-      "description": "Database MCP Agent for GitHub Copilot"
+        "OracleConnectionString": "${input:oracle-connection-string}",
+        "MetadataCacheJsonPath": "${input:metadata-json-path}",
+        "LogFilePath": "${input:log-file-path}"
+      }
     }
   }
 }
 ```
 
-4. **Restart VS Code** to activate the MCP connection
+3. **Restart VS Code** to activate the MCP connection
 
 **Usage with GitHub Copilot:**
-- Use `@database-agent` in GitHub Copilot Chat
-- Example prompts:
-  - `@database-agent Show me the CUSTOMERS table structure`
-  - `@database-agent Find all tables with EMAIL column`
-  - `@database-agent What procedures depend on the ORDERS table?`
-  - `@database-agent Analyze foreign key relationships`
+- Use `@Hala.DatabaseMcpAgent` in GitHub Copilot Chat
+- Example: `@Hala.DatabaseMcpAgent Show me the CUSTOMERS table structure`
 
-**👉 See [examples/vscode-settings.json](examples/vscode-settings.json) for complete VS Code setup guide**
+For complete setup instructions, see [examples/vscode-mcp-config.json](examples/vscode-mcp-config.json)
 
 ## 🚀 **Features & Capabilities**
 

@@ -1,13 +1,15 @@
 {
   "mcpServers": {
-    "database-mcp-agent": {
-      "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
-      "args": ["--console"],
-      "cwd": "C:\\Tools\\database-mcp-agent",
+    "Hala.DatabaseMcpAgent": {
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "--yes"
+      ],
       "env": {
-        "OracleConnectionString": "${ORACLE_CONNECTION_STRING}",
-        "MetadataCacheJsonPath": "C:\\Tools\\database-mcp-agent\\metadata",
-        "LogFilePath": "C:\\Tools\\database-mcp-agent\\logs"
+        "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
+        "MetadataCacheJsonPath": "YOUR_METADATA_JSON_PATH_HERE", 
+        "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
       }
     }
   }

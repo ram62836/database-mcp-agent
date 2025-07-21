@@ -27,47 +27,29 @@ dotnet restore
 echo "🔨 Building the solution..."
 dotnet build
 
-# Copy example configuration files
-echo "⚙️  Setting up configuration files..."
-
-if [ ! -f "appsettings.json" ]; then
-    cp "appsettings.example.json" "appsettings.json"
-    echo "✅ Created appsettings.json"
-else
-    echo "⚠️  appsettings.json already exists, skipping..."
-fi
-
-if [ ! -f "DatabaseMcp.Server/appsettings.json" ]; then
-    cp "DatabaseMcp.Server/appsettings.example.json" "DatabaseMcp.Server/appsettings.json"
-    echo "✅ Created DatabaseMcp.Server/appsettings.json"
-else
-    echo "⚠️  DatabaseMcp.Server/appsettings.json already exists, skipping..."
-fi
-
-if [ ! -f "DatabaseMcp.Client/appsettings.json" ]; then
-    cp "DatabaseMcp.Client/appsettings.example.json" "DatabaseMcp.Client/appsettings.json"
-    echo "✅ Created DatabaseMcp.Client/appsettings.json"
-else
-    echo "⚠️  DatabaseMcp.Client/appsettings.json already exists, skipping..."
-fi
-
-if [ ! -f ".vscode/mcp.json" ]; then
-    cp ".vscode/mcp.example.json" ".vscode/mcp.json"
-    echo "✅ Created .vscode/mcp.json"
-else
-    echo "⚠️  .vscode/mcp.json already exists, skipping..."
-fi
+# Create metadata and logs directories
+echo "📁 Creating required directories..."
+mkdir -p "$HOME/database-mcp-agent/metadata"
+mkdir -p "$HOME/database-mcp-agent/logs"
+echo "✅ Created database-mcp-agent directories"
 
 # Run tests
 echo "🧪 Running tests..."
 dotnet test
 
+# Create a package
+echo "📦 Creating NuGet package..."
+dotnet pack DatabaseMcp.Server -o nupkg
+
 echo ""
 echo "🎉 Setup completed successfully!"
 echo ""
 echo "Next steps:"
-echo "1. Update the database connection strings in the appsettings.json files"
-echo "2. Update .vscode/mcp.json with the correct paths for your system"
-echo "3. Run the MCP server: dotnet run --project DatabaseMcp.Server"
+echo "1. Install the package: dotnet tool install --global --add-source nupkg Hala.DatabaseMcpAgent"
+echo "2. Set environment variables for database connection:"
+echo "   export OracleConnectionString=\"your-connection-string\""
+echo "   export MetadataCacheJsonPath=\"$HOME/database-mcp-agent/metadata\""
+echo "   export LogFilePath=\"$HOME/database-mcp-agent/logs\""
+echo "3. Run the MCP server: database-mcp-agent"
 echo ""
 echo "For more information, see the README.md file."
