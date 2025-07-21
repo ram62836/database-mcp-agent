@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Hala.DatabaseAgent.Oracle.MCP</RootNamespace>
+    <AssemblyName>Hala.DatabaseAgent.Oracle.MCP</AssemblyName>
+    <Company>Hala</Company>
+    <Authors>Hala</Authors>
+    <Version>1.0.10-preview</Version>
+    <Description>Oracle MCP server for the Database Agent</Description>
+    <PackageId>Hala.DatabaseAgent.OracleMcpServer</PackageId>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DatabaseAgent.Core\DatabaseAgent.Core.csproj" />
+    <ProjectReference Include="..\..\src\DatabaseAgent.Oracle\DatabaseAgent.Oracle.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.Development.json" Condition="Exists('appsettings.Development.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

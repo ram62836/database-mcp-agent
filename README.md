@@ -1,17 +1,17 @@
-# Database MCP Agent
+# Hala Database Agent
 
-A powerful Model Context Protocol (MCP) server that provides AI assistants with comprehensive Oracle database intelligence capabilities.
+A modular database access agent for AI assistants using the Model Context Protocol (MCP).
 
-[![NuGet Version](https://img.shields.io/nuget/v/Hala.DatabaseMcpAgent.svg)](https://www.nuget.org/packages/Hala.DatabaseMcpAgent)
+[![NuGet Version](https://img.shields.io/nuget/v/Hala.DatabaseAgent.OracleMcpServer.svg)](https://www.nuget.org/packages/Hala.DatabaseAgent.OracleMcpServer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Database MCP Agent** enables AI agents to:
+**Hala Database Agent** enables AI assistants to:
 - Analyze database schema, tables, columns, and relationships
 - Map dependencies between database objects
 - Execute SQL queries and analyze results
 - Discover and document stored procedures, views, and triggers
 
-**Currently supports Oracle databases** with planned support for SQL Server, PostgreSQL, and MySQL.
+**Currently supports Oracle databases** with planned support for SQL Server, PostgreSQL, and MySQL in a modular architecture.
 
 ## Prerequisites
 

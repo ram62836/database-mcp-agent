@@ -1,0 +1,19 @@
+{
+  "id": "hala-database-agent-oracle",
+  "name": "Hala Oracle Database Agent",
+  "description": "Oracle database metadata and SQL execution capabilities for AI assistants",
+  "version": "1.0.10-preview",
+  "publisher": "Hala",
+  "license": "MIT",
+  "capabilities": [
+    "oracle-database-metadata",
+    "oracle-query-execution",
+    "oracle-stored-procedures"
+  ],
+  "endpoints": [
+    {
+      "protocol": "mcp",
+      "url": "http://localhost:5123"
+    }
+  ]
+}
