@@ -1,0 +1,66 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5CD0946C-6D2E-41EA-BEE0-C496E034202B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseAgent.Core", "src\DatabaseAgent.Core\DatabaseAgent.Core.csproj", "{5A12DAFD-5647-43F5-B4A7-7A8A722C4816}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseAgent.Oracle", "src\DatabaseAgent.Oracle\DatabaseAgent.Oracle.csproj", "{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MCP", "MCP", "{802A2359-0561-4F1F-9A42-598AB1BBF386}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseAgent.Oracle.MCP", "src\MCP\DatabaseAgent.Oracle.MCP\DatabaseAgent.Oracle.MCP.csproj", "{CED39626-6FB3-4931-B72E-21739475C9D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DB696C48-9761-4FEF-ADAF-88EAFC09F8E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseAgent.Core.Tests", "tests\DatabaseAgent.Core.Tests\DatabaseAgent.Core.Tests.csproj", "{46D9CDCC-4BAC-47F1-A443-C02E1D08D342}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseAgent.Oracle.Tests", "tests\DatabaseAgent.Oracle.Tests\DatabaseAgent.Oracle.Tests.csproj", "{79537CDA-7A91-4770-9E92-08575C5F798A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EC9C391A-8620-42BB-A08B-EC4C286E0B11}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A12DAFD-5647-43F5-B4A7-7A8A722C4816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A12DAFD-5647-43F5-B4A7-7A8A722C4816}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A12DAFD-5647-43F5-B4A7-7A8A722C4816}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A12DAFD-5647-43F5-B4A7-7A8A722C4816}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CED39626-6FB3-4931-B72E-21739475C9D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CED39626-6FB3-4931-B72E-21739475C9D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CED39626-6FB3-4931-B72E-21739475C9D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CED39626-6FB3-4931-B72E-21739475C9D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46D9CDCC-4BAC-47F1-A443-C02E1D08D342}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46D9CDCC-4BAC-47F1-A443-C02E1D08D342}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46D9CDCC-4BAC-47F1-A443-C02E1D08D342}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46D9CDCC-4BAC-47F1-A443-C02E1D08D342}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79537CDA-7A91-4770-9E92-08575C5F798A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79537CDA-7A91-4770-9E92-08575C5F798A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79537CDA-7A91-4770-9E92-08575C5F798A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79537CDA-7A91-4770-9E92-08575C5F798A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A12DAFD-5647-43F5-B4A7-7A8A722C4816} = {5CD0946C-6D2E-41EA-BEE0-C496E034202B}
+		{D42A8E94-4964-4A2E-BC15-A3F7CD31F2AE} = {5CD0946C-6D2E-41EA-BEE0-C496E034202B}
+		{802A2359-0561-4F1F-9A42-598AB1BBF386} = {5CD0946C-6D2E-41EA-BEE0-C496E034202B}
+		{CED39626-6FB3-4931-B72E-21739475C9D5} = {802A2359-0561-4F1F-9A42-598AB1BBF386}
+		{46D9CDCC-4BAC-47F1-A443-C02E1D08D342} = {DB696C48-9761-4FEF-ADAF-88EAFC09F8E2}
+		{79537CDA-7A91-4770-9E92-08575C5F798A} = {DB696C48-9761-4FEF-ADAF-88EAFC09F8E2}
+	EndGlobalSection
+EndGlobal
