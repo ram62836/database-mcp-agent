@@ -3,7 +3,12 @@
     "database-mcp-agent": {
       "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
       "args": ["--console"],
-      "cwd": "C:\\Tools\\database-mcp-agent"
+      "cwd": "C:\\Tools\\database-mcp-agent",
+      "env": {
+        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-oracle-host)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service-name)));User Id=your-username;Password=your-password;",
+        "MetadataCacheJsonPath": "C:\\Tools\\database-mcp-agent\\metadata",
+        "LogFilePath": "C:\\Tools\\database-mcp-agent\\logs"
+      }
     }
   }
 }
