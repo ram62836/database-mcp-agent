@@ -8,10 +8,10 @@ Add to your VS Code MCP settings to automatically install and configure:
 
 ```json
 {
-  "mcp.servers": {
-    "oracle-database": {
+  "servers": {
+    "oracle-agent-server": {
       "command": "dnx",
-      "args": ["Hala.DatabaseAgent.OracleMcpServer", "--version", "1.0.10-preview", "--yes"],
+      "args": ["Hala.DatabaseAgent.OracleMcpServer", "--version", "1.0.12-preview", "--yes"],
       "env": {
         "OracleConnectionString": "your-oracle-connection-string",
         "MetadataCacheJsonPath": "directory-path-to-store-metadata-cache",
