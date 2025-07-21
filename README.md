@@ -114,7 +114,7 @@ chmod +x ./install-dotnet10.sh
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "Hala.DatabaseMcpAgent@1.0.10-preview",
         "--yes"
       ],
       "env": {
@@ -216,7 +216,7 @@ Configure Claude Desktop to use your Database MCP Agent:
     "Hala.DatabaseMcpAgent": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "Hala.DatabaseMcpAgent@1.0.10-preview",
         "--yes"
       ],
       "env": {
@@ -266,7 +266,7 @@ For complete examples, see [examples/claude-desktop-config.json](examples/claude
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.7-preview",
+        "Hala.DatabaseMcpAgent@1.0.10-preview",
         "--yes"
       ],
       "env": {
