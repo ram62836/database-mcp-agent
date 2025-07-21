@@ -16,7 +16,7 @@ namespace DatabaseMcp.Core.Services
         {
             // Try to get the full connection string from environment variable via IConfiguration
             // IConfiguration automatically reads from environment variables
-            var fullConnectionString = _configuration.GetConnectionString("OracleConnection");
+            var fullConnectionString = _configuration.GetConnectionString("OracleConnectionString");
             if (!string.IsNullOrEmpty(fullConnectionString))
             {
                 return fullConnectionString;
@@ -38,7 +38,7 @@ namespace DatabaseMcp.Core.Services
 
             throw new InvalidOperationException(
                 "No Oracle connection configuration found. Please provide either:\n" +
-                "1. ConnectionStrings__OracleConnection environment variable with full connection string, OR\n" +
+                "1. OracleConnectionString environment variable with full connection string, OR\n" +
                 "2. Individual environment variables: ORACLE_DATABASE_HOST, ORACLE_DATABASE_SERVICE_NAME, ORACLE_DATABASE_USERNAME, ORACLE_DATABASE_PASSWORD");
         }
     }

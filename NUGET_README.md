@@ -13,7 +13,7 @@ Add to your VS Code MCP settings to automatically install and configure:
       "command": "dnx",
       "args": ["Hala.DatabaseMcpAgent", "--version", "1.0.7-preview", "--yes"],
       "env": {
-        "ConnectionStrings__OracleConnection": "your-oracle-connection-string"
+        "OracleConnectionString": "your-oracle-connection-string"
       }
     }
   }
@@ -27,7 +27,7 @@ The `dnx` command will automatically download and install the package when VS Co
 Set your Oracle connection string in the environment variables:
 
 **Required:**
-- `ConnectionStrings__OracleConnection` - Your Oracle database connection string
+- `OracleConnectionString` - Your Oracle database connection string
 
 **Optional:**
 - `DatabaseMcp__CacheExpirationMinutes=30` - Cache expiration time

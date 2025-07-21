@@ -2,7 +2,7 @@
   "inputs": [
     {
       "type": "promptString",
-      "id": "oracle-connection",
+      "id": "oracle-connection-string",
       "description": "Oracle database connection string",
       "password": true
     },
@@ -28,7 +28,7 @@
         "--yes"
       ],
       "env": {
-        "ConnectionStrings__OracleConnection": "${input:oracle-connection}",
+        "OracleConnectionString": "${input:oracle-connection-string}",
         "MetadataCacheJsonPath": "${input:metadata-json-path}",
         "LogFilePath": "${input:log-file-path}"
       }

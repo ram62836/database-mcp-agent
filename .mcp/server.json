@@ -15,9 +15,9 @@
         "Hala.DatabaseMcpAgent@1.0.7-preview",
         "--yes"
       ],
-      "env": {
-        "ConnectionStrings__OracleConnection": "${input:oracle-connection}"
-      }
+        "env": {
+            "OracleConnectionString": "${input:oracle-connection}"
+        }
     }
   }
 }

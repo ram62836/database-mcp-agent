@@ -23,14 +23,19 @@ string logPath = Path.Combine(logDirectory, "DatabaseMcp.Server.log");
 // Ensure the log directory exists
 Directory.CreateDirectory(logDirectory);
 
-// Configure Serilog using appsettings.json
+// Configure Serilog - restrict console output to Warning and above, keep detailed logs in file
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(loggingConfig) // Read from appsettings.json first
-    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day) // Default if not specified in config
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.File(logPath,                  
+                 rollingInterval: RollingInterval.Day,
+                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message}{NewLine}{Exception}") 
     .CreateLogger();
 
-Log.Information("Starting DatabaseMcp.Server from directory: {ExecutableDirectory}", executableDirectory);
-Log.Information("Log files will be stored in: {LogDirectory}", logDirectory);
+// Use positional string formatting to avoid template parsing issues
+// These are startup messages, still logged to file but not to console due to level restrictions
+Log.Information("Starting DatabaseMcp.Server from directory: {0}", executableDirectory);
+Log.Information("Log files will be stored in: {0}", logDirectory);
 
 ConfigurationManager config = new();
 config.AddEnvironmentVariables(); 
@@ -81,7 +86,7 @@ using (IServiceScope scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Log.Warning(ex, "Failed to preload database metadata. The server will continue but may have slower initial responses: {Message}", ex.Message);
+        Log.Warning(ex, "Failed to preload database metadata. The server will continue but may have slower initial responses: {0}", ex.Message);
     }
 }
 
