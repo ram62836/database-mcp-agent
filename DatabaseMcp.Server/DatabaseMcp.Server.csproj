@@ -7,7 +7,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>Hala.DatabaseMcpAgent</PackageId>
-    <PackageVersion>1.0.8-preview</PackageVersion>
+    <PackageVersion>1.0.9-preview</PackageVersion>
     <PackageType>McpServer</PackageType>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
