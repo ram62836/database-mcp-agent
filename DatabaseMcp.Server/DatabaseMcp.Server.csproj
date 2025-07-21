@@ -17,10 +17,10 @@
     <!-- Package Metadata -->
     <Title>Oracle Database MCP Agent</Title>
     <Description>Oracle Database MCP Agent with 25+ tools for AI-powered database analysis. Supports metadata discovery, dependency analysis, and performance optimization for Oracle 11g R2+.</Description>
-    <Authors>Ram Babu</Authors>
-    <Company>Ram Babu</Company>
+    <Authors>Hala</Authors>
+    <Company>Hala</Company>
     <Product>Database MCP Agent</Product>
-    <Copyright>Copyright © 2025 Ram Babu</Copyright>
+    <Copyright>Copyright © 2025 Hala</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ram62836/database-mcp-agent</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ram62836/database-mcp-agent</RepositoryUrl>
@@ -32,9 +32,9 @@
     <!-- Application metadata -->
     <AssemblyTitle>Oracle Database MCP Agent</AssemblyTitle>
     <AssemblyDescription>AI-powered Oracle database analysis and metadata management via Model Context Protocol</AssemblyDescription>
-    <AssemblyCompany>Ram Babu</AssemblyCompany>
+    <AssemblyCompany>Hala</AssemblyCompany>
     <AssemblyProduct>Database MCP Agent</AssemblyProduct>
-    <AssemblyCopyright>Copyright © 2025 Ram Babu</AssemblyCopyright>
+    <AssemblyCopyright>Copyright © 2025 Hala</AssemblyCopyright>
     <AssemblyVersion>1.0.9.0</AssemblyVersion>
     <FileVersion>1.0.9.0</FileVersion>
     <InformationalVersion>1.0.9-preview</InformationalVersion>
