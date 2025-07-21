@@ -1,0 +1,8 @@
+{
+  "tools": [
+    {
+      "path": "./oracle-mcp-server",
+      "agent": true
+    }
+  ]
+}

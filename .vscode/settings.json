@@ -1,0 +1,28 @@
+{
+  "mcp.servers": {
+    "oracle-database-agent-local-project": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "C:\\Source\\oracle-ai-agent\\src\\MCP\\DatabaseAgent.Oracle.MCP",
+        "--",
+        "stdio"
+      ],
+      "env": {
+        "ConnectionSettings__ConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;"
+      }
+    },
+    "oracle-database-agent-global-tool": {
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.10-preview",
+        "--yes",
+        "stdio"
+      ],
+      "env": {
+        "ConnectionSettings__ConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;"
+      }
+    }
+  }
+}

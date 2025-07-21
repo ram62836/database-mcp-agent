@@ -1,0 +1,19 @@
+{
+    "name": "oracle-mcp-csharp",
+    "description": "An MCP-compliant tool to interact with Oracle DB using natural language",
+    "entryPoint": "dotnet run --project OracleAgent.App.csproj",
+    "toolType": "agent",
+    "version": "1.0.0",
+    "capabilities": {
+        "run": true,
+        "describe": true
+    },
+    "inputs": [
+        {
+            "name": "query",
+            "type": "string",
+            "description": "Natural language query to convert to SQL"
+        }
+    ]
+}
+  

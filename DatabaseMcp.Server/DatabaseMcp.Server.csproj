@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>DatabaseMcp.Server</RootNamespace>
+    <AssemblyName>DatabaseMcp.Server</AssemblyName>
+    
+    <!-- NuGet Package Properties -->
+    <PackageId>Hala.DatabaseAgent.OracleMcpServer</PackageId>
+    <PackageVersion>1.0.11-preview</PackageVersion>
+    <PackageType>McpServer</PackageType>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>oracle-mcp-server</ToolCommandName>
+    
+    <!-- Package Metadata -->
+    <Title>Oracle Database MCP Agent</Title>
+    <Description>Oracle Database MCP Agent with 25+ tools for AI-powered database analysis. Supports metadata discovery, dependency analysis, and performance optimization for Oracle 11g R2+.</Description>
+    <Authors>Hala</Authors>
+    <Company>Hala</Company>
+    <Product>Database MCP Agent</Product>
+    <Copyright>Copyright © 2025 Hala</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ram62836/database-mcp-agent</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ram62836/database-mcp-agent</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
+    <PackageTags>oracle;database;mcp;metadata;analysis;ai;sql;schema;dotnet;csharp;model-context-protocol</PackageTags>
+    <PackageReleaseNotes>Package renamed to Hala.DatabaseAgent.OracleMcpServer from Hala.DatabaseMcpAgent. Command renamed to oracle-mcp-server. Added support for multi-database architecture with Oracle as the first implementation. Updated documentation and configuration examples.</PackageReleaseNotes>
+    
+    <!-- Application metadata -->
+    <AssemblyTitle>Oracle Database MCP Agent</AssemblyTitle>
+    <AssemblyDescription>AI-powered Oracle database analysis and metadata management via Model Context Protocol</AssemblyDescription>
+    <AssemblyCompany>Hala</AssemblyCompany>
+    <AssemblyProduct>Database MCP Agent</AssemblyProduct>
+    <AssemblyCopyright>Copyright © 2025 Hala</AssemblyCopyright>
+    <AssemblyVersion>1.0.11.0</AssemblyVersion>
+    <FileVersion>1.0.11.0</FileVersion>
+    <InformationalVersion>1.0.11-preview</InformationalVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.2" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\DatabaseMcp.Core\DatabaseMcp.Core.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\.mcp\server.json" Pack="true" PackagePath="\.mcp\server.json" Condition="Exists('..\.mcp\server.json')" />
+    <None Include="..\NUGET_README.md" Pack="true" PackagePath="\NUGET_README.md" Condition="Exists('..\NUGET_README.md')" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\LICENSE" Condition="Exists('..\LICENSE')" />
+    <None Include="..\MCP_TOOLS_GUIDE.md" Pack="true" PackagePath="\MCP_TOOLS_GUIDE.md" Condition="Exists('..\MCP_TOOLS_GUIDE.md')" />
+    <None Include="..\ORACLE_COMPATIBILITY.md" Pack="true" PackagePath="\ORACLE_COMPATIBILITY.md" Condition="Exists('..\ORACLE_COMPATIBILITY.md')" />
+    <None Include="..\QUICK_REFERENCE.md" Pack="true" PackagePath="\QUICK_REFERENCE.md" Condition="Exists('..\QUICK_REFERENCE.md')" />
+    <None Include="..\SECURITY.md" Pack="true" PackagePath="\SECURITY.md" Condition="Exists('..\SECURITY.md')" />
+  </ItemGroup>	
+</Project>

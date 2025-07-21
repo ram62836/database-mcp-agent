@@ -1,0 +1,21 @@
+{
+    "name": "database-mcp-server",
+    "description": "An MCP-compliant server for database metadata analysis and query execution supporting Oracle and planned SQL Server databases",
+    "entryPoint": "dotnet run --project DatabaseMcp.Server/DatabaseMcp.Server.csproj",
+    "toolType": "server",
+    "version": "1.0.0",
+    "capabilities": {
+      "run": true,
+      "describe": true,
+      "tools": true,
+      "resources": true
+    },
+    "inputs": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Natural language query for database operations"
+      }
+    ]
+  }
+  

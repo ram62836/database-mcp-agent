@@ -1,0 +1,24 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "oracle-connection",
+      "description": "Oracle database connection string",
+      "password": true
+    }
+  ],
+  "servers": {
+    "Hala.DatabaseAgent.OracleMcpServer": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.10-preview",
+        "--yes",
+        "stdio"
+      ],
+      "env": {
+        "ConnectionSettings__ConnectionString": "${input:oracle-connection}"
+      }
+    }
+  }
+}

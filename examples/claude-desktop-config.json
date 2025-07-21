@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "Hala.DatabaseAgent.OracleMcpServer": {
+      "command": "dnx",
+      "args": [
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.11-preview",
+        "--yes"
+      ],
+      "env": {
+        "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
+        "MetadataCacheJsonPath": "YOUR_METADATA_JSON_PATH_HERE", 
+        "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
+      }
+    }
+  }
+}

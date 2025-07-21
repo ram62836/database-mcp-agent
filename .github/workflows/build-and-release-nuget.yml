@@ -1,0 +1,298 @@
+name: Build and Release NuGet Package
+
+on:
+  push:
+    branches: [ main, distribute-using-nuget ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'DatabaseMcp.Server'
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+  pack-nuget:
+    name: Pack NuGet Package
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Create output directory
+      run: mkdir -p ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: Pack NuGet package
+      run: |
+        dotnet pack "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
+          --configuration Release \
+          --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }} \
+          --verbosity normal
+
+    - name: List package contents
+      run: |
+        echo "Generated NuGet packages:"
+        ls -la ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        echo "Also checking default pack location:"
+        ls -la ${{ env.PROJECT_PATH }}/bin/Release/
+
+    - name: Upload NuGet package artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg
+        retention-days: 30
+
+  publish-nuget-preview:
+    name: Publish Preview to NuGet.org
+    runs-on: ubuntu-latest
+    needs: pack-nuget
+    if: github.ref == 'refs/heads/distribute-using-nuget' || (startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-preview'))
+    environment: nuget-production
+
+    steps:
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Publish Preview to NuGet.org
+      run: |
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+
+  publish-nuget-production:
+    name: Publish to NuGet.org
+    runs-on: ubuntu-latest
+    needs: pack-nuget
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-preview')
+    environment: nuget-production
+
+    steps:
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Publish to NuGet.org
+      run: |
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [pack-nuget]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: release-assets
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        # 🚀 Oracle Database MCP Agent - NuGet Release
+
+        ## What's New in NuGet Distribution
+        - **NuGet Package**: Now available as `Hala.DatabaseAgent.OracleMcpServer` on NuGet.org
+        - **Easy Installation**: Install via `dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer`
+        - **MCP Server Configuration**: Automatic VS Code and Visual Studio integration
+        - **Environment-based Configuration**: Flexible configuration via environment variables
+        - **25+ MCP Tools** for comprehensive Oracle database analysis
+
+        ## 📦 Installation Options
+
+        ### NuGet Package (Recommended)
+        ```bash
+        # Install globally as .NET tool
+        dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer
+
+        # Or install in specific project
+        dotnet add package Hala.DatabaseAgent.OracleMcpServer
+        ```
+
+        ### Configuration
+        1. The package includes `.mcp/server.json` with automatic MCP configuration
+        2. VS Code will detect and prompt for environment variables
+        3. Set your Oracle connection string: `ConnectionStrings__OracleConnection`
+        4. Run: `database-mcp-agent`
+
+        ## 🔧 Environment Variables
+
+        **Required:**
+        - `ConnectionStrings__OracleConnection` - Oracle database connection string
+
+        **Optional:**
+        - `DatabaseMcp__CacheExpirationMinutes` - Cache expiration (default: 30)
+        - `DatabaseMcp__MaxConnectionRetries` - Connection retry attempts (default: 3)
+        - `Logging__LogLevel__Default` - Logging level (default: Information)
+
+        ## 📚 Documentation
+
+        - **[NuGet Package](https://www.nuget.org/packages/Hala.DatabaseAgent.OracleMcpServer)** - Package details and configuration
+        - **[GitHub Repository](https://github.com/ram62836/database-mcp-agent)** - Source code and documentation
+        - **[MCP Tools Guide](MCP_TOOLS_GUIDE.md)** - Complete tools documentation with examples
+        - **[Database Connection Guide](examples/DATABASE_CONNECTION_GUIDE.md)** - Connection string examples
+        - **[Quick Reference](QUICK_REFERENCE.md)** - Quick command reference
+
+        ## 🌟 Features
+
+        - **25+ MCP Tools** for comprehensive database analysis
+        - **Metadata Discovery** - Tables, views, procedures, functions, triggers
+        - **Dependency Analysis** - Impact analysis before schema changes  
+        - **Constraint Analysis** - Primary keys, foreign keys, unique constraints
+        - **Performance Tools** - Index analysis and optimization
+        - **Raw SQL Execution** - Direct query capabilities
+        - **Metadata Caching** - Improved performance with smart caching
+        - **AI Integration** - Seamless integration with AI assistants via MCP
+
+        ## 🔧 Requirements
+
+        - .NET 8.0 or later
+        - Oracle Database 11g R2 or later
+        - Network access to your Oracle database
+        - Appropriate database permissions (CONNECT, RESOURCE, SELECT on system views)
+
+        ## Migration from Executable Distribution
+
+        If you were using the previous executable distribution:
+
+        1. **Uninstall old version**: Remove downloaded executables
+        2. **Install NuGet package**: `dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer`
+        3. **Update VS Code config**: Use new `.vscode/mcp.json` configuration
+        4. **Environment variables**: Convert `appsettings.json` to environment variables
+        5. **Run**: Use `oracle-mcp-server` command instead of executable
+
+        ## 🚀 Quick Start
+
+        ```bash
+        # Install the package
+        dotnet tool install -g Hala.DatabaseMcpAgent
+
+        # Set your Oracle connection
+        export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=hr;Password=password;"
+
+        # Run the MCP server
+        database-mcp-agent
+        ```
+
+        For complete setup instructions, see the [GitHub repository](https://github.com/ram62836/database-mcp-agent).
+        EOF
+        
+        echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+        cat release_notes.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release-assets/*
+        body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+        draft: false
+        prerelease: ${{ contains(github.ref, '-preview') }}
+        generate_release_notes: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Legacy executable build for backwards compatibility (optional)
+  # Uncomment if you want to maintain both distribution methods
+  # build-executables:
+  #   name: Build Legacy Executables
+  #   runs-on: ${{ matrix.os }}
+  #   needs: build-and-test
+  #   if: startsWith(github.ref, 'refs/tags/v')
+  #   strategy:
+  #     matrix:
+  #       os: [windows-latest, macos-latest]
+  #       include:
+  #         - os: windows-latest
+  #           runtime: win-x64
+  #           extension: .exe
+  #         - os: macos-latest
+  #           runtime: osx-x64
+  #           extension: ''
+  #
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   
+  #   - name: Setup .NET
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: ${{ env.DOTNET_VERSION }}
+  #   
+  #   - name: Restore dependencies
+  #     run: dotnet restore
+  #   
+  #   - name: Publish single-file executable
+  #     shell: bash
+  #     run: |
+  #       dotnet publish "${{ env.PROJECT_PATH }}/${{ env.PROJECT_PATH }}.csproj" \
+  #         --configuration Release \
+  #         --runtime ${{ matrix.runtime }} \
+  #         --self-contained true \
+  #         --output "./publish/${{ matrix.runtime }}" \
+  #         -p:PublishSingleFile=true \
+  #         -p:IncludeNativeLibrariesForSelfExtract=true \
+  #         -p:PublishTrimmed=false \
+  #         -p:EnableCompressionInSingleFile=true
