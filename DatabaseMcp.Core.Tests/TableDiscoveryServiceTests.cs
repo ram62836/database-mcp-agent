@@ -190,9 +190,9 @@ namespace DatabaseMcp.Core.Tests
                 new TableMetadata { TableName = "TABLE2", Definition = "DDL2" }
             };
 
-            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
-            await File.WriteAllTextAsync(metadataFilePath,
+            // Make sure the directory for AppConstants.TablesMetadatJsonFile exists
+            Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
+            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
 
             try
@@ -207,9 +207,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(metadataFilePath))
+                if (File.Exists(AppConstants.TablesMetadatJsonFile))
                 {
-                    File.Delete(metadataFilePath);
+                    File.Delete(AppConstants.TablesMetadatJsonFile);
                 }
             }
         }

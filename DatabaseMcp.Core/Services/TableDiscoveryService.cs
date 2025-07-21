@@ -28,10 +28,27 @@ namespace DatabaseMcp.Core.Services
             _logger.LogInformation("Getting all user-defined tables.");
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
             {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
-                List<TableMetadata> cachedTableMetadata = JsonSerializer.Deserialize<List<TableMetadata>>(fileContent);
-                _logger.LogInformation("Loaded {Count} tables from cache.", cachedTableMetadata?.Count ?? 0);
-                return cachedTableMetadata;
+                try 
+                {
+                    string fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
+                    var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    List<TableMetadata> cachedTableMetadata = JsonSerializer.Deserialize<List<TableMetadata>>(fileContent, deserializeOptions);
+                    
+                    // Ensure we don't return null
+                    if (cachedTableMetadata == null)
+                    {
+                        _logger.LogWarning("Cache file deserialized to null, returning empty list.");
+                        return new List<TableMetadata>();
+                    }
+                    
+                    _logger.LogInformation("Loaded {0} tables from cache.", cachedTableMetadata.Count);
+                    return cachedTableMetadata;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error loading table metadata from cache file. Proceeding with database query.");
+                    // Continue to database query path
+                }
             }
 
             List<TableMetadata> tablesMetadata = new();
@@ -70,11 +87,34 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<TableMetadata>> GetTablesByNameAsync(List<string> tableNames)
         {
             _logger.LogInformation("Getting tables by name.");
+            
+            // Handle null or empty table names list
+            if (tableNames == null || tableNames.Count == 0)
+            {
+                _logger.LogInformation("No table names provided, returning empty list.");
+                return new List<TableMetadata>();
+            }
+            
+            // Get all tables
             List<TableMetadata> tablesMetadata = await GetAllUserDefinedTablesAsync();
+            
+            // Handle null tablesMetadata (shouldn't happen with our fixes, but just in case)
+            if (tablesMetadata == null)
+            {
+                _logger.LogWarning("Tables metadata was null, returning empty list.");
+                return new List<TableMetadata>();
+            }
+            
+            // Filter tables safely
             List<TableMetadata> filteredTables = tablesMetadata
-                .Where(table => tableNames.Any(name => table.TableName.Contains(name, StringComparison.OrdinalIgnoreCase)))
+                .Where(table => 
+                    table != null && 
+                    table.TableName != null && 
+                    tableNames.Any(name => 
+                        name != null && table.TableName.Contains(name, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
-            _logger.LogInformation("Filtered to {Count} tables by name.", filteredTables.Count);
+                
+            _logger.LogInformation("Filtered to {0} tables by name.", filteredTables.Count);
             return filteredTables;
         }
     }
