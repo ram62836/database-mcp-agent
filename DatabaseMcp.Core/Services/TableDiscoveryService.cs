@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -15,19 +16,21 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TableDiscoveryService> _logger;
+        private readonly string _metadataJsonDirectory;
 
-        public TableDiscoveryService(IDbConnectionFactory connectionFactory, ILogger<TableDiscoveryService> logger)
+        public TableDiscoveryService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<TableDiscoveryService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<TableMetadata>> GetAllUserDefinedTablesAsync()
         {
-            _logger.LogInformation("Getting all user-defined tables.");
-            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            _logger.LogInformation("Getting all user-defined tables.");;
+            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
             {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
                 List<TableMetadata> cachedTableMetadata = JsonSerializer.Deserialize<List<TableMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} tables from cache.", cachedTableMetadata?.Count ?? 0);
                 return cachedTableMetadata;
@@ -61,7 +64,8 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(tablesMetadata, options);
-            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile, json);
+            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
+            await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
             return tablesMetadata;
         }
 
@@ -74,28 +78,6 @@ namespace DatabaseMcp.Core.Services
                 .ToList();
             _logger.LogInformation("Filtered to {Count} tables by name.", filteredTables.Count);
             return filteredTables;
-        }
-
-        private async Task<string> GetTableDefinitionAsync(string tableName)
-        {
-            _logger.LogInformation("Getting table definition for: {TableName}", tableName);
-            try
-            {
-                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
-                IDbCommand command = connection.CreateCommand();
-                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL";
-                IDbDataParameter param = command.CreateParameter();
-                param.ParameterName = "TableName";
-                param.Value = tableName;
-                _ = command.Parameters.Add(param);
-
-                return command.ExecuteScalar()?.ToString() ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting table definition for: {TableName}", tableName);
-                throw;
-            }
         }
     }
 }

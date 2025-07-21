@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,28 +10,23 @@ using Serilog;
 
 // Use the executable directory for all file operations
 string executableDirectory = AppConstants.ExecutableDirectory;
-string logPath = Path.Combine(executableDirectory, "DatabaseMcp.Server.log");
+
+// Get log directory from environment variable or use executable directory as default
+string logDirectory = Environment.GetEnvironmentVariable("LogFilePath") ?? executableDirectory;
+string logPath = Path.Combine(logDirectory, "DatabaseMcp.Server.log");
+
+// Ensure the log directory exists
+Directory.CreateDirectory(logDirectory);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 Log.Information("Starting DatabaseMcp.Server from directory: {ExecutableDirectory}", executableDirectory);
-
-// Log path diagnostics to file instead of stdout to avoid MCP protocol interference
-Log.Information("=== Path Diagnostics ===");
-Log.Information("Current Directory: {CurrentDirectory}", Directory.GetCurrentDirectory());
-Log.Information("AppDomain BaseDirectory: {BaseDirectory}", AppDomain.CurrentDomain.BaseDirectory);
-Log.Information("Assembly Location: {AssemblyLocation}", System.Reflection.Assembly.GetEntryAssembly()?.Location);
-Log.Information("Assembly Directory: {AssemblyDirectory}", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location));
-Log.Information("Executable Directory: {ExecutableDirectory}", executableDirectory);
-Log.Information("Expected appsettings.json path: {AppSettingsPath}", Path.Combine(executableDirectory, "appsettings.json"));
-Log.Information("appsettings.json exists: {AppSettingsExists}", File.Exists(Path.Combine(executableDirectory, "appsettings.json")));
+Log.Information("Log files will be stored in: {LogDirectory}", logDirectory);
 
 ConfigurationManager config = new();
-config.SetBasePath(executableDirectory);
-config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-config.AddEnvironmentVariables(); // Add environment variables support
+config.AddEnvironmentVariables(); 
 HostApplicationBuilderSettings settings = new()
 {
     Configuration = config
@@ -44,7 +38,7 @@ builder.Services.AddMcpServer()
   .WithStdioServerTransport()
   .WithToolsFromAssembly();
 builder.Services.AddScoped<IDbConnectionFactory, OracleDbConnectionFactory>();
-builder.Services.AddScoped<DatabaseMcp.Core.Services.DatabaseConnectionService>();
+builder.Services.AddScoped<DatabaseConnectionService>();
 builder.Services.AddScoped<IColumnMetadataService, ColumnMetadataService>();
 builder.Services.AddScoped<IConstraintGatheringService, ConstraintGatheringService>();
 builder.Services.AddScoped<IIndexListingService, IndexListingService>();

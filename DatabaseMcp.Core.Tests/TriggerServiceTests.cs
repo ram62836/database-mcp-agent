@@ -1,10 +1,16 @@
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Xunit;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -15,7 +21,9 @@ namespace DatabaseMcp.Core.Tests
         private readonly Mock<IDbCommand> _commandMock;
         private readonly Mock<IDataReader> _readerMock;
         private readonly Mock<ILogger<TriggerService>> _loggerMock;
+        private readonly Mock<IConfiguration> _configMock;
         private readonly TriggerService _service;
+        private readonly string _metadataFilePath;
 
         public TriggerServiceTests()
         {
@@ -24,7 +32,13 @@ namespace DatabaseMcp.Core.Tests
             _commandMock = new Mock<IDbCommand>();
             _readerMock = new Mock<IDataReader>();
             _loggerMock = TestHelper.CreateLoggerMock<TriggerService>();
-            _service = new TriggerService(_connectionFactoryMock.Object, _loggerMock.Object);
+            _configMock = new Mock<IConfiguration>();
+            
+            // Setup configuration to return the test directory for metadata files
+            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
+            _metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "triggers_metadata.json");
+            
+            _service = new TriggerService(_connectionFactoryMock.Object, _configMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -32,9 +46,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            if (File.Exists(_metadataFilePath))
             {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
+                File.Delete(_metadataFilePath);
             }
 
             List<TriggerMetadata> data = new()
@@ -76,12 +90,12 @@ namespace DatabaseMcp.Core.Tests
             _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
 
             // Verify the cache file was created
-            Assert.True(File.Exists(AppConstants.TriggersMetadataJsonFile));
+            Assert.True(File.Exists(_metadataFilePath));
 
             // Clean up
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            if (File.Exists(_metadataFilePath))
             {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
+                File.Delete(_metadataFilePath);
             }
         }
 
@@ -103,9 +117,9 @@ namespace DatabaseMcp.Core.Tests
             // Create cache directory if it doesn't exist
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
 
-            // Create the cache file
+            // Create the cache file with the new path
             await File.WriteAllTextAsync(
-                AppConstants.TriggersMetadataJsonFile,
+                _metadataFilePath,
                 JsonSerializer.Serialize(cachedTriggers));
 
             try
@@ -128,9 +142,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+                if (File.Exists(_metadataFilePath))
                 {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
+                    File.Delete(_metadataFilePath);
                 }
             }
         }
@@ -152,7 +166,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                AppConstants.TriggersMetadataJsonFile,
+                _metadataFilePath,
                 JsonSerializer.Serialize(cachedTriggers));
 
             try
@@ -174,9 +188,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+                if (File.Exists(_metadataFilePath))
                 {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
+                    File.Delete(_metadataFilePath);
                 }
             }
         }
@@ -186,9 +200,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            if (File.Exists(_metadataFilePath))
             {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
+                File.Delete(_metadataFilePath);
             }
 
             InvalidOperationException expectedException = new("Test exception");
@@ -205,8 +219,9 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
+            var configMock = new Mock<IConfiguration>();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new TriggerService(null, _loggerMock.Object));
+                () => new TriggerService(null, configMock.Object, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
@@ -215,9 +230,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            if (File.Exists(_metadataFilePath))
             {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
+                File.Delete(_metadataFilePath);
             }
 
             _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
@@ -237,9 +252,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+                if (File.Exists(_metadataFilePath))
                 {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
+                    File.Delete(_metadataFilePath);
                 }
             }
         }

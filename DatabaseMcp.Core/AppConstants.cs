@@ -1,13 +1,12 @@
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace DatabaseMcp.Core
 {
     public static class AppConstants
     {
         // Get the directory where the executable is located
-        private static readonly string BaseDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) 
+        private static readonly string BaseDirectory = Environment.GetEnvironmentVariable("LogFilePath")
                                                       ?? AppDomain.CurrentDomain.BaseDirectory;
         
         /// <summary>

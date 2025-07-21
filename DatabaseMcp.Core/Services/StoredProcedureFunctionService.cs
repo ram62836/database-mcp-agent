@@ -5,29 +5,29 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace DatabaseMcp.Core.Services
 {
     public class StoredProcedureFunctionService : IStoredProcedureFunctionService
     {
         private readonly IDbConnectionFactory _connectionFactory;
-        private readonly ILogger<StoredProcedureFunctionService> _logger;
-        private readonly IMemoryCache _cache;
+        private readonly ILogger<StoredProcedureFunctionService> _logger;        
+        private readonly string _metadataJsonDirectory;
 
-        public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, IMemoryCache cache, ILogger<StoredProcedureFunctionService> logger)
+        public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<StoredProcedureFunctionService> logger)
         {
-            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));        
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()
         {
-            _logger.LogInformation("Getting all stored procedures.");
+            _logger.LogInformation("Getting all stored procedures.");            
             if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.ProceduresMetadatJsonFile);
@@ -62,13 +62,14 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(proceduresMetadata, options);
+            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.ProceduresMetadatJsonFile, json);
             return proceduresMetadata;
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllFunctionsAsync()
         {
-            _logger.LogInformation("Getting all functions.");
+            _logger.LogInformation("Getting all functions.");            
             if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.FunctionsMetadataJsonFile);
@@ -103,6 +104,7 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(functionsMetadata, options);
+            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.FunctionsMetadataJsonFile, json);
             return functionsMetadata;
         }

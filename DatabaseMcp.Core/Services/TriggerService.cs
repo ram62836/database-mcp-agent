@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -15,16 +16,18 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TriggerService> _logger;
+        private readonly string _metadataJsonDirectory;
 
-        public TriggerService(IDbConnectionFactory connectionFactory, ILogger<TriggerService> logger)
+        public TriggerService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<TriggerService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<TriggerMetadata>> GetAllTriggersAsync()
         {
-            _logger.LogInformation("Getting all triggers.");
+            _logger.LogInformation("Getting all triggers.");            
             if (File.Exists(AppConstants.TriggersMetadataJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
@@ -64,6 +67,7 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(triggers, options);
+            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
             return triggers;
         }

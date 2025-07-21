@@ -47,17 +47,5 @@ namespace DatabaseMcp.Core.Services
                 "2. Individual environment variables: ORACLE_DATABASE_HOST, ORACLE_DATABASE_SERVICE_NAME, ORACLE_DATABASE_USERNAME, ORACLE_DATABASE_PASSWORD, OR\n" +
                 "3. ConnectionStrings:DefaultConnection in appsettings.json");
         }
-
-        public int GetCacheExpirationMinutes()
-        {
-            var cacheExpiration = _configuration["DatabaseMcp:CacheExpirationMinutes"];
-            return string.IsNullOrEmpty(cacheExpiration) ? 30 : int.Parse(cacheExpiration);
-        }
-
-        public int GetMaxConnectionRetries()
-        {
-            var maxRetries = _configuration["DatabaseMcp:MaxConnectionRetries"];
-            return string.IsNullOrEmpty(maxRetries) ? 3 : int.Parse(maxRetries);
-        }
     }
 }

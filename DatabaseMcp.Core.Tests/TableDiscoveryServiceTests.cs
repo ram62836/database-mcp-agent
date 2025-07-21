@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Xunit;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -14,11 +20,14 @@ namespace DatabaseMcp.Core.Tests
         private readonly Mock<IDbCommand> _commandMock = new();
         private readonly Mock<IDataReader> _readerMock = new();
         private readonly Mock<ILogger<TableDiscoveryService>> _loggerMock = TestHelper.CreateLoggerMock<TableDiscoveryService>();
+        private readonly Mock<IConfiguration> _configMock = new();
         private readonly TableDiscoveryService _service;
 
         public TableDiscoveryServiceTests()
         {
-            _service = new TableDiscoveryService(_connectionFactoryMock.Object, _loggerMock.Object);
+            // Setup configuration to return the test directory for metadata files
+            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
+            _service = new TableDiscoveryService(_connectionFactoryMock.Object, _configMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -26,9 +35,10 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure the cache file does not exist so the DB path is used
-            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            if (File.Exists(metadataFilePath))
             {
-                File.Delete(AppConstants.TablesMetadatJsonFile);
+                File.Delete(metadataFilePath);
             }
 
             List<TableMetadata> data = new()
@@ -73,7 +83,8 @@ namespace DatabaseMcp.Core.Tests
             };
 
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            await File.WriteAllTextAsync(metadataFilePath,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
 
             // No database mock setup needed as it should use the cache
@@ -95,9 +106,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(AppConstants.TablesMetadatJsonFile))
+                if (File.Exists(metadataFilePath))
                 {
-                    File.Delete(AppConstants.TablesMetadatJsonFile);
+                    File.Delete(metadataFilePath);
                 }
             }
         }
@@ -107,9 +118,10 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure the cache file does not exist
-            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            if (File.Exists(metadataFilePath))
             {
-                File.Delete(AppConstants.TablesMetadatJsonFile);
+                File.Delete(metadataFilePath);
             }
 
             List<TableMetadata> allTables = new()
@@ -147,9 +159,10 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllUserDefinedTablesAsync_ThrowsException_WhenDbFails()
         {
             // Arrange
-            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            if (File.Exists(metadataFilePath))
             {
-                File.Delete(AppConstants.TablesMetadatJsonFile);
+                File.Delete(metadataFilePath);
             }
 
             InvalidOperationException expectedException = new("Test exception");
@@ -174,7 +187,8 @@ namespace DatabaseMcp.Core.Tests
             };
 
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            await File.WriteAllTextAsync(metadataFilePath,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
 
             try
@@ -189,9 +203,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(AppConstants.TablesMetadatJsonFile))
+                if (File.Exists(metadataFilePath))
                 {
-                    File.Delete(AppConstants.TablesMetadatJsonFile);
+                    File.Delete(metadataFilePath);
                 }
             }
         }
@@ -200,8 +214,9 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
+            var configMock = new Mock<IConfiguration>();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new TableDiscoveryService(null, _loggerMock.Object));
+                () => new TableDiscoveryService(null, configMock.Object, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
@@ -209,9 +224,10 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllUserDefinedTablesAsync_HandlesEmptyResult()
         {
             // Arrange
-            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            if (File.Exists(metadataFilePath))
             {
-                File.Delete(AppConstants.TablesMetadatJsonFile);
+                File.Delete(metadataFilePath);
             }
 
             _ = _readerMock.Setup(r => r.Read()).Returns(false);
