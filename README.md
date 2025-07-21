@@ -47,7 +47,7 @@ The MCP agent uses environment variables for configuration. Set these before run
 ### Required Configuration
 ```bash
 # Primary connection string (choose one method)
-export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=hr;Password=password;"
+export OracleConnectionString="Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=hr;Password=password;"
 
 # OR configure individual components
 export ORACLE_DATABASE_HOST=localhost
@@ -59,6 +59,10 @@ export ORACLE_DATABASE_PASSWORD=password
 
 ### Optional Configuration
 ```bash
+# Cache and log file paths
+export MetadataCacheJsonPath="/path/to/metadata/cache"
+export LogFilePath="/path/to/logs"
+
 # Performance settings
 export DatabaseMcp__CacheExpirationMinutes=30
 export DatabaseMcp__MaxConnectionRetries=3
@@ -66,6 +70,14 @@ export DatabaseMcp__MaxConnectionRetries=3
 # Logging
 export Logging__LogLevel__Default=Information
 ```
+
+### Logging Configuration
+By default, the MCP agent:
+- Logs warnings, errors, and critical messages to console
+- Logs all information-level and above messages to log files
+- Uses positional formatting parameters for log messages (`{0}`, `{1}`, etc.)
+
+This configuration keeps console output clean while maintaining detailed logs for troubleshooting.
 
 For complete connection examples and troubleshooting, see [Database Connection Guide](examples/DATABASE_CONNECTION_GUIDE.md).
 
@@ -107,7 +119,10 @@ If you prefer the previous executable distribution method, you can still downloa
 ### Legacy Setup (Executables)
 1. Download and extract the appropriate package
 2. Run the setup script (`setup.bat` on Windows, `setup.sh` on Unix)
-3. Edit `appsettings.configured.json` with your database connection
+3. Set the required environment variables:
+   - `OracleConnectionString` - Your Oracle database connection string
+   - `MetadataCacheJsonPath` - Path to store metadata cache files
+   - `LogFilePath` - Path to store log files
 4. Run: `DatabaseMcp.Server --console`
 
 ## 🛠️ **Database Support**
@@ -149,7 +164,12 @@ Configure Claude Desktop to use your Database MCP Agent:
     "database-mcp-agent": {
       "command": "/path/to/extracted/DatabaseMcp.Server.exe",
       "args": ["--console"],
-      "cwd": "/path/to/extracted/folder"
+      "cwd": "/path/to/extracted/folder",
+      "env": {
+        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=your-server)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=your-service)));User Id=username;Password=password;",
+        "MetadataCacheJsonPath": "/path/to/metadata/cache",
+        "LogFilePath": "/path/to/logs"
+      }
     }
   }
 }
@@ -162,7 +182,12 @@ Configure Claude Desktop to use your Database MCP Agent:
     "database-mcp-agent": {
       "command": "C:\\Tools\\database-mcp-agent\\DatabaseMcp.Server.exe",
       "args": ["--console"],
-      "cwd": "C:\\Tools\\database-mcp-agent"
+      "cwd": "C:\\Tools\\database-mcp-agent",
+      "env": {
+        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=username;Password=password;",
+        "MetadataCacheJsonPath": "C:\\Tools\\database-mcp-agent\\metadata",
+        "LogFilePath": "C:\\Tools\\database-mcp-agent\\logs"
+      }
     }
   }
 }
@@ -175,7 +200,12 @@ Configure Claude Desktop to use your Database MCP Agent:
     "database-mcp-agent": {
       "command": "/Users/yourname/Tools/database-mcp-agent/DatabaseMcp.Server",
       "args": ["--console"],
-      "cwd": "/Users/yourname/Tools/database-mcp-agent"
+      "cwd": "/Users/yourname/Tools/database-mcp-agent",
+      "env": {
+        "OracleConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=username;Password=password;",
+        "MetadataCacheJsonPath": "/Users/yourname/Tools/database-mcp-agent/metadata",
+        "LogFilePath": "/Users/yourname/Tools/database-mcp-agent/logs"
+      }
     }
   }
 }
