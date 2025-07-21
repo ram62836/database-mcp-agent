@@ -15,8 +15,15 @@ namespace DatabaseMcp.Core.Services
         public string GetOracleConnectionString()
         {
             // Try to get the full connection string from environment variable via IConfiguration
-            // IConfiguration automatically reads from environment variables
-            var fullConnectionString = _configuration.GetConnectionString("OracleConnectionString");
+            // First try direct environment variable access
+            var fullConnectionString = _configuration["OracleConnectionString"];
+            if (!string.IsNullOrEmpty(fullConnectionString))
+            {
+                return fullConnectionString;
+            }
+            
+            // Try with ConnectionStrings section as fallback
+            fullConnectionString = _configuration.GetConnectionString("OracleConnectionString");
             if (!string.IsNullOrEmpty(fullConnectionString))
             {
                 return fullConnectionString;
