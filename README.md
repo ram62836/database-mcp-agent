@@ -17,69 +17,11 @@ A powerful Model Context Protocol (MCP) server that provides AI assistants with 
 
 ### .NET 10 SDK Requirement
 
+> **Note:** The `.NET 10 SDK` is required as a prerequisite to use this package.  
+> For setup and usage details, refer to the official blog:  
+> [Download .NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+
 The `dnx` command used for MCP server integration requires the .NET 10 SDK. Follow the installation instructions for your platform:
-
-#### Windows Installation
-
-Create a file named `install-dotnet10.ps1` with the following content:
-
-```powershell
-# install-dotnet10.ps1
-Write-Host "Installing .NET 10 SDK..." -ForegroundColor Cyan
-
-# Download the .NET 10 SDK installer
-$downloadUrl = "https://dotnetcli.azureedge.net/dotnet/Sdk/10.0.100-preview.3.24174.11/dotnet-sdk-10.0.100-preview.3.24174.11-win-x64.exe"
-$installerPath = "$env:TEMP\dotnet-installer.exe"
-
-Write-Host "Downloading .NET 10 SDK installer..."
-Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath
-
-# Run the installer
-Write-Host "Running installer..."
-Start-Process -FilePath $installerPath -ArgumentList "/quiet" -Wait
-
-# Verify installation
-Write-Host "Verifying installation..."
-dotnet --version
-
-Write-Host "Installation complete. Please restart your terminal or VS Code." -ForegroundColor Green
-```
-
-Run the script with PowerShell:
-```
-.\install-dotnet10.ps1
-```
-
-#### macOS Installation
-
-Create a file named `install-dotnet10.sh` with the following content:
-
-```bash
-#!/bin/bash
-echo "Installing .NET 10 SDK..."
-
-# Download and install the .NET 10 SDK
-curl -sSL https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0 --quality preview
-
-# Add to PATH if needed
-if [[ ":$PATH:" != *":$HOME/.dotnet:"* ]]; then
-  echo 'export PATH="$PATH:$HOME/.dotnet"' >> ~/.zshrc
-  echo 'export PATH="$PATH:$HOME/.dotnet"' >> ~/.bash_profile
-  export PATH="$PATH:$HOME/.dotnet"
-fi
-
-# Verify installation
-echo "Verifying installation..."
-dotnet --version
-
-echo "Installation complete. Please restart your terminal or VS Code."
-```
-
-Run the script:
-```bash
-chmod +x ./install-dotnet10.sh
-./install-dotnet10.sh
-```
 
 ## Quick Start
 

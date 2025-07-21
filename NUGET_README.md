@@ -2,7 +2,7 @@
 
 Oracle Database MCP Agent with 25+ tools for AI-powered database analysis.
 
-## � VS Code Integration
+##  VS Code Integration
 
 Add to your VS Code MCP settings to automatically install and configure:
 
@@ -26,12 +26,12 @@ The `dnx` command will automatically download and install the package when VS Co
 
 Set your Oracle connection string in the environment variables:
 
+> **Note:** The `.NET 10 SDK` is required as a prerequisite to use this package, to make use of dnx command.  
+> For setup and usage details, refer to the official blog:  
+> [Download .NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+
 **Required:**
 - `OracleConnectionString` - Your Oracle database connection string
-
-**Optional:**
-- `DatabaseMcp__CacheExpirationMinutes=30` - Cache expiration time
-- `DatabaseMcp__MaxConnectionRetries=3` - Connection retry attempts
 
 ## 🔍 Example Connection Strings
 
