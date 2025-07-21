@@ -16,13 +16,11 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<StoredProcedureFunctionService> _logger;        
-        private readonly string _metadataJsonDirectory;
 
-        public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<StoredProcedureFunctionService> logger)
+        public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, ILogger<StoredProcedureFunctionService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));        
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()

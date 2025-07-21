@@ -16,21 +16,19 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ViewEnumerationService> _logger;
-        private readonly string _metadataJsonDirectory;
 
-        public ViewEnumerationService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<ViewEnumerationService> logger)
+        public ViewEnumerationService(IDbConnectionFactory connectionFactory, ILogger<ViewEnumerationService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
-            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<ViewMetadata>> GetAllViewsAsync()
         {
             _logger.LogInformation("Getting all views.");            
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.ViewsMetadatJsonFile);
                 List<ViewMetadata> cachedViewsMetadata = JsonSerializer.Deserialize<List<ViewMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} views from cache.", cachedViewsMetadata?.Count ?? 0);
                 return cachedViewsMetadata;
@@ -65,7 +63,7 @@ namespace DatabaseMcp.Core.Services
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(views, options);
             Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
+            await File.WriteAllTextAsync(AppConstants.ViewsMetadatJsonFile, json);
             return views;
         }
 

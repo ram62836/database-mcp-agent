@@ -22,10 +22,7 @@ namespace DatabaseMcp.Core.Tests
         private readonly Mock<IDbConnection> _connectionMock;
         private readonly Mock<IDbCommand> _commandMock;
         private readonly Mock<IDataReader> _readerMock;
-        private readonly Mock<IConfiguration> _configMock;
         private readonly StoredProcedureFunctionService _service;
-        private readonly string _proceduresMetadataFilePath;
-        private readonly string _functionsMetadataFilePath;
 
         public StoredProcedureFunctionServiceTests()
         {
@@ -35,15 +32,10 @@ namespace DatabaseMcp.Core.Tests
             _commandMock = new Mock<IDbCommand>();
             _readerMock = new Mock<IDataReader>();
             
-            _configMock = new Mock<IConfiguration>();
-            // Setup configuration to return the test directory for metadata files
-            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
-            _proceduresMetadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "procedures_metadata.json");
-            _functionsMetadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "functions_metadata.json");
+            // Use AppConstants for metadata paths
             
             _service = new StoredProcedureFunctionService(
                 _connectionFactoryMock.Object,
-                _configMock.Object,
                 _loggerMock.Object);
         }
 
@@ -52,8 +44,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_proceduresMetadataFilePath))
-                File.Delete(_proceduresMetadataFilePath);
+            if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                File.Delete(AppConstants.ProceduresMetadatJsonFile);
                 
             var procNames = new List<string> { "PROC1", "PROC2" };
             
@@ -105,9 +97,14 @@ namespace DatabaseMcp.Core.Tests
             // Create cache directory if it doesn't exist
             Directory.CreateDirectory(Directory.GetCurrentDirectory());
             
-            var proceduresMetadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "procedures_metadata.json");
+            // Create directory if it doesn't exist
+            string? dir = Path.GetDirectoryName(AppConstants.ProceduresMetadatJsonFile);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
             await File.WriteAllTextAsync(
-                proceduresMetadataFilePath, 
+                AppConstants.ProceduresMetadatJsonFile, 
                 JsonSerializer.Serialize(cachedProcedures));
 
             try
@@ -127,8 +124,8 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_proceduresMetadataFilePath))
-                    File.Delete(_proceduresMetadataFilePath);
+                if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                    File.Delete(AppConstants.ProceduresMetadatJsonFile);
             }
         }
         
@@ -137,8 +134,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_functionsMetadataFilePath))
-                File.Delete(_functionsMetadataFilePath);
+            if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
+                File.Delete(AppConstants.FunctionsMetadataJsonFile);
                 
             var funcNames = new List<string> { "FUNC1", "FUNC2" };
             
@@ -282,7 +279,7 @@ namespace DatabaseMcp.Core.Tests
             
             // Create the cache file
             await File.WriteAllTextAsync(
-                _proceduresMetadataFilePath, 
+                AppConstants.ProceduresMetadatJsonFile, 
                 JsonSerializer.Serialize(cachedProcedures));
 
             try
@@ -303,8 +300,8 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_proceduresMetadataFilePath))
-                    File.Delete(_proceduresMetadataFilePath);
+                if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                    File.Delete(AppConstants.ProceduresMetadatJsonFile);
             }
         }
         
@@ -324,7 +321,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _functionsMetadataFilePath, 
+                AppConstants.FunctionsMetadataJsonFile, 
                 JsonSerializer.Serialize(cachedFunctions));
 
             try
@@ -345,8 +342,8 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_functionsMetadataFilePath))
-                    File.Delete(_functionsMetadataFilePath);
+                if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
+                    File.Delete(AppConstants.FunctionsMetadataJsonFile);
             }
         }
         
@@ -355,8 +352,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_proceduresMetadataFilePath))
-                File.Delete(_proceduresMetadataFilePath);
+            if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                File.Delete(AppConstants.ProceduresMetadatJsonFile);
                 
             var expectedException = new InvalidOperationException("Test exception");
             _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
@@ -387,10 +384,9 @@ namespace DatabaseMcp.Core.Tests
         public async Task Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var configMock = new Mock<IConfiguration>();
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                await Task.Run(() => new StoredProcedureFunctionService(null, configMock.Object, _loggerMock.Object));
+                await Task.Run(() => new StoredProcedureFunctionService(null, _loggerMock.Object));
             });
             Assert.Equal("connectionFactory", exception.ParamName);
         }
@@ -400,8 +396,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_functionsMetadataFilePath))
-                File.Delete(_functionsMetadataFilePath);
+            if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
+                File.Delete(AppConstants.FunctionsMetadataJsonFile);
                 
             var expectedException = new InvalidOperationException("Test exception");
             _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
@@ -457,8 +453,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_proceduresMetadataFilePath))
-                File.Delete(_proceduresMetadataFilePath);
+            if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                File.Delete(AppConstants.ProceduresMetadatJsonFile);
             
             // Reset mocks to clear previous setups
             _readerMock.Reset();
@@ -523,7 +519,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _proceduresMetadataFilePath, 
+                AppConstants.ProceduresMetadatJsonFile, 
                 JsonSerializer.Serialize(cachedProcedures));
 
             try
@@ -538,8 +534,8 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_proceduresMetadataFilePath))
-                    File.Delete(_proceduresMetadataFilePath);
+                if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
+                    File.Delete(AppConstants.ProceduresMetadatJsonFile);
             }
         }
         
@@ -559,7 +555,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _functionsMetadataFilePath, 
+                AppConstants.FunctionsMetadataJsonFile, 
                 JsonSerializer.Serialize(cachedFunctions));
 
             try
@@ -574,9 +570,10 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_functionsMetadataFilePath))
-                    File.Delete(_functionsMetadataFilePath);
+                if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
+                    File.Delete(AppConstants.FunctionsMetadataJsonFile);
             }
         }
     }
 }
+

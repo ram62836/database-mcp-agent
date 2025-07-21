@@ -1,5 +1,4 @@
 using System.Data;
-using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,9 +15,7 @@ namespace DatabaseMcp.Core.Tests
         private readonly Mock<IDbCommand> _commandMock;
         private readonly Mock<IDataReader> _readerMock;
         private readonly Mock<ILogger<ViewEnumerationService>> _loggerMock;
-        private readonly Mock<IConfiguration> _configMock;
         private readonly ViewEnumerationService _service;
-        private readonly string _metadataFilePath;
 
         public ViewEnumerationServiceTests()
         {
@@ -27,13 +24,8 @@ namespace DatabaseMcp.Core.Tests
             _commandMock = new Mock<IDbCommand>();
             _readerMock = new Mock<IDataReader>();
             _loggerMock = TestHelper.CreateLoggerMock<ViewEnumerationService>();
-            _configMock = new Mock<IConfiguration>();
             
-            // Setup configuration to return the test directory for metadata files
-            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
-            _metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "views_metadata.json");
-            
-            _service = new ViewEnumerationService(_connectionFactoryMock.Object, _configMock.Object, _loggerMock.Object);
+            _service = new ViewEnumerationService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -41,9 +33,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_metadataFilePath))
+            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
-                File.Delete(_metadataFilePath);
+                File.Delete(AppConstants.ViewsMetadatJsonFile);
             }
 
             List<ViewMetadata> data = new()
@@ -74,14 +66,14 @@ namespace DatabaseMcp.Core.Tests
                 _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
 
                 // Verify the cache file was created
-                Assert.True(File.Exists(_metadataFilePath));
+                Assert.True(File.Exists(AppConstants.ViewsMetadatJsonFile));
             }
             finally
             {
                 // Clean up
-                if (File.Exists(_metadataFilePath))
+                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
                 {
-                    File.Delete(_metadataFilePath);
+                    File.Delete(AppConstants.ViewsMetadatJsonFile);
                 }
             }
         }
@@ -100,7 +92,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _metadataFilePath,
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
@@ -120,9 +112,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_metadataFilePath))
+                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
                 {
-                    File.Delete(_metadataFilePath);
+                    File.Delete(AppConstants.ViewsMetadatJsonFile);
                 }
             }
         }
@@ -144,7 +136,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _metadataFilePath,
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
@@ -166,9 +158,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_metadataFilePath))
+                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
                 {
-                    File.Delete(_metadataFilePath);
+                    File.Delete(AppConstants.ViewsMetadatJsonFile);
                 }
             }
         }
@@ -178,9 +170,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_metadataFilePath))
+            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
-                File.Delete(_metadataFilePath);
+                File.Delete(AppConstants.ViewsMetadatJsonFile);
             }
 
             InvalidOperationException expectedException = new("Test exception");
@@ -197,9 +189,8 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var configMock = new Mock<IConfiguration>();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new ViewEnumerationService(null, configMock.Object, _loggerMock.Object));
+                () => new ViewEnumerationService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
@@ -208,9 +199,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure cache file does not exist
-            if (File.Exists(_metadataFilePath))
+            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
-                File.Delete(_metadataFilePath);
+                File.Delete(AppConstants.ViewsMetadatJsonFile);
             }
 
             _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
@@ -230,9 +221,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_metadataFilePath))
+                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
                 {
-                    File.Delete(_metadataFilePath);
+                    File.Delete(AppConstants.ViewsMetadatJsonFile);
                 }
             }
         }
@@ -253,7 +244,7 @@ namespace DatabaseMcp.Core.Tests
 
             // Create the cache file
             await File.WriteAllTextAsync(
-                _metadataFilePath,
+                AppConstants.ViewsMetadatJsonFile,
                 JsonSerializer.Serialize(cachedViews));
 
             try
@@ -272,9 +263,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(_metadataFilePath))
+                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
                 {
-                    File.Delete(_metadataFilePath);
+                    File.Delete(AppConstants.ViewsMetadatJsonFile);
                 }
             }
         }
@@ -298,3 +289,4 @@ namespace DatabaseMcp.Core.Tests
         }
     }
 }
+

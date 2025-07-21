@@ -20,14 +20,12 @@ namespace DatabaseMcp.Core.Tests
         private readonly Mock<IDbCommand> _commandMock = new();
         private readonly Mock<IDataReader> _readerMock = new();
         private readonly Mock<ILogger<TableDiscoveryService>> _loggerMock = TestHelper.CreateLoggerMock<TableDiscoveryService>();
-        private readonly Mock<IConfiguration> _configMock = new();
         private readonly TableDiscoveryService _service;
 
         public TableDiscoveryServiceTests()
         {
             // Setup configuration to return the test directory for metadata files
-            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
-            _service = new TableDiscoveryService(_connectionFactoryMock.Object, _configMock.Object, _loggerMock.Object);
+            _service = new TableDiscoveryService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -35,10 +33,9 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure the cache file does not exist so the DB path is used
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
-            if (File.Exists(metadataFilePath))
+            if (File.Exists(AppConstants.TablesMetadatJsonFile))
             {
-                File.Delete(metadataFilePath);
+                File.Delete(AppConstants.TablesMetadatJsonFile);
             }
 
             List<TableMetadata> data = new()
@@ -82,15 +79,15 @@ namespace DatabaseMcp.Core.Tests
                 new TableMetadata { TableName = "CACHED2", Definition = "CACHED_DDL2" }
             };
 
-            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
-            await File.WriteAllTextAsync(metadataFilePath,
-                System.Text.Json.JsonSerializer.Serialize(cacheData));
-
-            // No database mock setup needed as it should use the cache
-
             try
             {
+                // Make sure the directory exists for the AppConstants cache file
+                Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
+                await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
+                    System.Text.Json.JsonSerializer.Serialize(cacheData));
+
+                // No database mock setup needed as it should use the cache
+
                 // Act
                 List<TableMetadata> result = await _service.GetAllUserDefinedTablesAsync();
 
@@ -106,9 +103,9 @@ namespace DatabaseMcp.Core.Tests
             finally
             {
                 // Clean up
-                if (File.Exists(metadataFilePath))
+                if (File.Exists(AppConstants.TablesMetadatJsonFile))
                 {
-                    File.Delete(metadataFilePath);
+                    File.Delete(AppConstants.TablesMetadatJsonFile);
                 }
             }
         }
@@ -159,10 +156,17 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllUserDefinedTablesAsync_ThrowsException_WhenDbFails()
         {
             // Arrange
+            // Delete both the test cache file and the AppConstants path
             var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
             if (File.Exists(metadataFilePath))
             {
                 File.Delete(metadataFilePath);
+            }
+            
+            // Also delete the default AppConstants cache file
+            if (File.Exists(AppConstants.TablesMetadatJsonFile))
+            {
+                File.Delete(AppConstants.TablesMetadatJsonFile);
             }
 
             InvalidOperationException expectedException = new("Test exception");
@@ -214,9 +218,8 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var configMock = new Mock<IConfiguration>();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new TableDiscoveryService(null, configMock.Object, _loggerMock.Object));
+                () => new TableDiscoveryService(null, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
@@ -249,6 +252,10 @@ namespace DatabaseMcp.Core.Tests
             _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
             _ = commandMock.Setup(c => c.CreateParameter()).Returns(new Mock<IDbDataParameter>().Object);
             _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            
+            // Make sure CommandText property can be set
+            commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
         }
     }
 }
+

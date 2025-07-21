@@ -16,21 +16,19 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TableDiscoveryService> _logger;
-        private readonly string _metadataJsonDirectory;
 
-        public TableDiscoveryService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<TableDiscoveryService> logger)
+        public TableDiscoveryService(IDbConnectionFactory connectionFactory, ILogger<TableDiscoveryService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
-            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<TableMetadata>> GetAllUserDefinedTablesAsync()
         {
-            _logger.LogInformation("Getting all user-defined tables.");;
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
+            _logger.LogInformation("Getting all user-defined tables.");
+            if (File.Exists(AppConstants.TablesMetadatJsonFile))
             {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
+                string fileContent = await File.ReadAllTextAsync(AppConstants.TablesMetadatJsonFile);
                 List<TableMetadata> cachedTableMetadata = JsonSerializer.Deserialize<List<TableMetadata>>(fileContent);
                 _logger.LogInformation("Loaded {Count} tables from cache.", cachedTableMetadata?.Count ?? 0);
                 return cachedTableMetadata;
@@ -65,7 +63,7 @@ namespace DatabaseMcp.Core.Services
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(tablesMetadata, options);
             Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
+            await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile, json);
             return tablesMetadata;
         }
 

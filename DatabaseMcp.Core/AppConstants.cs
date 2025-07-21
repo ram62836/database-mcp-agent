@@ -6,7 +6,7 @@ namespace DatabaseMcp.Core
     public static class AppConstants
     {
         // Get the directory where the executable is located
-        private static readonly string BaseDirectory = Environment.GetEnvironmentVariable("LogFilePath")
+        private static readonly string BaseDirectory = Environment.GetEnvironmentVariable("MetadataCacheJsonPath")
                                                       ?? AppDomain.CurrentDomain.BaseDirectory;
         
         /// <summary>

@@ -29,7 +29,7 @@
       ],
       "env": {
         "ConnectionStrings__OracleConnection": "${input:oracle-connection}",
-        "MetadataJsonPath": "${input:metadata-json-path}",
+        "MetadataCacheJsonPath": "${input:metadata-json-path}",
         "LogFilePath": "${input:log-file-path}"
       }
     }

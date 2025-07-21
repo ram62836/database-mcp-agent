@@ -16,13 +16,11 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TriggerService> _logger;
-        private readonly string _metadataJsonDirectory;
 
-        public TriggerService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<TriggerService> logger)
+        public TriggerService(IDbConnectionFactory connectionFactory, ILogger<TriggerService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
-            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
         }
 
         public async Task<List<TriggerMetadata>> GetAllTriggersAsync()
