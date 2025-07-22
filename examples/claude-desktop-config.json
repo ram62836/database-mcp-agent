@@ -3,7 +3,7 @@
     "Hala.DatabaseAgent.OracleMcpServer": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.2",
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.3",
         "--yes"
       ],
       "env": {
