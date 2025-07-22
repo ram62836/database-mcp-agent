@@ -5,6 +5,18 @@
       "id": "oracle-connection",
       "description": "Oracle database connection string",
       "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "metadata-json-path",
+      "description": "Path to metadata JSON file cache",
+      "password": false
+    },
+    {
+      "type": "promptString",
+      "id": "log-file-path",
+      "description": "Path to store log files",
+      "password": false
     }
   ],
   "servers": {
@@ -17,7 +29,9 @@
         "stdio"
       ],
       "env": {
-        "ConnectionSettings__ConnectionString": "${input:oracle-connection}"
+        "OracleConnectionString": "${input:oracle-connection}",
+        "MetadataCacheJsonPath": "${input:metadata-json-path}",
+        "LogFilePath": "${input:log-file-path}"
       }
     }
   }

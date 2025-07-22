@@ -10,7 +10,9 @@
         "stdio"
       ],
       "env": {
-        "ConnectionSettings__ConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;"
+        "OracleConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;",
+        "MetadataCacheJsonPath": "C:\\datatbase-mcp-server",
+        "LogFilePath": "C:\\datatbase-mcp-server"
       }
     },
     "oracle-database-agent-global-tool": {
@@ -21,7 +23,9 @@
         "stdio"
       ],
       "env": {
-        "ConnectionSettings__ConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;"
+        "OracleConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;",
+        "MetadataCacheJsonPath": "C:\\datatbase-mcp-server",
+        "LogFilePath": "C:\\datatbase-mcp-server"
       }
     }
   }

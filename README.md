@@ -83,8 +83,7 @@ The MCP agent uses environment variables for configuration:
 ### Required Configuration
 ```bash
 # Oracle connection string
-export ConnectionSettings__ConnectionString="User Id=system;Password=oracle;Data Source=localhost:1521/XEPDB1;"
-export ConnectionSettings__DefaultSchema="SYSTEM"
+export OracleConnectionString="User Id=system;Password=oracle;Data Source=localhost:1521/XEPDB1;"
 ```
 
 ### Optional Configuration
