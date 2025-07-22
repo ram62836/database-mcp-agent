@@ -7,7 +7,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>Hala.DatabaseAgent.OracleMcpServer</PackageId>
-    <PackageVersion>1.0.2</PackageVersion>
+    <PackageVersion>1.0.3</PackageVersion>
     <PackageType>McpServer</PackageType>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -27,7 +27,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
     <PackageTags>oracle;database;mcp;metadata;analysis;ai;sql;schema;dotnet;csharp;model-context-protocol</PackageTags>
-    <PackageReleaseNotes>First stable release of Oracle Database Agent MCP Server. Features complete multi-database architecture with Oracle implementation, 25+ MCP tools for database analysis, metadata discovery, and AI-powered database insights. Includes comprehensive documentation and configuration examples.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added important disclaimer regarding software usage and liability. Updated documentation with clear warnings about data loss and corruption risks. Users should use this package at their own risk.</PackageReleaseNotes>
     
     <!-- Application metadata -->
     <AssemblyTitle>Oracle Database MCP Agent</AssemblyTitle>
@@ -35,9 +35,9 @@
     <AssemblyCompany>Hala</AssemblyCompany>
     <AssemblyProduct>Database MCP Agent</AssemblyProduct>
     <AssemblyCopyright>Copyright © 2025 Hala</AssemblyCopyright>
-    <AssemblyVersion>1.0.2.0</AssemblyVersion>
-    <FileVersion>1.0.2.0</FileVersion>
-    <InformationalVersion>1.0.2</InformationalVersion>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
+    <InformationalVersion>1.0.3</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />

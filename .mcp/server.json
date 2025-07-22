@@ -24,7 +24,7 @@
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.10-preview",
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.3",
         "--yes",
         "stdio"
       ],
