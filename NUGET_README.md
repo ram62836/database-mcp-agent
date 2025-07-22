@@ -75,3 +75,7 @@ Then run directly: `oracle-mcp-server`
 - .NET 8.0+
 - Oracle Database 11g R2+
 - Network access to Oracle database
+
+## ⚠️ Disclaimer
+
+This software is provided "as-is" without any warranties or guarantees. The authors and contributors are **not responsible for any data loss, corruption, or other impacts** resulting from the use of this package. Use it at your own risk.
