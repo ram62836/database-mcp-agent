@@ -1,9 +1,8 @@
 using System.Data;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -31,8 +30,7 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string tableName = "SAMPLE";
-            List<IndexMetadata> data = new()
-            { new IndexMetadata { IndexName = "IDX1", IsUnique = true } };
+            List<IndexMetadata> data = [new IndexMetadata { IndexName = "IDX1", IsUnique = true }];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -66,8 +64,7 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string indexName = "IDX1";
-            List<string> expectedColumns = new()
-            { "COL1", "COL2" };
+            List<string> expectedColumns = ["COL1", "COL2"];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -150,7 +147,7 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string tableName = "EMPTY_TABLE";
-            List<IndexMetadata> data = new();
+            List<IndexMetadata> data = [];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();

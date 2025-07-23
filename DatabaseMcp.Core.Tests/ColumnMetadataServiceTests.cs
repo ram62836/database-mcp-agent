@@ -1,9 +1,9 @@
 using System.Data;
+using DatabaseMcp.Core.Models;
+using DatabaseMcp.Core.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using DatabaseMcp.Core.Models;
-using DatabaseMcp.Core.Services;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -26,11 +26,11 @@ namespace DatabaseMcp.Core.Tests
             _readerMock = new Mock<IDataReader>();
             _loggerMock = TestHelper.CreateLoggerMock<ColumnMetadataService>();
             _configMock = new Mock<IConfiguration>();
-            
+
             // Setup configuration to return the test directory for metadata files
-            _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
+            _ = _configMock.Setup(c => c["MetadataJsonPath"]).Returns(Directory.GetCurrentDirectory());
             _metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "columns_metadata.json");
-            
+
             _service = new ColumnMetadataService(_connectionFactoryMock.Object, _configMock.Object, _loggerMock.Object);
         }
 
@@ -189,8 +189,7 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string columnNamePattern = "ID";
-            List<string> expectedTables = new()
-            { "TABLE1", "TABLE2" };
+            List<string> expectedTables = ["TABLE1", "TABLE2"];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -349,7 +348,7 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Arrange, Act & Assert
-            var configMock = new Mock<IConfiguration>();
+            Mock<IConfiguration> configMock = new();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new ColumnMetadataService(null, configMock.Object, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
@@ -359,7 +358,7 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenLoggerIsNull()
         {
             // Arrange, Act & Assert
-            var configMock = new Mock<IConfiguration>();
+            Mock<IConfiguration> configMock = new();
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new ColumnMetadataService(_connectionFactoryMock.Object, configMock.Object, null));
             Assert.Equal("logger", exception.ParamName);
@@ -370,7 +369,7 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string? tableName = null;
-            List<ColumnMetadata> data = new();
+            List<ColumnMetadata> data = [];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -456,7 +455,7 @@ namespace DatabaseMcp.Core.Tests
             // Simulate what the service does - set the parameter name/value
             paramMock.SetupSet(p => p.ParameterName = "TableName").Verifiable();
             paramMock.SetupSet(p => p.Value = It.IsAny<object>()).Verifiable();
-            
+
             _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
             _ = commandMock.Setup(c => c.CreateParameter()).Returns(paramMock.Object);
             _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);

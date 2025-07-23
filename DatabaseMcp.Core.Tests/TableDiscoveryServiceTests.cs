@@ -1,18 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
-using Xunit;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
+    [Collection("Database Tests")]
     public class TableDiscoveryServiceTests
     {
         private readonly Mock<IDbConnectionFactory> _connectionFactoryMock = new();
@@ -24,7 +18,6 @@ namespace DatabaseMcp.Core.Tests
 
         public TableDiscoveryServiceTests()
         {
-            // Setup configuration to return the test directory for metadata files
             _service = new TableDiscoveryService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
@@ -38,11 +31,11 @@ namespace DatabaseMcp.Core.Tests
                 File.Delete(AppConstants.TablesMetadatJsonFile);
             }
 
-            List<TableMetadata> data = new()
-            {
+            List<TableMetadata> data =
+            [
                 new TableMetadata { TableName = "T1", Definition = "DDL1" },
                 new TableMetadata { TableName = "T2", Definition = "DDL2" }
-            };
+            ];
 
             int callCount = -1;
             _ = _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
@@ -73,16 +66,16 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Create a cache file with test data
-            List<TableMetadata> cacheData = new()
-            {
+            List<TableMetadata> cacheData =
+            [
                 new TableMetadata { TableName = "CACHED1", Definition = "CACHED_DDL1" },
                 new TableMetadata { TableName = "CACHED2", Definition = "CACHED_DDL2" }
-            };
+            ];
 
             try
             {
                 // Make sure the directory exists for the AppConstants cache file
-                Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
                 await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
                     System.Text.Json.JsonSerializer.Serialize(cacheData));
 
@@ -115,18 +108,18 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Ensure the cache file does not exist
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            string metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
             if (File.Exists(metadataFilePath))
             {
                 File.Delete(metadataFilePath);
             }
 
-            List<TableMetadata> allTables = new()
-            {
+            List<TableMetadata> allTables =
+            [
                 new TableMetadata { TableName = "EMPLOYEE", Definition = "DDL1" },
                 new TableMetadata { TableName = "CUSTOMER", Definition = "DDL2" },
                 new TableMetadata { TableName = "PRODUCT", Definition = "DDL3" }
-            };
+            ];
 
             int callCount = -1;
             _ = _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < allTables.Count);
@@ -138,8 +131,7 @@ namespace DatabaseMcp.Core.Tests
             _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
 
             // Filter criteria
-            List<string> tableNamesToFilter = new()
-            { "EMPLOYEE", "PRODUCT" };
+            List<string> tableNamesToFilter = ["EMPLOYEE", "PRODUCT"];
 
             // Act
             List<TableMetadata> result = await _service.GetTablesByNameAsync(tableNamesToFilter);
@@ -157,12 +149,12 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Delete both the test cache file and the AppConstants path
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            string metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
             if (File.Exists(metadataFilePath))
             {
                 File.Delete(metadataFilePath);
             }
-            
+
             // Also delete the default AppConstants cache file
             if (File.Exists(AppConstants.TablesMetadatJsonFile))
             {
@@ -184,14 +176,14 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Create a cache file with test data to avoid DB call
-            List<TableMetadata> cacheData = new()
-            {
+            List<TableMetadata> cacheData =
+            [
                 new TableMetadata { TableName = "TABLE1", Definition = "DDL1" },
                 new TableMetadata { TableName = "TABLE2", Definition = "DDL2" }
-            };
+            ];
 
             // Make sure the directory for AppConstants.TablesMetadatJsonFile exists
-            Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TablesMetadatJsonFile) ?? Directory.GetCurrentDirectory());
             await File.WriteAllTextAsync(AppConstants.TablesMetadatJsonFile,
                 System.Text.Json.JsonSerializer.Serialize(cacheData));
 
@@ -227,7 +219,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllUserDefinedTablesAsync_HandlesEmptyResult()
         {
             // Arrange
-            var metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
+            string metadataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "tables_metadata.json");
             if (File.Exists(metadataFilePath))
             {
                 File.Delete(metadataFilePath);
@@ -252,9 +244,9 @@ namespace DatabaseMcp.Core.Tests
             _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
             _ = commandMock.Setup(c => c.CreateParameter()).Returns(new Mock<IDbDataParameter>().Object);
             _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
-            
+
             // Make sure CommandText property can be set
-            commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
+            _ = commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
         }
     }
 }

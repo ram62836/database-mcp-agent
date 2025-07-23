@@ -1,9 +1,8 @@
 using System.Data;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -31,14 +30,14 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string tableName = "SAMPLE";
-            List<KeyMetadata> data = new()
-            {
+            List<KeyMetadata> data =
+            [
                 new KeyMetadata {
                     ColumnName = "ID",
                     ConstraintName = "PK1",
                     KeyType = "Primary"
                 }
-            };
+            ];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -70,15 +69,15 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string tableName = "ORDERS";
-            List<KeyMetadata> data = new()
-            {
+            List<KeyMetadata> data =
+            [
                 new KeyMetadata {
                     ColumnName = "CUSTOMER_ID",
                     ConstraintName = "FK_CUSTOMER",
                     ReferencedConstraintName = "PK_CUSTOMER",
                     KeyType = "Foreign"
                 }
-            };
+            ];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();
@@ -110,12 +109,12 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetForeignKeyRelationshipsAsync_ReturnsRelationships()
         {
             // Arrange
-            List<(string ConstraintName, string TableName, string ColumnName)> relationshipData = new()
-            {
+            List<(string ConstraintName, string TableName, string ColumnName)> relationshipData =
+            [
                 ("FK_ORDERS_CUSTOMERS", "ORDERS", "CUSTOMER_ID"),
                 ("FK_ORDERS_CUSTOMERS", "ORDERS", "STORE_ID"),
                 ("FK_ITEMS_PRODUCTS", "ORDER_ITEMS", "PRODUCT_ID")
-            };
+            ];
 
             SetupReaderForRelationships(_readerMock, relationshipData);
             SetupMocksForCommand(_commandMock, _readerMock, null);
@@ -131,7 +130,7 @@ namespace DatabaseMcp.Core.Tests
             Assert.Contains("FK_ORDERS_CUSTOMERS", result.Keys);
             Assert.Contains("FK_ITEMS_PRODUCTS", result.Keys);
             Assert.Equal(2, result["FK_ORDERS_CUSTOMERS"].Count); // Two columns in this constraint
-            Assert.Single(result["FK_ITEMS_PRODUCTS"]); // One column in this constraint
+            _ = Assert.Single(result["FK_ITEMS_PRODUCTS"]); // One column in this constraint
         }
 
         [Fact]
@@ -268,11 +267,11 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             string tableName = "COMPOSITE_KEY_TABLE";
-            List<KeyMetadata> data = new()
-            {
+            List<KeyMetadata> data =
+            [
                 new KeyMetadata { ColumnName = "ID1", ConstraintName = "PK_COMPOSITE", KeyType = "Primary" },
                 new KeyMetadata { ColumnName = "ID2", ConstraintName = "PK_COMPOSITE", KeyType = "Primary" }
-            };
+            ];
 
             // Setup parameter mock
             Mock<IDbDataParameter> paramMock = new();

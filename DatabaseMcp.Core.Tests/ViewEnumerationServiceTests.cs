@@ -1,13 +1,13 @@
 using System.Data;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
+    [Collection("Database Tests")]
     public class ViewEnumerationServiceTests
     {
         private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
@@ -24,7 +24,7 @@ namespace DatabaseMcp.Core.Tests
             _commandMock = new Mock<IDbCommand>();
             _readerMock = new Mock<IDataReader>();
             _loggerMock = TestHelper.CreateLoggerMock<ViewEnumerationService>();
-            
+
             _service = new ViewEnumerationService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
@@ -38,11 +38,11 @@ namespace DatabaseMcp.Core.Tests
                 File.Delete(AppConstants.ViewsMetadatJsonFile);
             }
 
-            List<ViewMetadata> data = new()
-            {
+            List<ViewMetadata> data =
+            [
                 new ViewMetadata { ViewName = "V1", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "V2", Definition = "DEF2" }
-            };
+            ];
 
             SetupReaderForViewMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
@@ -82,10 +82,10 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllViewsAsync_UsesCache_WhenCacheFileExists()
         {
             // Arrange
-            List<ViewMetadata> cachedViews = new()
-            {
+            List<ViewMetadata> cachedViews =
+            [
                 new ViewMetadata { ViewName = "CACHED_VIEW", Definition = "CACHED DEFINITION" }
-            };
+            ];
 
             // Create cache directory if it doesn't exist
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
@@ -124,12 +124,12 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Create cache file with test data
-            List<ViewMetadata> cachedViews = new()
-            {
+            List<ViewMetadata> cachedViews =
+            [
                 new ViewMetadata { ViewName = "EMP_VIEW", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "DEPT_VIEW", Definition = "DEF2" },
                 new ViewMetadata { ViewName = "EMP_DEPT_VIEW", Definition = "DEF3" }
-            };
+            ];
 
             // Create cache directory if it doesn't exist
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
@@ -142,8 +142,7 @@ namespace DatabaseMcp.Core.Tests
             try
             {
                 // Names to filter by
-                List<string> viewNames = new()
-                { "EMP" };
+                List<string> viewNames = ["EMP"];
 
                 // Act
                 List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);
@@ -233,11 +232,11 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Create cache file with test data
-            List<ViewMetadata> cachedViews = new()
-            {
+            List<ViewMetadata> cachedViews =
+            [
                 new ViewMetadata { ViewName = "VIEW1", Definition = "DEF1" },
                 new ViewMetadata { ViewName = "VIEW2", Definition = "DEF2" }
-            };
+            ];
 
             // Create cache directory if it doesn't exist
             _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
@@ -250,8 +249,7 @@ namespace DatabaseMcp.Core.Tests
             try
             {
                 // Names to filter by
-                List<string> viewNames = new()
-                { "NONEXISTENT" };
+                List<string> viewNames = ["NONEXISTENT"];
 
                 // Act
                 List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);

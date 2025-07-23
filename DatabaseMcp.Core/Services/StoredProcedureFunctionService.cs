@@ -5,27 +5,26 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
     public class StoredProcedureFunctionService : IStoredProcedureFunctionService
     {
         private readonly IDbConnectionFactory _connectionFactory;
-        private readonly ILogger<StoredProcedureFunctionService> _logger;        
+        private readonly ILogger<StoredProcedureFunctionService> _logger;
 
         public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, ILogger<StoredProcedureFunctionService> logger)
         {
-            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));        
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()
         {
-            _logger.LogInformation("Getting all stored procedures.");            
+            _logger.LogInformation("Getting all stored procedures.");
             if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.ProceduresMetadatJsonFile);
@@ -34,7 +33,7 @@ namespace DatabaseMcp.Core.Services
                 return cachedProceduresMetadata;
             }
 
-            List<ProcedureFunctionMetadata> proceduresMetadata = new();
+            List<ProcedureFunctionMetadata> proceduresMetadata = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -60,14 +59,14 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(proceduresMetadata, options);
-            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
+            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.ProceduresMetadatJsonFile, json);
             return proceduresMetadata;
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetAllFunctionsAsync()
         {
-            _logger.LogInformation("Getting all functions.");            
+            _logger.LogInformation("Getting all functions.");
             if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.FunctionsMetadataJsonFile);
@@ -76,7 +75,7 @@ namespace DatabaseMcp.Core.Services
                 return cachedFunctionsMetadata;
             }
 
-            List<ProcedureFunctionMetadata> functionsMetadata = new();
+            List<ProcedureFunctionMetadata> functionsMetadata = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -102,7 +101,7 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(functionsMetadata, options);
-            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
+            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.FunctionsMetadataJsonFile, json);
             return functionsMetadata;
         }
@@ -159,7 +158,7 @@ namespace DatabaseMcp.Core.Services
             }
 
             _logger.LogInformation("Getting parameters for object: {ObjectName}", objectName);
-            List<ParameterMetadata> parameters = new();
+            List<ParameterMetadata> parameters = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())

@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Import centralized version management -->
+  <Import Project="../Version.props" />
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>DatabaseMcp.Server</RootNamespace>
     <AssemblyName>DatabaseMcp.Server</AssemblyName>
     
-    <!-- NuGet Package Properties -->
+    <!-- NuGet Package Properties - Version comes from Version.props -->
     <PackageId>Hala.DatabaseAgent.OracleMcpServer</PackageId>
-    <PackageVersion>1.0.13</PackageVersion>
+    <PackageVersion>$(HalaDatabaseAgentVersion)</PackageVersion>
     <PackageType>McpServer</PackageType>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -17,37 +20,25 @@
     <!-- Package Metadata -->
     <Title>Oracle Database MCP Agent</Title>
     <Description>Oracle Database MCP Agent with 25+ tools for AI-powered database analysis. Supports metadata discovery, dependency analysis, and performance optimization for Oracle 11g R2+.</Description>
-    <Authors>Hala</Authors>
-    <Company>Hala</Company>
-    <Product>Database MCP Agent</Product>
-    <Copyright>Copyright © 2025 Hala</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ram62836/database-mcp-agent</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ram62836/database-mcp-agent</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
-    <PackageTags>oracle;database;mcp;metadata;analysis;ai;sql;schema;dotnet;csharp;model-context-protocol</PackageTags>
-    <PackageReleaseNotes>Version 1.0.13: Updated configuration examples and improved documentation. Enhanced stability and performance optimizations. Includes comprehensive disclaimer and usage guidelines for enterprise deployments.</PackageReleaseNotes>
+    <PackageReleaseNotes>Version $(HalaDatabaseAgentVersion): Updated configuration examples and improved documentation. Enhanced stability and performance optimizations. Includes comprehensive disclaimer and usage guidelines for enterprise deployments.</PackageReleaseNotes>
     
     <!-- Application metadata -->
     <AssemblyTitle>Oracle Database MCP Agent</AssemblyTitle>
     <AssemblyDescription>AI-powered Oracle database analysis and metadata management via Model Context Protocol</AssemblyDescription>
-    <AssemblyCompany>Hala</AssemblyCompany>
-    <AssemblyProduct>Database MCP Agent</AssemblyProduct>
-    <AssemblyCopyright>Copyright © 2025 Hala</AssemblyCopyright>
-    <AssemblyVersion>1.0.13.0</AssemblyVersion>
-    <FileVersion>1.0.13.0</FileVersion>
-    <InformationalVersion>1.0.13</InformationalVersion>
   </PropertyGroup>
+  
+  <!-- Package References - Versions managed centrally in Directory.Packages.props -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.2" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
-    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="ModelContextProtocol" />
   </ItemGroup>
   
   <ItemGroup>

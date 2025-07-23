@@ -1,9 +1,8 @@
 using System.Data;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -30,14 +29,14 @@ namespace DatabaseMcp.Core.Tests
         public async Task ListSynonymsAsync_ReturnsList()
         {
             // Arrange
-            List<SynonymMetadata> data = new()
-            {
+            List<SynonymMetadata> data =
+            [
                 new SynonymMetadata {
                     SynonymName = "SYN1",
                     TableOwner = "OWNER",
                     BaseObjectName = "TABLE1"
                 }
-            };
+            ];
 
             SetupReaderForSynonymMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
@@ -86,7 +85,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task ListSynonymsAsync_HandlesEmptyResult()
         {
             // Arrange
-            List<SynonymMetadata> data = new();
+            List<SynonymMetadata> data = [];
 
             _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
             SetupMocksForCommand(_commandMock, _readerMock);
@@ -105,12 +104,12 @@ namespace DatabaseMcp.Core.Tests
         public async Task ListSynonymsAsync_HandlesMultipleResults()
         {
             // Arrange
-            List<SynonymMetadata> data = new()
-            {
+            List<SynonymMetadata> data =
+            [
                 new SynonymMetadata { SynonymName = "SYN1", TableOwner = "OWNER1", BaseObjectName = "TABLE1" },
                 new SynonymMetadata { SynonymName = "SYN2", TableOwner = "OWNER2", BaseObjectName = "TABLE2" },
                 new SynonymMetadata { SynonymName = "SYN3", TableOwner = "OWNER1", BaseObjectName = "TABLE3" }
-            };
+            ];
 
             SetupReaderForSynonymMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);

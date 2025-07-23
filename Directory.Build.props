@@ -4,12 +4,15 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <WarningsNotAsErrors>NU1603;NU1605</WarningsNotAsErrors>
+    
+    <!-- Common Project Properties -->
+    <Authors>Hala</Authors>
+    <Company>Hala</Company>
+    <Product>Database MCP Agent</Product>
+    <Copyright>Copyright © 2025 Hala</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/ram62836/database-mcp-agent</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>oracle;database;mcp;metadata;analysis;ai;sql;schema;dotnet;csharp;model-context-protocol</PackageTags>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageReference Update="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Update="Microsoft.Extensions.Logging" Version="8.0.1" />
-    <PackageReference Update="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-  </ItemGroup>
 </Project>

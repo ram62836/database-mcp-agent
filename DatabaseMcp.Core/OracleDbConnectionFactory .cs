@@ -1,9 +1,7 @@
-using System;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Oracle.ManagedDataAccess.Client;
 using DatabaseMcp.Core.Services;
+using Oracle.ManagedDataAccess.Client;
 
 namespace DatabaseMcp.Core
 {

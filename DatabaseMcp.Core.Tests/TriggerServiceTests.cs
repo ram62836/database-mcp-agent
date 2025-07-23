@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
-using Xunit;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
+    [Collection("Database Tests")]
     public class TriggerServiceTests
     {
         private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
@@ -30,8 +24,7 @@ namespace DatabaseMcp.Core.Tests
             _commandMock = new Mock<IDbCommand>();
             _readerMock = new Mock<IDataReader>();
             _loggerMock = TestHelper.CreateLoggerMock<TriggerService>();
-            
-            // Use AppConstants for metadata paths
+
             _service = new TriggerService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
@@ -45,8 +38,8 @@ namespace DatabaseMcp.Core.Tests
                 File.Delete(AppConstants.TriggersMetadataJsonFile);
             }
 
-            List<TriggerMetadata> data = new()
-            {
+            List<TriggerMetadata> data =
+            [
                 new TriggerMetadata {
                     TriggerName = "TR1",
                     TriggerType = "BEFORE",
@@ -61,7 +54,7 @@ namespace DatabaseMcp.Core.Tests
                     TableName = "T2",
                     Description = "desc2"
                 }
-            };
+            ];
 
             SetupReaderForTriggerMetadata(_readerMock, data);
             SetupMocksForCommand(_commandMock, _readerMock);
@@ -97,8 +90,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetAllTriggersAsync_UsesCache_WhenCacheFileExists()
         {
             // Arrange
-            List<TriggerMetadata> cachedTriggers = new()
-            {
+            List<TriggerMetadata> cachedTriggers =
+            [
                 new TriggerMetadata {
                     TriggerName = "CACHED_TRIGGER",
                     TriggerType = "BEFORE",
@@ -106,10 +99,10 @@ namespace DatabaseMcp.Core.Tests
                     TableName = "CACHED_TABLE",
                     Description = "cached description"
                 }
-            };
+            ];
 
             // Create cache directory if it doesn't exist
-            Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
 
             // Create the cache file with the AppConstants path
             await File.WriteAllTextAsync(
@@ -148,15 +141,15 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             // Create cache file with test data
-            List<TriggerMetadata> cachedTriggers = new()
-            {
+            List<TriggerMetadata> cachedTriggers =
+            [
                 new TriggerMetadata { TriggerName = "EMP_INSERT_TRIGGER", TriggerType = "BEFORE", TriggeringEvent = "INSERT" },
                 new TriggerMetadata { TriggerName = "EMP_UPDATE_TRIGGER", TriggerType = "AFTER", TriggeringEvent = "UPDATE" },
                 new TriggerMetadata { TriggerName = "CUST_INSERT_TRIGGER", TriggerType = "BEFORE", TriggeringEvent = "INSERT" }
-            };
+            ];
 
             // Create cache directory if it doesn't exist
-            Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
 
             // Create the cache file
             await File.WriteAllTextAsync(
@@ -166,8 +159,7 @@ namespace DatabaseMcp.Core.Tests
             try
             {
                 // Names to filter by
-                List<string> triggerNames = new()
-                { "EMP" };
+                List<string> triggerNames = ["EMP"];
 
                 // Act
                 List<TriggerMetadata> result = await _service.GetTriggersByNameAsync(triggerNames);
@@ -198,7 +190,7 @@ namespace DatabaseMcp.Core.Tests
             {
                 File.Delete(AppConstants.TriggersMetadataJsonFile);
             }
-            
+
             // Also delete the AppConstants cache file
             if (File.Exists(AppConstants.TriggersMetadataJsonFile))
             {
@@ -278,7 +270,7 @@ namespace DatabaseMcp.Core.Tests
             _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
             _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
             // Make sure CommandText property can be set
-            commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
+            _ = commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
         }
     }
 }

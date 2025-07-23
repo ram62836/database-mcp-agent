@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -32,7 +32,7 @@ namespace DatabaseMcp.Core.Services
                 throw new ArgumentException("object type cannot be null or empty.", nameof(objectType));
             }
 
-            List<ObjectRelationshipMetadata> objectRelationShips = new();
+            List<ObjectRelationshipMetadata> objectRelationShips = [];
             string query = @"SELECT DISTINCT d.name AS OBJECT_NAME, d.type AS OBJECT_TYPE FROM user_dependencies d WHERE d.referenced_name = UPPER(:objectName) AND d.referenced_type = UPPER(:objectType) AND d.name NOT LIKE 'BIN$%' AND d.referenced_owner NOT IN ('SYS', 'SYSTEM') ORDER BY d.name, d.type";
             try
             {

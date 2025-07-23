@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -33,10 +33,10 @@ namespace DatabaseMcp.Core.Services
                 using IDbCommand command = connection.CreateCommand();
                 command.CommandText = rawSelectSql;
                 using IDataReader reader = command.ExecuteReader();
-                List<Dictionary<string, object>> results = new();
+                List<Dictionary<string, object>> results = [];
                 while (reader.Read())
                 {
-                    Dictionary<string, object> row = new();
+                    Dictionary<string, object> row = [];
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
                         object value = reader.IsDBNull(i) ? null : reader.GetValue(i);

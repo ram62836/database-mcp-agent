@@ -1,18 +1,18 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
     public class ColumnMetadataService : IColumnMetadataService
     {
         private readonly string _metadataJsonDirectory;
-    
+
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ColumnMetadataService> _logger;
 
@@ -32,7 +32,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ColumnMetadata>> GetColumnMetadataAsync(string tableName)
         {
             _logger.LogInformation("Getting column metadata for table: {TableName}", tableName);
-            List<ColumnMetadata> columnMetadataList = new();
+            List<ColumnMetadata> columnMetadataList = [];
             string metadataFilePath = GetMetadataFilePath(tableName);
             // Example: Check if metadata file exists and read from it
             if (File.Exists(metadataFilePath))
@@ -40,7 +40,7 @@ namespace DatabaseMcp.Core.Services
                 try
                 {
                     string json = await File.ReadAllTextAsync(metadataFilePath);
-                    var cachedMetadata = System.Text.Json.JsonSerializer.Deserialize<List<ColumnMetadata>>(json);
+                    List<ColumnMetadata> cachedMetadata = System.Text.Json.JsonSerializer.Deserialize<List<ColumnMetadata>>(json);
                     if (cachedMetadata != null)
                     {
                         _logger.LogInformation("Loaded column metadata from JSON file: {FilePath}", metadataFilePath);
@@ -84,7 +84,7 @@ namespace DatabaseMcp.Core.Services
                 // Example: Write metadata to JSON file for caching
                 try
                 {
-                    Directory.CreateDirectory(_metadataJsonDirectory);
+                    _ = Directory.CreateDirectory(_metadataJsonDirectory);
                     string json = System.Text.Json.JsonSerializer.Serialize(columnMetadataList);
                     await File.WriteAllTextAsync(metadataFilePath, json);
                     _logger.LogInformation("Saved column metadata to JSON file: {FilePath}", metadataFilePath);
@@ -105,7 +105,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<string>> GetColumnNamesAsync(string tableName)
         {
             _logger.LogInformation("Getting column names for table: {TableName}", tableName);
-            List<string> columnNames = new();
+            List<string> columnNames = [];
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -141,7 +141,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ColumnMetadata>> GetDataTypesAsync(string tableName)
         {
             _logger.LogInformation("Getting data types for table: {TableName}", tableName);
-            List<ColumnMetadata> columnMetadataList = new();
+            List<ColumnMetadata> columnMetadataList = [];
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -181,7 +181,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ColumnMetadata>> GetNullabilityAsync(string tableName)
         {
             _logger.LogInformation("Getting nullability for table: {TableName}", tableName);
-            List<ColumnMetadata> columnMetadataList = new();
+            List<ColumnMetadata> columnMetadataList = [];
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -221,7 +221,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ColumnMetadata>> GetDefaultValuesAsync(string tableName)
         {
             _logger.LogInformation("Getting default values for table: {TableName}", tableName);
-            List<ColumnMetadata> columnMetadataList = new();
+            List<ColumnMetadata> columnMetadataList = [];
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -261,7 +261,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<string>> GetTablesByColumnNameAsync(string columnNamePattern)
         {
             _logger.LogInformation("Getting tables by column name pattern: {ColumnNamePattern}", columnNamePattern);
-            List<string> tableNames = new();
+            List<string> tableNames = [];
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())

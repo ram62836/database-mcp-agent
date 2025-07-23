@@ -1,9 +1,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
-using ModelContextProtocol.Server;
 using DatabaseMcp.Core;
 using DatabaseMcp.Core.Interfaces;
+using ModelContextProtocol.Server;
 
 namespace DatabaseMcp.Server.Tools
 {

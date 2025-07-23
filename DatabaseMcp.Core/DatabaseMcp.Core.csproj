@@ -4,10 +4,12 @@
     <RootNamespace>DatabaseMcp.Core</RootNamespace>
     <AssemblyName>DatabaseMcp.Core</AssemblyName>
   </PropertyGroup>
+  
+  <!-- Package References - Versions managed centrally in Directory.Packages.props -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-    <PackageReference Include="Dapper" Version="2.0.90" />
-    <PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.11" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" />
   </ItemGroup>
 </Project>
