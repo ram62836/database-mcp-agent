@@ -2,7 +2,7 @@
   <!-- Central Version Management for Hala.DatabaseAgent.OracleMcpServer -->
   <PropertyGroup>
     <!-- Main Package Version - Update this single place to change version across all projects -->
-    <HalaDatabaseAgentVersion>1.0.13</HalaDatabaseAgentVersion>
+    <HalaDatabaseAgentVersion>1.0.14</HalaDatabaseAgentVersion>
     
     <!-- Assembly Version Properties -->
     <AssemblyVersion>$(HalaDatabaseAgentVersion).0</AssemblyVersion>
