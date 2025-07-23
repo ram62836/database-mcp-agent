@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -22,7 +22,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<IndexMetadata>> ListIndexesAsync(string tableName)
         {
             _logger.LogInformation("Listing indexes for table: {TableName}", tableName);
-            List<IndexMetadata> indexes = new();
+            List<IndexMetadata> indexes = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -59,7 +59,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<string>> GetIndexColumnsAsync(string indexName)
         {
             _logger.LogInformation("Getting index columns for index: {IndexName}", indexName);
-            List<string> columns = new();
+            List<string> columns = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())

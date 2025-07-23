@@ -1,9 +1,8 @@
 using System.Data;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -25,14 +24,14 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetUniqueConstraintsAsync_ReturnsList()
         {
             string tableName = "SAMPLE";
-            List<ConstraintMetadata> data = new()
-            {
+            List<ConstraintMetadata> data =
+            [
                 new ConstraintMetadata {
                     ConstraintName = "UQ1",
                     ColumnName = "COL1",
                     ConstraintType = "Unique"
                 }
-            };
+            ];
 
             Mock<IDbDataParameter> paramMock = new();
             _ = paramMock.SetupProperty(p => p.ParameterName);
@@ -59,14 +58,14 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetCheckConstraintsAsync_ReturnsList()
         {
             string tableName = "SAMPLE";
-            List<ConstraintMetadata> data = new()
-            {
+            List<ConstraintMetadata> data =
+            [
                 new ConstraintMetadata {
                     ConstraintName = "CK1",
                     SearchCondition = "COL1 > 0",
                     ConstraintType = "Check"
                 }
-            };
+            ];
 
             Mock<IDbDataParameter> paramMock = new();
             _ = paramMock.SetupProperty(p => p.ParameterName);
@@ -175,8 +174,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetUniqueConstraintsAsync_HandlesMultipleConstraints()
         {
             string tableName = "MULTI_CONSTRAINT";
-            List<ConstraintMetadata> data = new()
-            {
+            List<ConstraintMetadata> data =
+            [
                 new ConstraintMetadata {
                     ConstraintName = "UQ1",
                     ColumnName = "COL1",
@@ -187,7 +186,7 @@ namespace DatabaseMcp.Core.Tests
                     ColumnName = "COL2",
                     ConstraintType = "Unique"
                 }
-            };
+            ];
 
             Mock<IDbDataParameter> paramMock = new();
             _ = paramMock.SetupProperty(p => p.ParameterName);

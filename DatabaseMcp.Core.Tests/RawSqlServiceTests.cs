@@ -1,8 +1,7 @@
 using System.Data;
+using DatabaseMcp.Core.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using DatabaseMcp.Core;
-using DatabaseMcp.Core.Services;
 
 namespace DatabaseMcp.Core.Tests
 {

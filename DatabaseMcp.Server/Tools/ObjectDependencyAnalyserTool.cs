@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ModelContextProtocol.Server;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using ModelContextProtocol.Server;
 
 namespace DatabaseMcp.Server.Tools
 {
@@ -22,7 +22,7 @@ namespace DatabaseMcp.Server.Tools
             [Description("The type of the object to analyze (e.g., TABLE, VIEW, PROCEDURE, FUNCTION).")] string objectType,
             CancellationToken cancellationToken)
         {
-            List<string> DMLSummaries = new();
+            List<string> DMLSummaries = [];
             // 1. Get dependent objects
             List<ObjectRelationshipMetadata> dependencies = await relationshipService.GetReferenceObjects(objectName, objectType);
             // 2. Retrieve definitions for each dependent object
@@ -41,7 +41,7 @@ namespace DatabaseMcp.Server.Tools
                 .Select(d => d.ObjectName)
                 .ToList();
 
-            List<ProcedureFunctionMetadata> proceduresAndFunctions = new();
+            List<ProcedureFunctionMetadata> proceduresAndFunctions = [];
             // Token limitation - need to perform in-session analysis to overcome the token limitation
             foreach (string name in procedureNames.Take(5))
             {
@@ -62,7 +62,7 @@ namespace DatabaseMcp.Server.Tools
                 }
             }
 
-            List<TriggerMetadata> triggersMetadata = new();
+            List<TriggerMetadata> triggersMetadata = [];
             foreach (string name in triggerNames.Take(5))
             {
                 List<TriggerMetadata> result = await triggerService.GetTriggersByNameAsync([name]);
@@ -72,9 +72,7 @@ namespace DatabaseMcp.Server.Tools
                 }
             }
 
-            List<dynamic> objects = new();
-            objects.AddRange(proceduresAndFunctions);
-            objects.AddRange(triggersMetadata);
+            List<dynamic> objects = [.. proceduresAndFunctions, .. triggersMetadata];
             return objects;
         }
     }

@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace OracleAgent.Client
+namespace DatabaseMcp.Client
 {
     internal static class Program
     {
@@ -18,19 +18,19 @@ namespace OracleAgent.Client
 
             // Setup dependency injection
             ServiceCollection services = new();
-            
+
             // Use ConfigurationManager which can read environment variables by default
             ConfigurationManager configuration = new();
-            configuration.AddEnvironmentVariables();
-            
+            _ = configuration.AddEnvironmentVariables();
+
             _ = services.AddSingleton<IConfiguration>(configuration);
             _ = services.AddSingleton<IRawSqlService, RawSqlService>();
-            
+
             using ServiceProvider serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
             {
                 ValidateScopes = true
             });
-            
+
             IRawSqlService rawSqlService = serviceProvider.GetRequiredService<IRawSqlService>();
 
             try
@@ -45,10 +45,10 @@ namespace OracleAgent.Client
                 Console.WriteLine($"Error executing SQL query: {ex.Message}");
                 Console.WriteLine("Please check your database connection configuration in appsettings.json");
             }
-            
+
             Console.WriteLine();
             Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            _ = Console.ReadKey();
         }
     }
 }

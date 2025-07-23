@@ -5,10 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -25,7 +24,7 @@ namespace DatabaseMcp.Core.Services
 
         public async Task<List<ViewMetadata>> GetAllViewsAsync()
         {
-            _logger.LogInformation("Getting all views.");            
+            _logger.LogInformation("Getting all views.");
             if (File.Exists(AppConstants.ViewsMetadatJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.ViewsMetadatJsonFile);
@@ -34,7 +33,7 @@ namespace DatabaseMcp.Core.Services
                 return cachedViewsMetadata;
             }
 
-            List<ViewMetadata> views = new();
+            List<ViewMetadata> views = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -62,7 +61,7 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(views, options);
-            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
+            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.ViewsMetadatJsonFile, json);
             return views;
         }

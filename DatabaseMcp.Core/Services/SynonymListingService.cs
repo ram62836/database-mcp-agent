@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -22,7 +22,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<SynonymMetadata>> ListSynonymsAsync()
         {
             _logger.LogInformation("Listing synonyms.");
-            List<SynonymMetadata> synonyms = new();
+            List<SynonymMetadata> synonyms = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())

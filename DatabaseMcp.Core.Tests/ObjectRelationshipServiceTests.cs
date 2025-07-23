@@ -1,9 +1,8 @@
 using System.Data;
-using Microsoft.Extensions.Logging;
-using Moq;
-using DatabaseMcp.Core;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -32,13 +31,13 @@ namespace DatabaseMcp.Core.Tests
             // Arrange
             string objectName = "EMPLOYEES";
             string objectType = "TABLE";
-            List<ObjectRelationshipMetadata> data = new()
-            {
+            List<ObjectRelationshipMetadata> data =
+            [
                 new ObjectRelationshipMetadata {
                     ObjectName = "EMP_SALARY_VIEW",
                     ObjectType = "VIEW"
                 }
-            };
+            ];
 
             // Setup parameter mocks
             Mock<IDbDataParameter> paramNameMock = new();
@@ -188,12 +187,12 @@ namespace DatabaseMcp.Core.Tests
             // Arrange
             string objectName = "POPULAR_TABLE";
             string objectType = "TABLE";
-            List<ObjectRelationshipMetadata> data = new()
-            {
+            List<ObjectRelationshipMetadata> data =
+            [
                 new ObjectRelationshipMetadata { ObjectName = "VIEW1", ObjectType = "VIEW" },
                 new ObjectRelationshipMetadata { ObjectName = "PROC1", ObjectType = "PROCEDURE" },
                 new ObjectRelationshipMetadata { ObjectName = "VIEW2", ObjectType = "VIEW" }
-            };
+            ];
 
             // Setup parameter mocks
             Mock<IDbDataParameter> paramNameMock = new();

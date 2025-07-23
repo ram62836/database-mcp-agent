@@ -5,10 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -25,7 +24,7 @@ namespace DatabaseMcp.Core.Services
 
         public async Task<List<TriggerMetadata>> GetAllTriggersAsync()
         {
-            _logger.LogInformation("Getting all triggers.");            
+            _logger.LogInformation("Getting all triggers.");
             if (File.Exists(AppConstants.TriggersMetadataJsonFile))
             {
                 string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
@@ -34,7 +33,7 @@ namespace DatabaseMcp.Core.Services
                 return cachedTriggersMetadata;
             }
 
-            List<TriggerMetadata> triggers = new();
+            List<TriggerMetadata> triggers = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -65,7 +64,7 @@ namespace DatabaseMcp.Core.Services
             }
             JsonSerializerOptions options = new() { WriteIndented = true };
             string json = JsonSerializer.Serialize(triggers, options);
-            Directory.CreateDirectory(AppConstants.ExecutableDirectory);
+            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
             await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
             return triggers;
         }

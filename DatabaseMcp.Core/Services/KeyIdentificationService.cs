@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -22,7 +22,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<KeyMetadata>> GetPrimaryKeysAsync(string tableName)
         {
             _logger.LogInformation("Getting primary keys for table: {TableName}", tableName);
-            List<KeyMetadata> primaryKeys = new();
+            List<KeyMetadata> primaryKeys = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -60,7 +60,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<KeyMetadata>> GetForeignKeysAsync(string tableName)
         {
             _logger.LogInformation("Getting foreign keys for table: {TableName}", tableName);
-            List<KeyMetadata> foreignKeys = new();
+            List<KeyMetadata> foreignKeys = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -99,7 +99,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<Dictionary<string, List<string>>> GetForeignKeyRelationshipsAsync()
         {
             _logger.LogInformation("Getting all foreign key relationships");
-            Dictionary<string, List<string>> relationships = new();
+            Dictionary<string, List<string>> relationships = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())

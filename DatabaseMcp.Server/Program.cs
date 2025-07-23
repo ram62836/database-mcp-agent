@@ -1,11 +1,11 @@
 using System;
 using System.IO;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using DatabaseMcp.Core;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 // Use the executable directory for all file operations
@@ -14,7 +14,7 @@ string executableDirectory = AppConstants.ExecutableDirectory;
 // Create the configuration first to read logging settings
 ConfigurationManager loggingConfig = new();
 loggingConfig.AddJsonFile(Path.Combine(executableDirectory, "appsettings.json"), optional: true, reloadOnChange: true);
-loggingConfig.AddEnvironmentVariables(); 
+loggingConfig.AddEnvironmentVariables();
 
 // Get log directory from environment variable or use executable directory as default
 string logDirectory = Environment.GetEnvironmentVariable("LogFilePath") ?? executableDirectory;
@@ -27,9 +27,9 @@ Directory.CreateDirectory(logDirectory);
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
-    .WriteTo.File(logPath,                  
+    .WriteTo.File(logPath,
                  rollingInterval: RollingInterval.Day,
-                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message}{NewLine}{Exception}") 
+                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message}{NewLine}{Exception}")
     .CreateLogger();
 
 // Use positional string formatting to avoid template parsing issues
@@ -38,7 +38,7 @@ Log.Information("Starting DatabaseMcp.Server from directory: {0}", executableDir
 Log.Information("Log files will be stored in: {0}", logDirectory);
 
 ConfigurationManager config = new();
-config.AddEnvironmentVariables(); 
+config.AddEnvironmentVariables();
 HostApplicationBuilderSettings settings = new()
 {
     Configuration = config

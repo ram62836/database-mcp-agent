@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DatabaseMcp.Core.Services
 {
@@ -22,7 +22,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ConstraintMetadata>> GetUniqueConstraintsAsync(string tableName)
         {
             _logger.LogInformation("Getting unique constraints for table: {TableName}", tableName);
-            List<ConstraintMetadata> uniqueConstraints = new();
+            List<ConstraintMetadata> uniqueConstraints = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -60,7 +60,7 @@ namespace DatabaseMcp.Core.Services
         public async Task<List<ConstraintMetadata>> GetCheckConstraintsAsync(string tableName)
         {
             _logger.LogInformation("Getting check constraints for table: {TableName}", tableName);
-            List<ConstraintMetadata> checkConstraints = new();
+            List<ConstraintMetadata> checkConstraints = [];
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
