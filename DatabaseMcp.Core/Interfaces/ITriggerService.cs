@@ -6,7 +6,6 @@ namespace DatabaseMcp.Core.Interfaces
 {
     public interface ITriggerService
     {
-        Task<List<TriggerMetadata>> GetAllTriggersAsync();
-        Task<List<TriggerMetadata>> GetTriggersByNameAsync(List<string> triggerNames);
+        Task<List<TriggerMetadata>> GetTriggersMetadatByNamesAsync(List<string> triggerNames);
     }
 }

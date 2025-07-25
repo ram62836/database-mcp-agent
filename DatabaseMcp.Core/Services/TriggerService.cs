@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
@@ -22,62 +20,50 @@ namespace DatabaseMcp.Core.Services
             _logger = logger;
         }
 
-        public async Task<List<TriggerMetadata>> GetAllTriggersAsync()
+        public async Task<List<TriggerMetadata>> GetTriggersMetadatByNamesAsync(List<string> triggerNames)
         {
-            _logger.LogInformation("Getting all triggers.");
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.TriggersMetadataJsonFile);
-                List<TriggerMetadata> cachedTriggersMetadata = JsonSerializer.Deserialize<List<TriggerMetadata>>(fileContent);
-                _logger.LogInformation("Loaded {Count} triggers from cache.", cachedTriggersMetadata?.Count ?? 0);
-                return cachedTriggersMetadata;
-            }
-
             List<TriggerMetadata> triggers = [];
-            try
-            {
-                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    string query = @"SELECT TRIGGER_NAME, TRIGGER_TYPE, TRIGGERING_EVENT, TABLE_NAME, DESCRIPTION FROM USER_TRIGGERS";
 
-                    using IDbCommand command = connection.CreateCommand();
-                    command.CommandText = query;
-                    using IDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        triggers.Add(new TriggerMetadata
-                        {
-                            TriggerName = reader["TRIGGER_NAME"].ToString(),
-                            TriggerType = reader["TRIGGER_TYPE"].ToString(),
-                            TriggeringEvent = reader["TRIGGERING_EVENT"].ToString(),
-                            TableName = reader["TABLE_NAME"].ToString(),
-                            Description = reader["DESCRIPTION"]?.ToString()
-                        });
-                    }
-                }
-                _logger.LogInformation("Retrieved {Count} triggers.", triggers.Count);
-            }
-            catch (Exception ex)
+            if (triggerNames == null || !triggerNames.Any())
             {
-                _logger.LogError(ex, "Error getting all triggers.");
-                throw;
+                return triggers;
             }
-            JsonSerializerOptions options = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(triggers, options);
-            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.TriggersMetadataJsonFile, json);
+
+            using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
+            {
+                List<string> triggerNamesList = triggerNames.ToList();
+                string parameters = string.Join(",", triggerNamesList.Select((_, i) => $":p{i}"));
+                string query = $@"SELECT TRIGGER_NAME, TRIGGER_TYPE, TRIGGERING_EVENT, TABLE_NAME, DESCRIPTION 
+                         FROM USER_TRIGGERS  WHERE UPPER(TRIGGER_NAME) IN ({parameters})";
+
+                using IDbCommand command = connection.CreateCommand();
+                command.CommandText = query;
+
+                // Add parameters
+                for (int i = 0; i < triggerNamesList.Count; i++)
+                {
+                    IDbDataParameter parameter = command.CreateParameter();
+                    parameter.ParameterName = $"p{i}";
+                    parameter.Value = triggerNamesList[i].ToUpper();
+                    _ = command.Parameters.Add(parameter);
+                }
+
+                using IDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    triggers.Add(new TriggerMetadata
+                    {
+                        TriggerName = reader["TRIGGER_NAME"].ToString(),
+                        TriggerType = reader["TRIGGER_TYPE"].ToString(),
+                        TriggeringEvent = reader["TRIGGERING_EVENT"].ToString(),
+                        TableName = reader["TABLE_NAME"].ToString(),
+                        Description = reader["DESCRIPTION"]?.ToString()
+                    });
+                }
+            }
+
             return triggers;
         }
 
-        public async Task<List<TriggerMetadata>> GetTriggersByNameAsync(List<string> triggerNames)
-        {
-            _logger.LogInformation("Getting triggers by name.");
-            List<TriggerMetadata> triggersMetadata = await GetAllTriggersAsync();
-            List<TriggerMetadata> filteredTriggers = triggersMetadata
-                .Where(trigger => triggerNames.Any(name => trigger.TriggerName.Contains(name, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            _logger.LogInformation("Filtered to {Count} triggers by name.", filteredTriggers.Count);
-            return filteredTriggers;
-        }
     }
 }

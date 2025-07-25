@@ -45,7 +45,7 @@ namespace DatabaseMcp.Server.Tools
             // Token limitation - need to perform in-session analysis to overcome the token limitation
             foreach (string name in procedureNames.Take(5))
             {
-                List<ProcedureFunctionMetadata> result = await spFunctionService.GetStoredProceduresMetadataByNameAsync([name]);
+                List<ProcedureFunctionMetadata> result = await spFunctionService.GetStoredProceduresMetadataByNamesAsync([name]);
                 if (result != null && result.Count > 0)
                 {
                     proceduresAndFunctions.Add(result.First());
@@ -55,7 +55,7 @@ namespace DatabaseMcp.Server.Tools
             // Token limitation - need to perform in-session analysis to overcome the token limitation
             foreach (string name in functionNames.Take(5))
             {
-                List<ProcedureFunctionMetadata> result = await spFunctionService.GetFunctionsMetadataByNameAsync([name]);
+                List<ProcedureFunctionMetadata> result = await spFunctionService.GetFunctionsMetadataByNamesAsync([name]);
                 if (result != null && result.Count > 0)
                 {
                     proceduresAndFunctions.Add(result.First());
@@ -65,7 +65,7 @@ namespace DatabaseMcp.Server.Tools
             List<TriggerMetadata> triggersMetadata = [];
             foreach (string name in triggerNames.Take(5))
             {
-                List<TriggerMetadata> result = await triggerService.GetTriggersByNameAsync([name]);
+                List<TriggerMetadata> result = await triggerService.GetTriggersMetadatByNamesAsync([name]);
                 if (result != null && result.Count > 0)
                 {
                     triggersMetadata.Add(result.First());

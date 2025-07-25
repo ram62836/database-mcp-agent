@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
@@ -22,59 +19,47 @@ namespace DatabaseMcp.Core.Services
             _logger = logger;
         }
 
-        public async Task<List<ViewMetadata>> GetAllViewsAsync()
+        public async Task<List<ViewMetadata>> GetViewsDefinitionByNamesAsync(List<string> viewNames)
         {
-            _logger.LogInformation("Getting all views.");
-            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
+            _logger.LogInformation("Getting views by name.");
+            List<ViewMetadata> viewsMetadata = [];
+            foreach (string viewName in viewNames)
             {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.ViewsMetadatJsonFile);
-                List<ViewMetadata> cachedViewsMetadata = JsonSerializer.Deserialize<List<ViewMetadata>>(fileContent);
-                _logger.LogInformation("Loaded {Count} views from cache.", cachedViewsMetadata?.Count ?? 0);
-                return cachedViewsMetadata;
+                ViewMetadata view = new()
+                {
+                    Definition = await GetViewDefinitionAsync(viewName)
+                };
+                viewsMetadata.Add(view);
             }
 
-            List<ViewMetadata> views = [];
+            return viewsMetadata;
+        }
+
+        private async Task<string> GetViewDefinitionAsync(string viewName)
+        {
+            if (string.IsNullOrEmpty(viewName))
+            {
+                throw new ArgumentException("The value cannot be an empty string", nameof(viewName));
+            }
+
+            _logger.LogInformation("Getting view definition for: {ViewName}", viewName);
             try
             {
-                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    string query = @"SELECT VIEW_NAME, TEXT_VC FROM USER_VIEWS";
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                IDbCommand command = connection.CreateCommand();
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('VIEW', :ViewName) AS DDL FROM DUAL";
+                IDbDataParameter param = command.CreateParameter();
+                param.ParameterName = "ViewName";
+                param.Value = viewName;
+                _ = command.Parameters.Add(param);
 
-                    using IDbCommand command = connection.CreateCommand();
-                    command.CommandText = query;
-                    using IDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        views.Add(new ViewMetadata
-                        {
-                            ViewName = reader["VIEW_NAME"].ToString(),
-                            Definition = reader["TEXT_VC"].ToString(),
-                        });
-                    }
-                }
-                _logger.LogInformation("Retrieved {Count} views.", views.Count);
+                return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting all views.");
+                _logger.LogError(ex, "Error getting function definition for: {ViewName}", viewName);
                 throw;
             }
-            JsonSerializerOptions options = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(views, options);
-            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.ViewsMetadatJsonFile, json);
-            return views;
-        }
-
-        public async Task<List<ViewMetadata>> GetViewsDefinitionAsync(List<string> viewNames)
-        {
-            _logger.LogInformation("Getting views by name.");
-            List<ViewMetadata> viewsMetadata = await GetAllViewsAsync();
-            List<ViewMetadata> filteredViews = viewsMetadata
-                .Where(view => viewNames.Any(name => view.ViewName.Contains(name, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            _logger.LogInformation("Filtered to {Count} views by name.", filteredViews.Count);
-            return filteredViews;
         }
     }
 }

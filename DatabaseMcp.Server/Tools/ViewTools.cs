@@ -17,7 +17,7 @@ namespace DatabaseMcp.Server.Tools
             IViewEnumerationService service,
             [Description("The names of the views to retrieve metadata for.")] List<string> viewNames)
         {
-            return await service.GetViewsDefinitionAsync(viewNames);
+            return await service.GetViewsDefinitionByNamesAsync(viewNames);
         }
     }
 }

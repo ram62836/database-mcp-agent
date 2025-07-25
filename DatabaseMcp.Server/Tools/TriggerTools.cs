@@ -15,7 +15,7 @@ namespace DatabaseMcp.Server.Tools
             ITriggerService service,
             [Description("The names of the triggers to retrieve metadata for.")] List<string> triggerNames)
         {
-            return await service.GetTriggersByNameAsync(triggerNames);
+            return await service.GetTriggersMetadatByNamesAsync(triggerNames);
         }
     }
 }

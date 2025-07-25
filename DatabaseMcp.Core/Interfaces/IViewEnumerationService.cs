@@ -6,7 +6,6 @@ namespace DatabaseMcp.Core.Interfaces
 {
     public interface IViewEnumerationService
     {
-        Task<List<ViewMetadata>> GetAllViewsAsync();
-        Task<List<ViewMetadata>> GetViewsDefinitionAsync(List<string> viewNames);
+        Task<List<ViewMetadata>> GetViewsDefinitionByNamesAsync(List<string> viewNames);
     }
 }

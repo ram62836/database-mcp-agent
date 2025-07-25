@@ -11,12 +11,12 @@ namespace DatabaseMcp.Server.Tools
     [McpServerToolType()]
     public static class TableTools
     {
-        [McpServerTool, Description("Fetches metadata for the given table names. Requires the table names as input.")]
+        [McpServerTool, Description("Fetches metadata for the given table names. Requires the table(s) names as input.")]
         public static async Task<List<TableMetadata>> GetTablesByNameAsync(
             ITableDiscoveryService service,
             [Description("The names of the tables to retrieve metadata for.")] List<string> tableNames)
         {
-            return await service.GetTablesByNameAsync(tableNames);
+            return await service.GetTablesMetadataByNamesAsync(tableNames);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace DatabaseMcp.Core.Services
             // Try to get the full connection string from environment variable via IConfiguration
             // First try direct environment variable access
             string fullConnectionString = _configuration["OracleConnectionString"];
-            return !string.IsNullOrEmpty(fullConnectionString)
+            return !string.IsNullOrWhiteSpace(fullConnectionString)
                 ? fullConnectionString
                 : throw new InvalidOperationException(
                 "No Oracle connection configuration found. Please provide OracleConnectionString environment variable with full connection string");

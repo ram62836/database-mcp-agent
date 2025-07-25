@@ -1,5 +1,4 @@
 using System.Data;
-using System.Text.Json;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
 using Microsoft.Extensions.Logging;
@@ -10,267 +9,238 @@ namespace DatabaseMcp.Core.Tests
     [Collection("Database Tests")]
     public class TriggerServiceTests
     {
-        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
-        private readonly Mock<IDbConnection> _connectionMock;
-        private readonly Mock<IDbCommand> _commandMock;
-        private readonly Mock<IDataReader> _readerMock;
-        private readonly Mock<ILogger<TriggerService>> _loggerMock;
+        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock = new();
+        private readonly Mock<IDbConnection> _connectionMock = new();
+        private readonly Mock<IDbCommand> _commandMock = new();
+        private readonly Mock<IDataReader> _readerMock = new();
+        private readonly Mock<IDbDataParameter> _parameterMock = new();
+        private readonly Mock<IDataParameterCollection> _parametersCollectionMock = new();
+        private readonly Mock<ILogger<TriggerService>> _loggerMock = TestHelper.CreateLoggerMock<TriggerService>();
         private readonly TriggerService _service;
 
         public TriggerServiceTests()
         {
-            _connectionFactoryMock = new Mock<IDbConnectionFactory>();
-            _connectionMock = new Mock<IDbConnection>();
-            _commandMock = new Mock<IDbCommand>();
-            _readerMock = new Mock<IDataReader>();
-            _loggerMock = TestHelper.CreateLoggerMock<TriggerService>();
-
+            SetupBasicMocks();
             _service = new TriggerService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
+        private void SetupBasicMocks()
+        {
+            // Setup parameter mock
+            _ = _parameterMock.SetupAllProperties();
+
+            // Setup parameters collection mock
+            _ = _parametersCollectionMock.Setup(p => p.Add(It.IsAny<object>())).Returns(0);
+
+            // Setup command mock
+            _ = _commandMock.Setup(c => c.CreateParameter()).Returns(_parameterMock.Object);
+            _ = _commandMock.SetupGet(c => c.Parameters).Returns(_parametersCollectionMock.Object);
+            _ = _commandMock.SetupProperty(c => c.CommandText);
+            _ = _commandMock.Setup(c => c.ExecuteReader()).Returns(_readerMock.Object);
+
+            // Setup connection mock
+            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+
+            // Setup connection factory mock
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+        }
+
         [Fact]
-        public async Task GetAllTriggersAsync_ReturnsList()
+        public async Task GetTriggersMetadatByNamesAsync_WithValidTriggerNames_ReturnsTriggerMetadata()
         {
             // Arrange
-            // Ensure cache file does not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
-            }
-
-            List<TriggerMetadata> data =
+            List<string> triggerNames = ["EMP_INSERT_TRIGGER", "EMP_UPDATE_TRIGGER"];
+            List<TriggerMetadata> triggerData =
             [
-                new TriggerMetadata {
-                    TriggerName = "TR1",
+                new TriggerMetadata
+                {
+                    TriggerName = "EMP_INSERT_TRIGGER",
                     TriggerType = "BEFORE",
                     TriggeringEvent = "INSERT",
-                    TableName = "T1",
-                    Description = "desc1"
+                    TableName = "EMPLOYEES",
+                    Description = "Before insert trigger"
                 },
-                new TriggerMetadata {
-                    TriggerName = "TR2",
+                new TriggerMetadata
+                {
+                    TriggerName = "EMP_UPDATE_TRIGGER",
                     TriggerType = "AFTER",
                     TriggeringEvent = "UPDATE",
-                    TableName = "T2",
-                    Description = "desc2"
+                    TableName = "EMPLOYEES",
+                    Description = "After update trigger"
                 }
             ];
 
-            SetupReaderForTriggerMetadata(_readerMock, data);
-            SetupMocksForCommand(_commandMock, _readerMock);
-            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            SetupReaderForTriggerMetadata(triggerData);
 
             // Act
-            List<TriggerMetadata> result = await _service.GetAllTriggersAsync();
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(data.Count, result.Count);
-            Assert.Equal("TR1", result[0].TriggerName);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("EMP_INSERT_TRIGGER", result[0].TriggerName);
             Assert.Equal("BEFORE", result[0].TriggerType);
             Assert.Equal("INSERT", result[0].TriggeringEvent);
-            Assert.Equal("T1", result[0].TableName);
-            Assert.Equal("desc1", result[0].Description);
-
-            // Verify the command was set up correctly
-            _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
-
-            // Verify the cache file was created
-            Assert.True(File.Exists(AppConstants.TriggersMetadataJsonFile));
-
-            // Clean up
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
-            }
+            Assert.Equal("EMPLOYEES", result[0].TableName);
+            Assert.Equal("Before insert trigger", result[0].Description);
         }
 
         [Fact]
-        public async Task GetAllTriggersAsync_UsesCache_WhenCacheFileExists()
+        public async Task GetTriggersMetadatByNamesAsync_WithEmptyList_ReturnsEmptyList()
         {
             // Arrange
-            List<TriggerMetadata> cachedTriggers =
+            List<string> triggerNames = [];
+
+            // Act
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetTriggersMetadatByNamesAsync_WithNullList_ReturnsEmptyList()
+        {
+            // Act
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetTriggersMetadatByNamesAsync_WithSingleTriggerName_ReturnsSingleTrigger()
+        {
+            // Arrange
+            List<string> triggerNames = ["SINGLE_TRIGGER"];
+            List<TriggerMetadata> triggerData =
             [
-                new TriggerMetadata {
-                    TriggerName = "CACHED_TRIGGER",
+                new TriggerMetadata
+                {
+                    TriggerName = "SINGLE_TRIGGER",
                     TriggerType = "BEFORE",
                     TriggeringEvent = "DELETE",
-                    TableName = "CACHED_TABLE",
-                    Description = "cached description"
+                    TableName = "TEST_TABLE",
+                    Description = "Test trigger"
                 }
             ];
 
-            // Create cache directory if it doesn't exist
-            _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
+            SetupReaderForTriggerMetadata(triggerData);
 
-            // Create the cache file with the AppConstants path
-            await File.WriteAllTextAsync(
-                AppConstants.TriggersMetadataJsonFile,
-                JsonSerializer.Serialize(cachedTriggers));
+            // Act
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
 
-            try
-            {
-                // Act
-                List<TriggerMetadata> result = await _service.GetAllTriggersAsync();
-
-                // Assert
-                Assert.NotNull(result);
-                _ = Assert.Single(result);
-                Assert.Equal("CACHED_TRIGGER", result[0].TriggerName);
-                Assert.Equal("BEFORE", result[0].TriggerType);
-                Assert.Equal("DELETE", result[0].TriggeringEvent);
-                Assert.Equal("CACHED_TABLE", result[0].TableName);
-                Assert.Equal("cached description", result[0].Description);
-
-                // Verify no database connection was made
-                _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-                {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
-                }
-            }
+            // Assert
+            Assert.NotNull(result);
+            _ = Assert.Single(result);
+            Assert.Equal("SINGLE_TRIGGER", result[0].TriggerName);
+            Assert.Equal("BEFORE", result[0].TriggerType);
+            Assert.Equal("DELETE", result[0].TriggeringEvent);
         }
 
         [Fact]
-        public async Task GetTriggersByNameAsync_FiltersCorrectly()
+        public async Task GetTriggersMetadatByNamesAsync_WhenDatabaseThrowsException_PropagatesException()
         {
             // Arrange
-            // Create cache file with test data
-            List<TriggerMetadata> cachedTriggers =
-            [
-                new TriggerMetadata { TriggerName = "EMP_INSERT_TRIGGER", TriggerType = "BEFORE", TriggeringEvent = "INSERT" },
-                new TriggerMetadata { TriggerName = "EMP_UPDATE_TRIGGER", TriggerType = "AFTER", TriggeringEvent = "UPDATE" },
-                new TriggerMetadata { TriggerName = "CUST_INSERT_TRIGGER", TriggerType = "BEFORE", TriggeringEvent = "INSERT" }
-            ];
-
-            // Create cache directory if it doesn't exist
-            _ = Directory.CreateDirectory(Path.GetDirectoryName(AppConstants.TriggersMetadataJsonFile) ?? Directory.GetCurrentDirectory());
-
-            // Create the cache file
-            await File.WriteAllTextAsync(
-                AppConstants.TriggersMetadataJsonFile,
-                JsonSerializer.Serialize(cachedTriggers));
-
-            try
-            {
-                // Names to filter by
-                List<string> triggerNames = ["EMP"];
-
-                // Act
-                List<TriggerMetadata> result = await _service.GetTriggersByNameAsync(triggerNames);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(2, result.Count);
-                Assert.Contains(result, t => t.TriggerName == "EMP_INSERT_TRIGGER");
-                Assert.Contains(result, t => t.TriggerName == "EMP_UPDATE_TRIGGER");
-                Assert.DoesNotContain(result, t => t.TriggerName == "CUST_INSERT_TRIGGER");
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-                {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task GetAllTriggersAsync_ThrowsException_WhenDbFails()
-        {
-            // Arrange
-            // Ensure cache files do not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
-            }
-
-            // Also delete the AppConstants cache file
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
-            }
-
-            InvalidOperationException expectedException = new("Test exception");
-            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
-                .ThrowsAsync(expectedException);
+            List<string> triggerNames = ["INVALID_TRIGGER"];
+            InvalidOperationException expectedException = new("Database error");
+            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ThrowsAsync(expectedException);
 
             // Act & Assert
-            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                _service.GetAllTriggersAsync);
-            Assert.Same(expectedException, exception);
+            InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _service.GetTriggersMetadatByNamesAsync(triggerNames));
+            Assert.Equal(expectedException, actualException);
+        }
+
+        [Fact]
+        public async Task GetTriggersMetadatByNamesAsync_WithNoMatchingTriggers_ReturnsEmptyList()
+        {
+            // Arrange
+            List<string> triggerNames = ["NONEXISTENT_TRIGGER"];
+            SetupReaderForTriggerMetadata([]); // No data
+
+            // Act
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact]
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
-            // Arrange, Act & Assert
+            // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new TriggerService(null, _loggerMock.Object));
+                () => new TriggerService(null!, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
         [Fact]
-        public async Task GetAllTriggersAsync_HandlesEmptyResult()
+        public async Task GetTriggersMetadatByNamesAsync_GeneratesCorrectSqlQuery()
         {
             // Arrange
-            // Ensure cache file does not exist
-            if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-            {
-                File.Delete(AppConstants.TriggersMetadataJsonFile);
-            }
+            List<string> triggerNames = ["TRIGGER1", "TRIGGER2"];
+            SetupReaderForTriggerMetadata([]);
 
-            _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
-            SetupMocksForCommand(_commandMock, _readerMock);
-            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            // Act
+            _ = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
 
-            try
-            {
-                // Act
-                List<TriggerMetadata> result = await _service.GetAllTriggersAsync();
+            // Assert
+            _commandMock.VerifySet(c => c.CommandText = It.Is<string>(sql =>
+                sql.Contains("USER_TRIGGERS") &&
+                sql.Contains("TRIGGER_NAME") &&
+                sql.Contains(":p0") &&
+                sql.Contains(":p1")), Times.Once);
 
-                // Assert
-                Assert.NotNull(result);
-                Assert.Empty(result);
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.TriggersMetadataJsonFile))
-                {
-                    File.Delete(AppConstants.TriggersMetadataJsonFile);
-                }
-            }
+            // Verify parameters were set
+            _parameterMock.VerifySet(p => p.ParameterName = "p0", Times.Once);
+            _parameterMock.VerifySet(p => p.ParameterName = "p1", Times.Once);
         }
 
-        private void SetupReaderForTriggerMetadata(Mock<IDataReader> readerMock, List<TriggerMetadata> data)
+        [Fact]
+        public async Task GetTriggersMetadatByNamesAsync_HandlesNullDescription()
+        {
+            // Arrange
+            List<string> triggerNames = ["TEST_TRIGGER"];
+            List<TriggerMetadata> triggerData =
+            [
+                new TriggerMetadata
+                {
+                    TriggerName = "TEST_TRIGGER",
+                    TriggerType = "BEFORE",
+                    TriggeringEvent = "INSERT",
+                    TableName = "TEST_TABLE",
+                    Description = null // Null description
+                }
+            ];
+
+            SetupReaderForTriggerMetadata(triggerData);
+
+            // Act
+            List<TriggerMetadata> result = await _service.GetTriggersMetadatByNamesAsync(triggerNames);
+
+            // Assert
+            Assert.NotNull(result);
+            _ = Assert.Single(result);
+            Assert.Null(result[0].Description);
+        }
+
+        private void SetupReaderForTriggerMetadata(List<TriggerMetadata> data)
         {
             int callCount = -1;
-            _ = readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
+            _ = _readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
 
             if (data.Count > 0)
             {
-                _ = readerMock.Setup(r => r["TRIGGER_NAME"]).Returns(() => data[callCount].TriggerName);
-                _ = readerMock.Setup(r => r["TRIGGER_TYPE"]).Returns(() => data[callCount].TriggerType);
-                _ = readerMock.Setup(r => r["TRIGGERING_EVENT"]).Returns(() => data[callCount].TriggeringEvent);
-                _ = readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].TableName);
-                _ = readerMock.Setup(r => r["DESCRIPTION"]).Returns(() => data[callCount].Description);
+                _ = _readerMock.Setup(r => r["TRIGGER_NAME"]).Returns(() => data[callCount].TriggerName);
+                _ = _readerMock.Setup(r => r["TRIGGER_TYPE"]).Returns(() => data[callCount].TriggerType);
+                _ = _readerMock.Setup(r => r["TRIGGERING_EVENT"]).Returns(() => data[callCount].TriggeringEvent);
+                _ = _readerMock.Setup(r => r["TABLE_NAME"]).Returns(() => data[callCount].TableName);
+                _ = _readerMock.Setup(r => r["DESCRIPTION"]).Returns(() => data[callCount].Description);
             }
-        }
-
-        private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock)
-        {
-            _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
-            _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
-            // Make sure CommandText property can be set
-            _ = commandMock.SetupSet(c => c.CommandText = It.IsAny<string>());
         }
     }
 }

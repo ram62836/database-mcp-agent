@@ -6,8 +6,6 @@ namespace DatabaseMcp.Core.Interfaces
 {
     public interface ITableDiscoveryService
     {
-        Task<List<TableMetadata>> GetAllUserDefinedTablesAsync();
-
-        Task<List<TableMetadata>> GetTablesByNameAsync(List<string> tableNames);
+        Task<List<TableMetadata>> GetTablesMetadataByNamesAsync(List<string> tableNames);
     }
 }

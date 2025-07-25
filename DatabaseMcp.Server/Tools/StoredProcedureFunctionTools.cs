@@ -16,7 +16,7 @@ namespace DatabaseMcp.Server.Tools
             IStoredProcedureFunctionService service,
             [Description("List of stored procedure names to retrieve metadata for.")] List<string> storedProcedureNames)
         {
-            return await service.GetStoredProceduresMetadataByNameAsync(storedProcedureNames);
+            return await service.GetStoredProceduresMetadataByNamesAsync(storedProcedureNames);
         }
 
         [McpServerTool, Description("Retrieves detailed metadata for the given functions by their names.")]
@@ -24,7 +24,7 @@ namespace DatabaseMcp.Server.Tools
             IStoredProcedureFunctionService service,
             [Description("List of functions names retrieve metadata for.")] List<string> functionNames)
         {
-            return await service.GetFunctionsMetadataByNameAsync(functionNames);
+            return await service.GetFunctionsMetadataByNamesAsync(functionNames);
         }
 
         [McpServerTool, Description("Fetches a list of parameter metadata for a specific stored procedure by its name.")]

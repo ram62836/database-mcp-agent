@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
@@ -22,110 +19,37 @@ namespace DatabaseMcp.Core.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<ProcedureFunctionMetadata>> GetAllStoredProceduresAsync()
+        public async Task<List<ProcedureFunctionMetadata>> GetStoredProceduresMetadataByNamesAsync(List<string> names)
         {
-            _logger.LogInformation("Getting all stored procedures.");
-            if (File.Exists(AppConstants.ProceduresMetadatJsonFile))
-            {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.ProceduresMetadatJsonFile);
-                List<ProcedureFunctionMetadata> cachedProceduresMetadata = JsonSerializer.Deserialize<List<ProcedureFunctionMetadata>>(fileContent);
-                _logger.LogInformation("Loaded {Count} stored procedures from cache.", cachedProceduresMetadata?.Count ?? 0);
-                return cachedProceduresMetadata;
-            }
-
+            _logger.LogInformation("Getting stored procedures by name.");
             List<ProcedureFunctionMetadata> proceduresMetadata = [];
-            try
+            foreach (string procedureName in names)
             {
-                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
+                ProcedureFunctionMetadata procedure = new()
                 {
-                    IDbCommand command = connection.CreateCommand();
-                    command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND STATUS = 'VALID'";
-                    using IDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        proceduresMetadata.Add(new ProcedureFunctionMetadata
-                        {
-                            Name = reader["OBJECT_NAME"].ToString(),
-                            Definition = await GetProcedureDefinitionAsync(reader["OBJECT_NAME"].ToString())
-                        });
-                    }
-                }
-                _logger.LogInformation("Retrieved {Count} stored procedures.", proceduresMetadata.Count);
+                    Definition = await GetProcedureDefinitionAsync(procedureName)
+                };
+                proceduresMetadata.Add(procedure);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all stored procedures.");
-                throw;
-            }
-            JsonSerializerOptions options = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(proceduresMetadata, options);
-            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.ProceduresMetadatJsonFile, json);
+            _logger.LogInformation("Found {Count} stored procedures by name.", proceduresMetadata.Count);
             return proceduresMetadata;
         }
 
-        public async Task<List<ProcedureFunctionMetadata>> GetAllFunctionsAsync()
-        {
-            _logger.LogInformation("Getting all functions.");
-            if (File.Exists(AppConstants.FunctionsMetadataJsonFile))
-            {
-                string fileContent = await File.ReadAllTextAsync(AppConstants.FunctionsMetadataJsonFile);
-                List<ProcedureFunctionMetadata> cachedFunctionsMetadata = JsonSerializer.Deserialize<List<ProcedureFunctionMetadata>>(fileContent);
-                _logger.LogInformation("Loaded {Count} functions from cache.", cachedFunctionsMetadata?.Count ?? 0);
-                return cachedFunctionsMetadata;
-            }
-
-            List<ProcedureFunctionMetadata> functionsMetadata = [];
-            try
-            {
-                using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
-                {
-                    IDbCommand command = connection.CreateCommand();
-                    command.CommandText = @"SELECT OBJECT_NAME, OBJECT_TYPE FROM USER_OBJECTS WHERE OBJECT_TYPE = 'FUNCTION' AND STATUS = 'VALID'";
-                    using IDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        functionsMetadata.Add(new ProcedureFunctionMetadata
-                        {
-                            Name = reader["OBJECT_NAME"].ToString(),
-                            Definition = await GetFunctionDefinitionAsync(reader["OBJECT_NAME"].ToString())
-                        });
-                    }
-                }
-                _logger.LogInformation("Retrieved {Count} functions.", functionsMetadata.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all functions.");
-                throw;
-            }
-            JsonSerializerOptions options = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(functionsMetadata, options);
-            _ = Directory.CreateDirectory(AppConstants.ExecutableDirectory);
-            await File.WriteAllTextAsync(AppConstants.FunctionsMetadataJsonFile, json);
-            return functionsMetadata;
-        }
-
-        public async Task<List<ProcedureFunctionMetadata>> GetStoredProceduresMetadataByNameAsync(List<string> names)
-        {
-            _logger.LogInformation("Getting stored procedures by name.");
-            List<ProcedureFunctionMetadata> proceduresMetadata = await GetAllStoredProceduresAsync();
-            List<ProcedureFunctionMetadata> filtredprocedures = proceduresMetadata
-                .Where(procedure => names.Contains(procedure.Name, StringComparer.OrdinalIgnoreCase))
-                .ToList();
-            _logger.LogInformation("Filtered to {Count} stored procedures by name.", filtredprocedures.Count);
-            return filtredprocedures;
-        }
-
-        public async Task<List<ProcedureFunctionMetadata>> GetFunctionsMetadataByNameAsync(List<string> names)
+        public async Task<List<ProcedureFunctionMetadata>> GetFunctionsMetadataByNamesAsync(List<string> names)
         {
             _logger.LogInformation("Getting functions by name.");
-            List<ProcedureFunctionMetadata> functionsMetadata = await GetAllFunctionsAsync();
-            List<ProcedureFunctionMetadata> filteredfunctions = functionsMetadata
-                .Where(function => names.Contains(function.Name, StringComparer.OrdinalIgnoreCase))
-                .ToList();
-            _logger.LogInformation("Filtered to {Count} functions by name.", filteredfunctions.Count);
-            return filteredfunctions;
+            List<ProcedureFunctionMetadata> functionsMetadata = [];
+            foreach (string functionName in names)
+            {
+                ProcedureFunctionMetadata function = new()
+                {
+                    Definition = await GetFunctionDefinitionAsync(functionName)
+                };
+                functionsMetadata.Add(function);
+            }
+
+            _logger.LogInformation("Found {Count} functions by name.", functionsMetadata.Count);
+            return functionsMetadata;
         }
 
         public async Task<List<ParameterMetadata>> GetStoredProcedureParametersAsync(string storedProcedureName)
@@ -208,7 +132,6 @@ namespace DatabaseMcp.Core.Services
                 param.ParameterName = "ProcedureName";
                 param.Value = procedureName;
                 _ = command.Parameters.Add(param);
-
                 return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)

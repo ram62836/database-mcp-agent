@@ -17,13 +17,4 @@ namespace DatabaseMcp.Core.Models
             Parameters = [];
         }
     }
-
-    public class ParameterMetadata
-    {
-        public string Name { get; set; }
-        public string DataType { get; set; }
-        public bool IsOutput { get; set; }
-        public string Direction { get; set; }
-
-    }
 }

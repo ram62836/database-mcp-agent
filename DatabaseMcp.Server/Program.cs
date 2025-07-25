@@ -66,28 +66,4 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger, dispose: true));
 IHost app = builder.Build();
-
-using (IServiceScope scope = app.Services.CreateScope())
-{
-    try
-    {
-        IStoredProcedureFunctionService storedProcedureFunctionsService = scope.ServiceProvider.GetRequiredService<IStoredProcedureFunctionService>();
-        ITableDiscoveryService tableDiscoveryService = scope.ServiceProvider.GetRequiredService<ITableDiscoveryService>();
-        ITriggerService triggerService = scope.ServiceProvider.GetRequiredService<ITriggerService>();
-        IViewEnumerationService viewsService = scope.ServiceProvider.GetRequiredService<IViewEnumerationService>();
-
-        Log.Information("Attempting to preload database metadata...");
-        _ = await storedProcedureFunctionsService.GetAllStoredProceduresAsync();
-        _ = await storedProcedureFunctionsService.GetAllFunctionsAsync();
-        _ = await tableDiscoveryService.GetAllUserDefinedTablesAsync();
-        _ = await triggerService.GetAllTriggersAsync();
-        _ = await viewsService.GetAllViewsAsync();
-        Log.Information("Database metadata preloaded successfully.");
-    }
-    catch (Exception ex)
-    {
-        Log.Warning(ex, "Failed to preload database metadata. The server will continue but may have slower initial responses: {0}", ex.Message);
-    }
-}
-
 await app.RunAsync();

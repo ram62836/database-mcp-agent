@@ -1,5 +1,4 @@
 using System.Data;
-using System.Text.Json;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
 using Microsoft.Extensions.Logging;
@@ -10,178 +9,134 @@ namespace DatabaseMcp.Core.Tests
     [Collection("Database Tests")]
     public class ViewEnumerationServiceTests
     {
-        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock;
-        private readonly Mock<IDbConnection> _connectionMock;
-        private readonly Mock<IDbCommand> _commandMock;
-        private readonly Mock<IDataReader> _readerMock;
-        private readonly Mock<ILogger<ViewEnumerationService>> _loggerMock;
+        private readonly Mock<IDbConnectionFactory> _connectionFactoryMock = new();
+        private readonly Mock<IDbConnection> _connectionMock = new();
+        private readonly Mock<IDbCommand> _commandMock = new();
+        private readonly Mock<IDbDataParameter> _parameterMock = new();
+        private readonly Mock<IDataParameterCollection> _parametersCollectionMock = new();
+        private readonly Mock<ILogger<ViewEnumerationService>> _loggerMock = TestHelper.CreateLoggerMock<ViewEnumerationService>();
         private readonly ViewEnumerationService _service;
 
         public ViewEnumerationServiceTests()
         {
-            _connectionFactoryMock = new Mock<IDbConnectionFactory>();
-            _connectionMock = new Mock<IDbConnection>();
-            _commandMock = new Mock<IDbCommand>();
-            _readerMock = new Mock<IDataReader>();
-            _loggerMock = TestHelper.CreateLoggerMock<ViewEnumerationService>();
-
+            SetupBasicMocks();
             _service = new ViewEnumerationService(_connectionFactoryMock.Object, _loggerMock.Object);
         }
 
-        [Fact]
-        public async Task GetAllViewsAsync_ReturnsList()
+        private void SetupBasicMocks()
         {
-            // Arrange
-            // Ensure cache file does not exist
-            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-            {
-                File.Delete(AppConstants.ViewsMetadatJsonFile);
-            }
+            // Setup parameter mock
+            _ = _parameterMock.SetupAllProperties();
 
-            List<ViewMetadata> data =
-            [
-                new ViewMetadata { ViewName = "V1", Definition = "DEF1" },
-                new ViewMetadata { ViewName = "V2", Definition = "DEF2" }
-            ];
+            // Setup parameters collection mock
+            _ = _parametersCollectionMock.Setup(p => p.Add(It.IsAny<object>())).Returns(0);
 
-            SetupReaderForViewMetadata(_readerMock, data);
-            SetupMocksForCommand(_commandMock, _readerMock);
+            // Setup command mock
+            _ = _commandMock.Setup(c => c.CreateParameter()).Returns(_parameterMock.Object);
+            _ = _commandMock.SetupGet(c => c.Parameters).Returns(_parametersCollectionMock.Object);
+            _ = _commandMock.SetupProperty(c => c.CommandText);
+            _ = _commandMock.Setup(c => c.ExecuteScalar()).Returns("CREATE VIEW TEST_VIEW AS SELECT * FROM DUAL");
+
+            // Setup connection mock
             _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
+
+            // Setup connection factory mock
             _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
-
-            try
-            {
-                // Act
-                List<ViewMetadata> result = await _service.GetAllViewsAsync();
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(data.Count, result.Count);
-                Assert.Equal("V1", result[0].ViewName);
-                Assert.Equal("DEF1", result[0].Definition);
-                Assert.Equal("V2", result[1].ViewName);
-                Assert.Equal("DEF2", result[1].Definition);
-
-                // Verify the command was set up correctly
-                _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
-
-                // Verify the cache file was created
-                Assert.True(File.Exists(AppConstants.ViewsMetadatJsonFile));
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-                {
-                    File.Delete(AppConstants.ViewsMetadatJsonFile);
-                }
-            }
         }
 
         [Fact]
-        public async Task GetAllViewsAsync_UsesCache_WhenCacheFileExists()
+        public async Task GetViewsDefinitionAsync_WithValidViewNames_ReturnsViewMetadata()
         {
             // Arrange
-            List<ViewMetadata> cachedViews =
-            [
-                new ViewMetadata { ViewName = "CACHED_VIEW", Definition = "CACHED DEFINITION" }
-            ];
+            List<string> viewNames = ["EMP_VIEW", "DEPT_VIEW"];
+            const string expectedDdl = "CREATE VIEW EMP_VIEW AS SELECT * FROM EMPLOYEES";
+            _ = _commandMock.Setup(c => c.ExecuteScalar()).Returns(expectedDdl);
 
-            // Create cache directory if it doesn't exist
-            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            // Act
+            List<ViewMetadata> result = await _service.GetViewsDefinitionByNamesAsync(viewNames);
 
-            // Create the cache file
-            await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile,
-                JsonSerializer.Serialize(cachedViews));
-
-            try
-            {
-                // Act
-                List<ViewMetadata> result = await _service.GetAllViewsAsync();
-
-                // Assert
-                Assert.NotNull(result);
-                _ = Assert.Single(result);
-                Assert.Equal("CACHED_VIEW", result[0].ViewName);
-                Assert.Equal("CACHED DEFINITION", result[0].Definition);
-
-                // Verify no database connection was made
-                _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Never);
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-                {
-                    File.Delete(AppConstants.ViewsMetadatJsonFile);
-                }
-            }
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.All(result, view => Assert.Equal(expectedDdl, view.Definition));
         }
 
         [Fact]
-        public async Task GetViewsDefinitionAsync_FiltersCorrectly()
+        public async Task GetViewsDefinitionAsync_WithEmptyList_ReturnsEmptyList()
         {
             // Arrange
-            // Create cache file with test data
-            List<ViewMetadata> cachedViews =
-            [
-                new ViewMetadata { ViewName = "EMP_VIEW", Definition = "DEF1" },
-                new ViewMetadata { ViewName = "DEPT_VIEW", Definition = "DEF2" },
-                new ViewMetadata { ViewName = "EMP_DEPT_VIEW", Definition = "DEF3" }
-            ];
+            List<string> viewNames = [];
 
-            // Create cache directory if it doesn't exist
-            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
+            // Act
+            List<ViewMetadata> result = await _service.GetViewsDefinitionByNamesAsync(viewNames);
 
-            // Create the cache file
-            await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile,
-                JsonSerializer.Serialize(cachedViews));
-
-            try
-            {
-                // Names to filter by
-                List<string> viewNames = ["EMP"];
-
-                // Act
-                List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(2, result.Count);
-                Assert.Contains(result, v => v.ViewName == "EMP_VIEW");
-                Assert.Contains(result, v => v.ViewName == "EMP_DEPT_VIEW");
-                Assert.DoesNotContain(result, v => v.ViewName == "DEPT_VIEW");
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-                {
-                    File.Delete(AppConstants.ViewsMetadatJsonFile);
-                }
-            }
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact]
-        public async Task GetAllViewsAsync_ThrowsException_WhenDbFails()
+        public async Task GetViewsDefinitionAsync_WithSingleViewName_ReturnsSingleViewMetadata()
         {
             // Arrange
-            // Ensure cache file does not exist
-            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-            {
-                File.Delete(AppConstants.ViewsMetadatJsonFile);
-            }
+            List<string> viewNames = ["EMP_VIEW"];
+            const string expectedDdl = "CREATE VIEW EMP_VIEW AS SELECT * FROM EMPLOYEES";
+            _ = _commandMock.Setup(c => c.ExecuteScalar()).Returns(expectedDdl);
 
-            InvalidOperationException expectedException = new("Test exception");
-            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync())
-                .ThrowsAsync(expectedException);
+            // Act
+            List<ViewMetadata> result = await _service.GetViewsDefinitionByNamesAsync(viewNames);
+
+            // Assert
+            Assert.NotNull(result);
+            _ = Assert.Single(result);
+            Assert.Equal(expectedDdl, result[0].Definition);
+        }
+
+        [Fact]
+        public async Task GetViewsDefinitionAsync_WhenDatabaseThrowsException_PropagatesException()
+        {
+            // Arrange
+            List<string> viewNames = ["INVALID_VIEW"];
+            _ = _commandMock.Setup(c => c.ExecuteScalar()).Throws(new InvalidOperationException("View not found"));
 
             // Act & Assert
-            InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                _service.GetAllViewsAsync);
-            Assert.Same(expectedException, exception);
+            _ = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.GetViewsDefinitionByNamesAsync(viewNames));
+        }
+
+        [Fact]
+        public async Task GetViewsDefinitionAsync_WithNullScalarResult_ReturnsEmptyDefinition()
+        {
+            // Arrange
+            List<string> viewNames = ["EMP_VIEW"];
+            _ = _commandMock.Setup(c => c.ExecuteScalar()).Returns((object?)null);
+
+            // Act
+            List<ViewMetadata> result = await _service.GetViewsDefinitionByNamesAsync(viewNames);
+
+            // Assert
+            Assert.NotNull(result);
+            _ = Assert.Single(result);
+            Assert.Equal(string.Empty, result[0].Definition);
+        }
+
+        [Fact]
+        public async Task GetViewsDefinitionAsync_WithEmptyViewName_ThrowsArgumentException()
+        {
+            // Arrange
+            List<string> viewNames = [""];
+
+            // Act & Assert
+            _ = await Assert.ThrowsAsync<ArgumentException>(() => _service.GetViewsDefinitionByNamesAsync(viewNames));
+        }
+
+        [Fact]
+        public async Task GetViewsDefinitionAsync_WithNullViewName_ThrowsArgumentException()
+        {
+            // Arrange
+            List<string> viewNames = [null!];
+
+            // Act & Assert
+            _ = await Assert.ThrowsAsync<ArgumentException>(() => _service.GetViewsDefinitionByNamesAsync(viewNames));
         }
 
         [Fact]
@@ -189,101 +144,24 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange, Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => new ViewEnumerationService(null, _loggerMock.Object));
+                () => new ViewEnumerationService(null!, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
 
         [Fact]
-        public async Task GetAllViewsAsync_HandlesEmptyResult()
+        public async Task GetViewsDefinitionAsync_CallsCorrectSqlCommand()
         {
             // Arrange
-            // Ensure cache file does not exist
-            if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-            {
-                File.Delete(AppConstants.ViewsMetadatJsonFile);
-            }
+            List<string> viewNames = ["TEST_VIEW"];
+            const string expectedSql = "SELECT DBMS_METADATA.GET_DDL('VIEW', :ViewName) AS DDL FROM DUAL";
 
-            _ = _readerMock.Setup(r => r.Read()).Returns(false); // No rows
-            SetupMocksForCommand(_commandMock, _readerMock);
-            _ = _connectionMock.Setup(c => c.CreateCommand()).Returns(_commandMock.Object);
-            _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ReturnsAsync(_connectionMock.Object);
+            // Act
+            _ = await _service.GetViewsDefinitionByNamesAsync(viewNames);
 
-            try
-            {
-                // Act
-                List<ViewMetadata> result = await _service.GetAllViewsAsync();
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Empty(result);
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-                {
-                    File.Delete(AppConstants.ViewsMetadatJsonFile);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task GetViewsDefinitionAsync_ReturnsEmptyList_WhenNoMatchesFound()
-        {
-            // Arrange
-            // Create cache file with test data
-            List<ViewMetadata> cachedViews =
-            [
-                new ViewMetadata { ViewName = "VIEW1", Definition = "DEF1" },
-                new ViewMetadata { ViewName = "VIEW2", Definition = "DEF2" }
-            ];
-
-            // Create cache directory if it doesn't exist
-            _ = Directory.CreateDirectory(Directory.GetCurrentDirectory());
-
-            // Create the cache file
-            await File.WriteAllTextAsync(
-                AppConstants.ViewsMetadatJsonFile,
-                JsonSerializer.Serialize(cachedViews));
-
-            try
-            {
-                // Names to filter by
-                List<string> viewNames = ["NONEXISTENT"];
-
-                // Act
-                List<ViewMetadata> result = await _service.GetViewsDefinitionAsync(viewNames);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Empty(result);
-            }
-            finally
-            {
-                // Clean up
-                if (File.Exists(AppConstants.ViewsMetadatJsonFile))
-                {
-                    File.Delete(AppConstants.ViewsMetadatJsonFile);
-                }
-            }
-        }
-
-        private void SetupReaderForViewMetadata(Mock<IDataReader> readerMock, List<ViewMetadata> data)
-        {
-            int callCount = -1;
-            _ = readerMock.Setup(r => r.Read()).Returns(() => ++callCount < data.Count);
-
-            if (data.Count > 0)
-            {
-                _ = readerMock.Setup(r => r["VIEW_NAME"]).Returns(() => data[callCount].ViewName);
-                _ = readerMock.Setup(r => r["TEXT_VC"]).Returns(() => data[callCount].Definition);
-            }
-        }
-
-        private void SetupMocksForCommand(Mock<IDbCommand> commandMock, Mock<IDataReader> readerMock)
-        {
-            _ = commandMock.Setup(c => c.ExecuteReader()).Returns(readerMock.Object);
-            _ = commandMock.SetupGet(c => c.Parameters).Returns(new Mock<IDataParameterCollection>().Object);
+            // Assert
+            _commandMock.VerifySet(c => c.CommandText = expectedSql, Times.Once);
+            _parameterMock.VerifySet(p => p.ParameterName = "ViewName", Times.Once);
+            _parameterMock.VerifySet(p => p.Value = "TEST_VIEW", Times.Once);
         }
     }
 }
