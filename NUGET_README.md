@@ -1,6 +1,6 @@
 # Oracle Database MCP Agent
 
-Oracle Database MCP Agent with 25+ tools for AI-powered database analysis.
+Oracle Database MCP Agent with 30+ tools for AI-powered database analysis.
 
 ##  VS Code Integration
 
@@ -64,10 +64,10 @@ Then run directly: `oracle-mcp-server`
 
 ## 🎯 Features
 
-- **25+ MCP Tools** for database analysis
+- **30+ MCP Tools** for database analysis
 - **Metadata Discovery** - Tables, views, procedures, functions
 - **Dependency Analysis** - Impact analysis before schema changes
-- **Performance Tools** - Index analysis and optimization
+- **Performance Tools** - Performance analysis, index analysis and optimization
 - **AI Integration** - Seamless integration with AI assistants
 
 ## 📋 Requirements

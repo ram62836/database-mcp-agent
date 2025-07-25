@@ -26,7 +26,6 @@ A modular database access age    "Hala.DatabaseAgent.OracleMcpServer": {
 > **Note:** The `.NET 10 SDK` is required as a prerequisite to use this package.  
 > For setup and usage details, refer to the official blog:  
 > [Download .NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-> The initial startup of the MCP server may take some time, as it caches important metadata about the database objects.
 
 The `dnx` command used for MCP server integration requires the .NET 10 SDK. Follow the installation instructions for your platform:
 
@@ -105,6 +104,36 @@ Unleash your creativity with over 25 powerful tools designed to help you craft m
 ### **Performance Optimization**
 - *"Analyze all indexes on the ORDERS table and suggest optimization opportunities"*
 - *"The following SQL query has performance issues. Please analyze and suggest optimizations."*
+- *"Show me the top 10 SQL statements consuming the most CPU time"*
+- *"Find unused indexes across all tables that can be safely dropped"*
+- *"What are the current database wait events causing performance bottlenecks?"*
+- *"Analyze table usage statistics for the CUSTOMERS table to understand access patterns"*
+
+### **SQL Performance Analysis**
+- *"Get the top 15 SQL statements by performance metrics ordered by elapsed time"*
+- *"Show me the most frequently executed SQL queries in the last 24 hours"*
+- *"Find SQL statements with the highest CPU consumption for optimization"*
+- *"Identify the slowest running queries that need immediate attention"*
+- *"Analyze SQL performance trends by execution count and resource usage"*
+
+### **Database Wait Event & Bottleneck Analysis**
+- *"What wait events are currently impacting database performance?"*
+- *"Analyze wait events related to the ORDERS table processing"*
+- *"Show me all I/O-related wait events and their impact on system performance"*
+- *"Identify lock contention and blocking sessions in the database"*
+
+### **Index Usage & Optimization**
+- *"Show me detailed index usage statistics for the PRODUCTS table"*
+- *"Find all unused indexes on the CUSTOMERS table that can be dropped"*
+- *"Identify unused indexes across the entire database for cleanup"*
+- *"Analyze index effectiveness and suggest optimization opportunities"*
+- *"Which indexes have zero usage and are consuming unnecessary storage?"*
+
+### **Table Usage Analytics**
+- *"Analyze usage patterns for ORDERS and CUSTOMERS tables including scan frequency"*
+- *"Show me DML operation statistics for the INVENTORY table"*
+- *"Get comprehensive usage statistics for tables with high transaction volume"*
+- *"Identify tables with unusual access patterns that might need optimization"*
 
 ### **Database Relationship Mapping**
 - *"What procedures, views, and triggers depend on the CUSTOMERS table before I modify it?"*
@@ -240,7 +269,7 @@ For complete setup instructions, see [examples/vscode-mcp-config.json](examples/
 
 Oracle Database MCP Agent is a .NET solution designed to analyze, manage, and interact with Oracle database metadata through the Model Context Protocol (MCP). It provides tools and services for discovering, caching, and analyzing database objects such as tables, views, stored procedures, functions, triggers, indexes, and more.
 
-The Database MCP Agent provides **25+ powerful tools** for comprehensive database analysis:
+The Database MCP Agent provides **33+ powerful tools** for comprehensive database analysis:
 
 ### 📊 **Database Discovery & Analysis**
 - **Table Metadata**: Get detailed table information, structure, and properties
@@ -251,6 +280,12 @@ The Database MCP Agent provides **25+ powerful tools** for comprehensive databas
 - **Dependency Analysis**: Understand object dependencies and impact analysis before changes
 - **Constraint Analysis**: Discover primary keys, foreign keys, unique constraints, and check constraints
 - **Index Optimization**: Analyze index structures and column compositions for performance tuning
+
+### 🚀 **Performance Analytics & Optimization**
+- **SQL Performance Analysis**: Identify top SQL statements by executions, CPU time, elapsed time, and resource usage
+- **Wait Event Analysis**: Analyze database wait events to identify bottlenecks and contention points
+- **Index Usage Analytics**: Discover unused indexes and analyze index effectiveness for optimization
+- **Table Usage Statistics**: Monitor table access patterns, DML operations, and usage trends
 
 ### ⚙️ **Stored Code Analysis**
 - **Procedures & Functions**: Get complete definitions, parameters, and source code
@@ -354,6 +389,49 @@ The Database MCP Agent provides **25+ powerful tools** for comprehensive databas
 - **Use Cases**: Index composition analysis, query optimization, performance tuning
 - **Example**: *"What columns are in the IDX_CUSTOMER_EMAIL index?"*
 
+### 🚀 **Performance Analytics & Optimization**
+
+#### **GetTopSqlByPerformance**
+- **Purpose**: Analyze top SQL statements by various performance metrics (executions, CPU time, elapsed time, disk reads, buffer gets)
+- **Use Cases**: Performance tuning, identifying resource-intensive queries, query optimization
+- **Example**: *"Show me the top 10 SQL statements by CPU time consumption"*
+
+#### **GetTopSqlByExecutions**
+- **Purpose**: Find the most frequently executed SQL statements in the database
+- **Use Cases**: Identifying high-frequency queries, query pattern analysis, performance monitoring
+- **Example**: *"What are the top 5 most executed SQL queries in the last hour?"*
+
+#### **GetTopSqlByCpuTime**
+- **Purpose**: Identify SQL statements consuming the most CPU resources
+- **Use Cases**: CPU bottleneck identification, query optimization, resource usage analysis
+- **Example**: *"Show me SQL statements with highest CPU time consumption"*
+
+#### **GetTopSqlByElapsedTime**
+- **Purpose**: Find SQL statements with the longest execution times
+- **Use Cases**: Performance tuning, slow query identification, response time optimization
+- **Example**: *"Find the slowest running SQL queries in the database"*
+
+#### **GetWaitEventAnalysis**
+- **Purpose**: Analyze database wait events to identify performance bottlenecks and contention points
+- **Use Cases**: Performance troubleshooting, bottleneck identification, system tuning
+- **Example**: *"What are the current database wait events and their impact?"*
+
+#### **GetTableUsageStatistics**
+- **Purpose**: Analyze table usage patterns including scans, lookups, DML operations, and access patterns
+- **Use Cases**: Table optimization, usage pattern analysis, capacity planning
+- **Example**: *"Show me usage statistics for the ORDERS and CUSTOMERS tables"*
+
+#### **GetIndexUsageStatistics**
+- **Purpose**: Get detailed index usage statistics for a specific table including access counts and efficiency metrics
+- **Use Cases**: Index effectiveness analysis, performance tuning, index optimization
+- **Example**: *"Analyze index usage statistics for the PRODUCTS table"*
+
+#### **GetUnusedIndexes**
+- **Purpose**: Identify unused indexes that could be dropped to improve DML performance and reduce storage overhead
+- **Use Cases**: Index cleanup, performance optimization, storage management, maintenance planning
+- **Example**: *"Find all unused indexes on the CUSTOMERS table that can be safely dropped"*
+- **Advanced Usage**: *"Show me all unused indexes across the entire database for cleanup"*
+
 ### ⚙️ **Stored Procedures & Functions**
 
 #### **GetStoredProceduresMetadataByName**
@@ -396,38 +474,6 @@ The Database MCP Agent provides **25+ powerful tools** for comprehensive databas
 - **Purpose**: Execute SELECT statements directly against the database
 - **Use Cases**: Data exploration, query testing, quick data analysis
 - **Example**: *"Execute: SELECT COUNT(*) FROM ORDERS WHERE STATUS = 'PENDING'"*
-
-### 🔄 **Cache Management**
-
-#### **RefreshFullDBMetadata**
-- **Purpose**: Refresh all cached database metadata for optimal performance
-- **Use Cases**: Cache maintenance, ensuring fresh metadata, performance optimization
-- **Example**: *"Refresh all database metadata cache"*
-
-#### **RefreshTablesMetadata**
-- **Purpose**: Refresh only table metadata cache
-- **Use Cases**: Targeted cache refresh, table structure updates, performance tuning
-- **Example**: *"Refresh table metadata after schema changes"*
-
-#### **RefreshStoredProceduresMetadata**
-- **Purpose**: Refresh stored procedure metadata cache
-- **Use Cases**: Procedure cache maintenance, code deployment updates
-- **Example**: *"Refresh procedure cache after deployment"*
-
-#### **RefreshFunctionsMetadata**
-- **Purpose**: Refresh function metadata cache
-- **Use Cases**: Function cache maintenance, code updates
-- **Example**: *"Refresh function metadata cache"*
-
-#### **RefreshTriggersMetadata**
-- **Purpose**: Refresh trigger metadata cache
-- **Use Cases**: Trigger cache maintenance, automation updates
-- **Example**: *"Refresh trigger metadata after changes"*
-
-#### **RefreshViewsMetadata**
-- **Purpose**: Refresh view metadata cache
-- **Use Cases**: View cache maintenance, virtual object updates
-- **Example**: *"Refresh view metadata cache"*
 
 **👉 For 100+ sample prompts and detailed examples, see [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md)**
 
@@ -571,7 +617,8 @@ The solution consists of several projects:
 
 - **Metadata Discovery**: Enumerate tables, views, indexes, triggers, stored procedures, and functions
 - **Dependency Analysis**: Analyze object dependencies (e.g., which procedures/functions/triggers reference a table)
-- **Metadata Caching**: Caches metadata in JSON files for performance with tools to refresh the cache
+- **Performance Analytics**: Comprehensive SQL performance analysis, wait event monitoring, and index optimization
+- **Database Intelligence**: Advanced analytics for unused indexes, table usage patterns, and performance bottlenecks
 - **Raw SQL Execution**: Execute raw SQL queries against the Oracle database
 - **MCP Integration**: Expose database tools via Model Context Protocol for use with AI agents
 - **Extensible Architecture**: Modular design for easy extension and customization
@@ -592,6 +639,8 @@ The solution consists of several projects:
 - [ ] **MySQL** - Planned
 
 ### **Feature Enhancements**
+- [x] **Performance Analytics Suite** - Advanced SQL performance analysis, wait event monitoring, and index optimization
+- [x] **Enhanced Oracle Compatibility** - Improved support across Oracle versions with better error handling
 - [ ] Implement more advanced dependency analysis
 - [ ] Add database schema comparison tools
 - [ ] Improve caching mechanisms for multi-database scenarios
