@@ -158,7 +158,7 @@ jobs:
         - **Easy Installation**: Install via `dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer`
         - **MCP Server Configuration**: Automatic VS Code and Visual Studio integration
         - **Environment-based Configuration**: Flexible configuration via environment variables
-        - **25+ MCP Tools** for comprehensive Oracle database analysis
+        - **30+ MCP Tools** for comprehensive Oracle database analysis
 
         ## 📦 Installation Options
 
@@ -197,7 +197,7 @@ jobs:
 
         ## 🌟 Features
 
-        - **25+ MCP Tools** for comprehensive database analysis
+        - **30+ MCP Tools** for comprehensive database analysis
         - **Metadata Discovery** - Tables, views, procedures, functions, triggers
         - **Dependency Analysis** - Impact analysis before schema changes  
         - **Constraint Analysis** - Primary keys, foreign keys, unique constraints

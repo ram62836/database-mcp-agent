@@ -19,7 +19,7 @@
     
     <!-- Package Metadata -->
     <Title>Oracle Database MCP Agent</Title>
-    <Description>Oracle Database MCP Agent with 25+ tools for AI-powered database analysis. Supports metadata discovery, dependency analysis, and performance optimization for Oracle 11g R2+.</Description>
+    <Description>Oracle Database MCP Agent with 30+ tools for AI-powered database analysis. Supports metadata discovery, dependency analysis, and performance optimization for Oracle 11g R2+.</Description>
     <PackageProjectUrl>https://github.com/ram62836/database-mcp-agent</PackageProjectUrl>
     <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
     <PackageReleaseNotes>Version $(HalaDatabaseAgentVersion): Performance optimizations with fast boot capabilities. Enhanced metadata caching, improved connection handling, and better error recovery. Includes comprehensive GitHub Actions CI/CD pipeline for automated releases.</PackageReleaseNotes>

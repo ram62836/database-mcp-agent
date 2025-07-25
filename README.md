@@ -680,7 +680,7 @@ This .NET implementation was inspired by the excellent Python project:
 The Python version provided the initial concept and approach for creating an Oracle database MCP server. This .NET version expands on that foundation with:
 - ✅ **Cross-platform single-file executables**
 - ✅ **Enhanced metadata caching and performance**
-- ✅ **25+ comprehensive database analysis tools**
+- ✅ **30+ comprehensive database analysis tools**
 - ✅ **Extensive documentation and user guides**
 - ✅ **Enterprise-ready deployment options**
 

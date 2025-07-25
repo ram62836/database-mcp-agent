@@ -90,7 +90,7 @@ Add to your Claude config file:
 
 ## 📖 **Complete Documentation**
 - **🔧 Setup Guide**: [README.md](README.md) - Complete installation and configuration
-- **🛠️ All Tools**: [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md) - 25+ tools with 100+ sample prompts
+- **🛠️ All Tools**: [MCP_TOOLS_GUIDE.md](MCP_TOOLS_GUIDE.md) - 30+ tools with 100+ sample prompts
 - **🔒 Security**: [SECURITY.md](SECURITY.md) - Best practices and recommendations
 - **🗃️ Compatibility**: [ORACLE_COMPATIBILITY.md](ORACLE_COMPATIBILITY.md) - Database version matrix
 
