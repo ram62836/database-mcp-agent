@@ -1,12 +1,6 @@
 # Hala Database Agent
 
-A modular database access age    "Hala.DatabaseAgent.OracleMcpServer": {
-      "type": "stdio",
-      "command": "dotnet",
-      "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.14",
-        "--yes"
-      ],AI assistants using the Model Context Protocol (MCP).
+A modular database access agent for AI assistants using the Model Context Protocol (MCP).
 
 [![NuGet Version](https://img.shields.io/nuget/v/Hala.DatabaseAgent.OracleMcpServer.svg)](https://www.nuget.org/packages/Hala.DatabaseAgent.OracleMcpServer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -62,7 +56,7 @@ The `dnx` command used for MCP server integration requires the .NET 10 SDK. Foll
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.14",
+        "Hala.DatabaseMcpAgent@1.0.15",
         "--yes"
       ],
       "env": {
@@ -194,7 +188,7 @@ Configure Claude Desktop to use your Database MCP Agent:
     "Hala.DatabaseAgent.OracleMcpServer": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.14",
+        "Hala.DatabaseAgent.OracleMcpServer@1.0.15",
         "--yes"
       ],
       "env": {
@@ -244,7 +238,7 @@ For complete examples, see [examples/claude-desktop-config.json](examples/claude
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.14",
+        "Hala.DatabaseMcpAgent@1.0.15",
         "--yes"
       ],
       "env": {
