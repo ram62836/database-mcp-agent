@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 
 // Use the executable directory for all file operations
-string executableDirectory = AppConstants.ExecutableDirectory;
+string executableDirectory = AppContext.BaseDirectory;
 
 // Create the configuration first to read logging settings
 ConfigurationManager loggingConfig = new();

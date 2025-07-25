@@ -11,47 +11,20 @@ namespace DatabaseMcp.Core.Services
 {
     public class ColumnMetadataService : IColumnMetadataService
     {
-        private readonly string _metadataJsonDirectory;
-
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ColumnMetadataService> _logger;
 
         public ColumnMetadataService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<ColumnMetadataService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _metadataJsonDirectory = config["MetadataJsonPath"] ?? AppConstants.ExecutableDirectory;
-        }
-
-        // Example usage of _metadataJsonDirectory for reading/writing metadata JSON files
-        private string GetMetadataFilePath(string tableName)
-        {
-            return Path.Combine(_metadataJsonDirectory, $"{tableName}_metadata.json");
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));;
         }
 
         public async Task<List<ColumnMetadata>> GetColumnMetadataAsync(string tableName)
         {
             _logger.LogInformation("Getting column metadata for table: {TableName}", tableName);
             List<ColumnMetadata> columnMetadataList = [];
-            string metadataFilePath = GetMetadataFilePath(tableName);
-            // Example: Check if metadata file exists and read from it
-            if (File.Exists(metadataFilePath))
-            {
-                try
-                {
-                    string json = await File.ReadAllTextAsync(metadataFilePath);
-                    List<ColumnMetadata> cachedMetadata = System.Text.Json.JsonSerializer.Deserialize<List<ColumnMetadata>>(json);
-                    if (cachedMetadata != null)
-                    {
-                        _logger.LogInformation("Loaded column metadata from JSON file: {FilePath}", metadataFilePath);
-                        return cachedMetadata;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read metadata JSON file: {FilePath}", metadataFilePath);
-                }
-            }
+
             try
             {
                 using (System.Data.IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -80,19 +53,7 @@ namespace DatabaseMcp.Core.Services
                         });
                     }
                 }
-                _logger.LogInformation("Retrieved {Count} columns for table {TableName}", columnMetadataList.Count, tableName);
-                // Example: Write metadata to JSON file for caching
-                try
-                {
-                    _ = Directory.CreateDirectory(_metadataJsonDirectory);
-                    string json = System.Text.Json.JsonSerializer.Serialize(columnMetadataList);
-                    await File.WriteAllTextAsync(metadataFilePath, json);
-                    _logger.LogInformation("Saved column metadata to JSON file: {FilePath}", metadataFilePath);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to write metadata JSON file: {FilePath}", metadataFilePath);
-                }
+                _logger.LogInformation("Retrieved {Count} columns for table {TableName}", columnMetadataList.Count, tableName);                
             }
             catch (Exception ex)
             {

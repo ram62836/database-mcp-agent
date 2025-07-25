@@ -8,7 +8,6 @@
       ],
       "env": {
         "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
-        "MetadataCacheJsonPath": "YOUR_METADATA_JSON_PATH_HERE", 
         "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
       }
     }

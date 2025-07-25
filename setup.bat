@@ -60,7 +60,6 @@ echo Next steps:
 echo 1. Install the package: dotnet tool install --global --add-source nupkg Hala.DatabaseAgent.OracleMcpServer
 echo 2. Set environment variables for database connection:
 echo    $env:OracleConnectionString="your-connection-string"
-echo    $env:MetadataCacheJsonPath="%USERPROFILE%\database-mcp-agent\metadata"
 echo    $env:LogFilePath="%USERPROFILE%\database-mcp-agent\logs"
 echo 3. Run the MCP server: oracle-mcp-server
 echo.

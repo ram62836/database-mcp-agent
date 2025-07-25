@@ -14,7 +14,6 @@ Add to your VS Code MCP settings to automatically install and configure:
       "args": ["Hala.DatabaseAgent.OracleMcpServer", "--version", "1.0.15", "--yes"],
       "env": {
         "OracleConnectionString": "your-oracle-connection-string",
-        "MetadataCacheJsonPath": "directory-path-to-store-metadata-cache",
         "LogFilePath": "log-file-directory"
       }
     }

@@ -11,7 +11,6 @@
       ],
       "env": {
         "OracleConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;",
-        "MetadataCacheJsonPath": "C:\\datatbase-mcp-server",
         "LogFilePath": "C:\\datatbase-mcp-server"
       }
     },
@@ -24,7 +23,6 @@
       ],
       "env": {
         "OracleConnectionString": "User Id=testuser;Password=testpass;Data Source=localhost:1521/xe;",
-        "MetadataCacheJsonPath": "C:\\datatbase-mcp-server",
         "LogFilePath": "C:\\datatbase-mcp-server"
       }
     }

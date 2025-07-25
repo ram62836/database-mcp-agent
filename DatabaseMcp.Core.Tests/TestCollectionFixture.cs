@@ -10,29 +10,19 @@ namespace DatabaseMcp.Core.Tests
 
     public class TestCollectionFixture : IDisposable
     {
-        private readonly string? _originalMetadataCacheJsonPath;
         private readonly string _testDirectory;
 
         public TestCollectionFixture()
         {
-            // Store the original environment variable value
-            _originalMetadataCacheJsonPath = Environment.GetEnvironmentVariable("MetadataCacheJsonPath");
-
             // Create a unique temporary directory for this test run
             _testDirectory = Path.Combine(Path.GetTempPath(), "DatabaseMcpAgent_Tests", Guid.NewGuid().ToString());
             _ = Directory.CreateDirectory(_testDirectory);
-
-            // Set the environment variable to point to our test directory
-            Environment.SetEnvironmentVariable("MetadataCacheJsonPath", _testDirectory);
         }
 
         public void Dispose()
         {
             try
             {
-                // Restore the original environment variable value
-                Environment.SetEnvironmentVariable("MetadataCacheJsonPath", _originalMetadataCacheJsonPath);
-
                 // Clean up the test directory
                 if (Directory.Exists(_testDirectory))
                 {

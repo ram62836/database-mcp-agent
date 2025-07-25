@@ -40,12 +40,6 @@ The `dnx` command used for MCP server integration requires the .NET 10 SDK. Foll
     },
     {
       "type": "promptString",
-      "id": "metadata-json-path",
-      "description": "Path to metadata JSON file cache",
-      "password": false
-    },
-    {
-      "type": "promptString",
       "id": "log-file-path",
       "description": "Path to store log files",
       "password": false
@@ -61,7 +55,6 @@ The `dnx` command used for MCP server integration requires the .NET 10 SDK. Foll
       ],
       "env": {
         "OracleConnectionString": "${input:oracle-connection-string}",
-        "MetadataCacheJsonPath": "${input:metadata-json-path}",
         "LogFilePath": "${input:log-file-path}"
       }
     }
@@ -81,8 +74,7 @@ export OracleConnectionString="User Id=system;Password=oracle;Data Source=localh
 
 ### Optional Configuration
 ```bash
-# Cache and log file paths
-export MetadataCacheJsonPath="/path/to/metadata/cache"
+# Log file path
 export LogFilePath="/path/to/logs"
 ```
 
@@ -193,7 +185,6 @@ Configure Claude Desktop to use your Database MCP Agent:
       ],
       "env": {
         "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
-        "MetadataCacheJsonPath": "YOUR_METADATA_JSON_PATH_HERE", 
         "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
       }
     }
@@ -243,7 +234,6 @@ For complete examples, see [examples/claude-desktop-config.json](examples/claude
       ],
       "env": {
         "OracleConnectionString": "${input:oracle-connection-string}",
-        "MetadataCacheJsonPath": "${input:metadata-json-path}",
         "LogFilePath": "${input:log-file-path}"
       }
     }

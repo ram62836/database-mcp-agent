@@ -8,12 +8,6 @@
     },
     {
       "type": "promptString",
-      "id": "metadata-json-path",
-      "description": "Path to metadata JSON file cache",
-      "password": false
-    },
-    {
-      "type": "promptString",
       "id": "log-file-path",
       "description": "Path to store log files",
       "password": false
@@ -30,7 +24,6 @@
       ],
       "env": {
         "OracleConnectionString": "${input:oracle-connection}",
-        "MetadataCacheJsonPath": "${input:metadata-json-path}",
         "LogFilePath": "${input:log-file-path}"
       }
     }
