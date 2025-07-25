@@ -62,6 +62,7 @@ builder.Services.AddScoped<IViewEnumerationService, ViewEnumerationService>();
 builder.Services.AddScoped<IObjectRelationshipService, ObjectRelationshipService>();
 builder.Services.AddScoped<ITriggerService, TriggerService>();
 builder.Services.AddScoped<IRawSqlService, RawSqlService>();
+builder.Services.AddScoped<IPerformanceAnalyticsService, PerformanceAnalyticsService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(Log.Logger, dispose: true));
