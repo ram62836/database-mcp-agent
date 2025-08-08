@@ -227,7 +227,7 @@ jobs:
 
         ```bash
         # Install the package
-        dotnet tool install -g Hala.DatabaseMcpAgent
+        dotnet tool install -g Hala.DatabaseAgent.OracleMcpServer
 
         # Set your Oracle connection
         export ConnectionStrings__OracleConnection="Host=localhost;Port=1521;Database=ORCL;User Id=hr;Password=password;"

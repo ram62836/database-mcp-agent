@@ -46,11 +46,11 @@ The `dnx` command used for MCP server integration requires the .NET 10 SDK. Foll
     }
   ],
   "servers": {
-    "Hala.DatabaseMcpAgent": {
+    "Hala.DatabaseAgent.OracleMcpServer": {
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.16",
+        "Hala.DatabaseAgent.OracleMcpServer",
         "--yes"
       ],
       "env": {
@@ -180,7 +180,7 @@ Configure Claude Desktop to use your Database MCP Agent:
     "Hala.DatabaseAgent.OracleMcpServer": {
       "command": "dnx",
       "args": [
-        "Hala.DatabaseAgent.OracleMcpServer@1.0.16",
+        "Hala.DatabaseAgent.OracleMcpServer",
         "--yes"
       ],
       "env": {
@@ -225,11 +225,11 @@ For complete examples, see [examples/claude-desktop-config.json](examples/claude
     }
   ],
   "servers": {
-    "Hala.DatabaseMcpAgent": {
+    "Hala.DatabaseAgent.OracleMcpServer": {
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "Hala.DatabaseMcpAgent@1.0.16",
+        "Hala.DatabaseAgent.OracleMcpServer",
         "--yes"
       ],
       "env": {
