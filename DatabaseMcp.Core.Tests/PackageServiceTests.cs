@@ -1,5 +1,4 @@
 using DatabaseMcp.Core.Interfaces;
-using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
 using Moq;
 
@@ -21,11 +20,11 @@ namespace DatabaseMcp.Core.Tests
         [Fact]
         public async Task GetPackageDefinitionAsync_ReturnsDefinition()
         {
-            var packageName = "TEST_PACKAGE";
-            var expected = "PACKAGE DEFINITION TEXT";
-            _rawSqlServiceMock.Setup(s => s.ExecuteRawSelectAsync(It.IsAny<string>())).ReturnsAsync(expected);
+            string packageName = "TEST_PACKAGE";
+            string expected = "PACKAGE DEFINITION TEXT";
+            _ = _rawSqlServiceMock.Setup(s => s.ExecuteRawSelectAsync(It.IsAny<string>())).ReturnsAsync(expected);
 
-            var result = await _IPackageToolService.GetPackageDefinitionAsync(packageName);
+            string result = await _IPackageToolService.GetPackageDefinitionAsync(packageName);
 
             Assert.Equal(expected, result);
         }
@@ -33,11 +32,11 @@ namespace DatabaseMcp.Core.Tests
         [Fact]
         public async Task GetPackageBodyAsync_ReturnsBody()
         {
-            var packageName = "TEST_PACKAGE";
-            var expected = "PACKAGE BODY TEXT";
-            _rawSqlServiceMock.Setup(s => s.ExecuteRawSelectAsync(It.IsAny<string>())).ReturnsAsync(expected);
+            string packageName = "TEST_PACKAGE";
+            string expected = "PACKAGE BODY TEXT";
+            _ = _rawSqlServiceMock.Setup(s => s.ExecuteRawSelectAsync(It.IsAny<string>())).ReturnsAsync(expected);
 
-            var result = await _IPackageToolService.GetPackageBodyAsync(packageName);
+            string result = await _IPackageToolService.GetPackageBodyAsync(packageName);
 
             Assert.Equal(expected, result);
         }

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using DatabaseMcp.Core.Interfaces;
 
 namespace DatabaseMcp.Core.Services
 {
-    using DatabaseMcp.Core.Interfaces;
-
     public class PackageService : IPackageService
     {
         private readonly IRawSqlService _rawSqlService;
@@ -18,15 +16,15 @@ namespace DatabaseMcp.Core.Services
 
         public async Task<string> GetPackageDefinitionAsync(string packageName)
         {
-            var sql = $@"SELECT TEXT FROM ALL_SOURCE WHERE NAME = '{packageName.ToUpper()}' AND TYPE = 'PACKAGE' ORDER BY LINE";
-            var result = await _rawSqlService.ExecuteRawSelectAsync(sql);
+            string sql = $@"SELECT TEXT FROM ALL_SOURCE WHERE NAME = '{packageName.ToUpper()}' AND TYPE = 'PACKAGE' ORDER BY LINE";
+            string result = await _rawSqlService.ExecuteRawSelectAsync(sql);
             return result;
         }
 
         public async Task<string> GetPackageBodyAsync(string packageName)
         {
-            var sql = $@"SELECT TEXT FROM ALL_SOURCE WHERE NAME = '{packageName.ToUpper()}' AND TYPE = 'PACKAGE BODY' ORDER BY LINE";
-            var result = await _rawSqlService.ExecuteRawSelectAsync(sql);
+            string sql = $@"SELECT TEXT FROM ALL_SOURCE WHERE NAME = '{packageName.ToUpper()}' AND TYPE = 'PACKAGE BODY' ORDER BY LINE";
+            string result = await _rawSqlService.ExecuteRawSelectAsync(sql);
             return result;
         }
     }

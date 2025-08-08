@@ -20,7 +20,7 @@ namespace DatabaseMcp.Core.Models
         public long DistinctKeys { get; set; }
         public double ClusteringFactor { get; set; }
         public string Status { get; set; } = string.Empty;
-        public List<string> ColumnNames { get; set; } = new();
+        public List<string> ColumnNames { get; set; } = [];
         public bool IsUnused { get; set; }
         public DateTime MonitoringStarted { get; set; }
     }

@@ -12,8 +12,8 @@ namespace DatabaseMcp.Core.Models
         public DateTime? EndTime { get; set; }
         public int TopN { get; set; } = 10;
         public string OrderBy { get; set; } = "ELAPSED_TIME";
-        public List<string> IncludeModules { get; set; } = new();
-        public List<string> ExcludeModules { get; set; } = new();
+        public List<string> IncludeModules { get; set; } = [];
+        public List<string> ExcludeModules { get; set; } = [];
         public string SchemaName { get; set; } = string.Empty;
         public bool IncludeSystemSql { get; set; } = false;
     }

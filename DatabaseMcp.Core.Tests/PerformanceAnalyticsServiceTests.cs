@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
 using DatabaseMcp.Core.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DatabaseMcp.Core.Tests
 {
@@ -55,7 +49,7 @@ namespace DatabaseMcp.Core.Tests
         public void Constructor_ThrowsArgumentNullException_WhenConnectionFactoryIsNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
                 () => new PerformanceAnalyticsService(null!, _loggerMock.Object));
             Assert.Equal("connectionFactory", exception.ParamName);
         }
@@ -64,7 +58,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByPerformanceAsync_WithValidRequest_ReturnsSqlMetrics()
         {
             // Arrange
-            var request = new PerformanceAnalysisRequest
+            PerformanceAnalysisRequest request = new()
             {
                 TopN = 5,
                 OrderBy = "ELAPSED_TIME",
@@ -72,8 +66,8 @@ namespace DatabaseMcp.Core.Tests
                 EndTime = DateTime.Now
             };
 
-            var sqlData = new List<SqlPerformanceMetrics>
-            {
+            List<SqlPerformanceMetrics> sqlData =
+            [
                 new SqlPerformanceMetrics
                 {
                     SqlId = "TEST_SQL_ID_1",
@@ -110,18 +104,18 @@ namespace DatabaseMcp.Core.Tests
                     Module = "TESTAPP",
                     ParsingSchemaName = "HR"
                 }
-            };
+            ];
 
             SetupReaderForSqlPerformanceMetrics(sqlData);
 
             // Act
-            var result = await _service.GetTopSqlByPerformanceAsync(request);
+            List<SqlPerformanceMetrics> result = await _service.GetTopSqlByPerformanceAsync(request);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            
-            var firstSql = result[0];
+
+            SqlPerformanceMetrics firstSql = result[0];
             Assert.Equal("TEST_SQL_ID_1", firstSql.SqlId);
             Assert.Equal("SELECT * FROM EMPLOYEES", firstSql.SqlText);
             Assert.Equal(100, firstSql.Executions);
@@ -133,7 +127,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByPerformanceAsync_WithNullRequest_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(
                 () => _service.GetTopSqlByPerformanceAsync(null!));
             Assert.Equal("request", exception.ParamName);
         }
@@ -142,8 +136,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByExecutionsAsync_WithValidParameters_ReturnsSqlMetrics()
         {
             // Arrange
-            var sqlData = new List<SqlPerformanceMetrics>
-            {
+            List<SqlPerformanceMetrics> sqlData =
+            [
                 new SqlPerformanceMetrics
                 {
                     SqlId = "HIGH_EXEC_SQL",
@@ -152,16 +146,16 @@ namespace DatabaseMcp.Core.Tests
                     ElapsedTimeSeconds = 50.0,
                     CpuTimeSeconds = 20.0
                 }
-            };
+            ];
 
             SetupReaderForSqlPerformanceMetrics(sqlData);
 
             // Act
-            var result = await _service.GetTopSqlByExecutionsAsync(10, DateTime.Now.AddHours(-1), DateTime.Now);
+            List<SqlPerformanceMetrics> result = await _service.GetTopSqlByExecutionsAsync(10, DateTime.Now.AddHours(-1), DateTime.Now);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.Equal("HIGH_EXEC_SQL", result[0].SqlId);
             Assert.Equal(1000, result[0].Executions);
         }
@@ -170,8 +164,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByCpuTimeAsync_WithValidParameters_ReturnsSqlMetrics()
         {
             // Arrange
-            var sqlData = new List<SqlPerformanceMetrics>
-            {
+            List<SqlPerformanceMetrics> sqlData =
+            [
                 new SqlPerformanceMetrics
                 {
                     SqlId = "HIGH_CPU_SQL",
@@ -180,16 +174,16 @@ namespace DatabaseMcp.Core.Tests
                     ElapsedTimeSeconds = 200.0,
                     CpuTimeSeconds = 180.0
                 }
-            };
+            ];
 
             SetupReaderForSqlPerformanceMetrics(sqlData);
 
             // Act
-            var result = await _service.GetTopSqlByCpuTimeAsync(5);
+            List<SqlPerformanceMetrics> result = await _service.GetTopSqlByCpuTimeAsync(5);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.Equal("HIGH_CPU_SQL", result[0].SqlId);
             Assert.Equal(180.0, result[0].CpuTimeSeconds);
         }
@@ -198,8 +192,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByElapsedTimeAsync_WithValidParameters_ReturnsSqlMetrics()
         {
             // Arrange
-            var sqlData = new List<SqlPerformanceMetrics>
-            {
+            List<SqlPerformanceMetrics> sqlData =
+            [
                 new SqlPerformanceMetrics
                 {
                     SqlId = "SLOW_SQL",
@@ -208,16 +202,16 @@ namespace DatabaseMcp.Core.Tests
                     ElapsedTimeSeconds = 500.0,
                     CpuTimeSeconds = 50.0
                 }
-            };
+            ];
 
             SetupReaderForSqlPerformanceMetrics(sqlData);
 
             // Act
-            var result = await _service.GetTopSqlByElapsedTimeAsync();
+            List<SqlPerformanceMetrics> result = await _service.GetTopSqlByElapsedTimeAsync();
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.Equal("SLOW_SQL", result[0].SqlId);
             Assert.Equal(500.0, result[0].ElapsedTimeSeconds);
         }
@@ -226,8 +220,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetWaitEventAnalysisAsync_WithValidParameters_ReturnsWaitEventMetrics()
         {
             // Arrange
-            var waitEventData = new List<WaitEventMetrics>
-            {
+            List<WaitEventMetrics> waitEventData =
+            [
                 new WaitEventMetrics
                 {
                     EventName = "db file sequential read",
@@ -254,18 +248,18 @@ namespace DatabaseMcp.Core.Tests
                     ObjectName = "",
                     ObjectOwner = ""
                 }
-            };
+            ];
 
             SetupReaderForWaitEventMetrics(waitEventData);
 
             // Act
-            var result = await _service.GetWaitEventAnalysisAsync("EMPLOYEES");
+            List<WaitEventMetrics> result = await _service.GetWaitEventAnalysisAsync("EMPLOYEES");
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            
-            var ioWait = result.First(w => w.EventName == "db file sequential read");
+
+            WaitEventMetrics ioWait = result.First(w => w.EventName == "db file sequential read");
             Assert.Equal("User I/O", ioWait.WaitClass);
             Assert.Equal(50000, ioWait.TotalWaits);
             Assert.Equal(125.5, ioWait.TotalWaitTimeSeconds);
@@ -275,9 +269,9 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTableUsageStatisticsAsync_WithValidTableNames_ReturnsTableUsageStats()
         {
             // Arrange
-            var tableNames = new List<string> { "EMPLOYEES", "DEPARTMENTS" };
-            var tableUsageData = new List<TableUsageStatistics>
-            {
+            List<string> tableNames = ["EMPLOYEES", "DEPARTMENTS"];
+            List<TableUsageStatistics> tableUsageData =
+            [
                 new TableUsageStatistics
                 {
                     TableName = "EMPLOYEES",
@@ -310,18 +304,18 @@ namespace DatabaseMcp.Core.Tests
                     Tablespace = "USERS",
                     IsPartitioned = false
                 }
-            };
+            ];
 
             SetupReaderForTableUsageStatistics(tableUsageData);
 
             // Act
-            var result = await _service.GetTableUsageStatisticsAsync(tableNames);
+            List<TableUsageStatistics> result = await _service.GetTableUsageStatisticsAsync(tableNames);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            
-            var employeesTable = result.First(t => t.TableName == "EMPLOYEES");
+
+            TableUsageStatistics employeesTable = result.First(t => t.TableName == "EMPLOYEES");
             Assert.Equal("HR", employeesTable.SchemaName);
             Assert.Equal(150, employeesTable.TableScans);
             Assert.Equal(5000, employeesTable.RowLookups);
@@ -331,7 +325,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTableUsageStatisticsAsync_WithEmptyList_ReturnsEmptyList()
         {
             // Act
-            var result = await _service.GetTableUsageStatisticsAsync(new List<string>());
+            List<TableUsageStatistics> result = await _service.GetTableUsageStatisticsAsync([]);
 
             // Assert
             Assert.NotNull(result);
@@ -342,7 +336,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTableUsageStatisticsAsync_WithNullList_ReturnsEmptyList()
         {
             // Act
-            var result = await _service.GetTableUsageStatisticsAsync(null);
+            List<TableUsageStatistics> result = await _service.GetTableUsageStatisticsAsync(null);
 
             // Assert
             Assert.NotNull(result);
@@ -356,8 +350,8 @@ namespace DatabaseMcp.Core.Tests
         {
             // Arrange
             const string tableName = "EMPLOYEES";
-            var indexUsageData = new List<IndexUsageStatistics>
-            {
+            List<IndexUsageStatistics> indexUsageData =
+            [
                 new IndexUsageStatistics
                 {
                     IndexName = "PK_EMPLOYEES",
@@ -372,7 +366,7 @@ namespace DatabaseMcp.Core.Tests
                     DistinctKeys = 1000,
                     ClusteringFactor = 850.5,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "EMPLOYEE_ID" },
+                    ColumnNames = ["EMPLOYEE_ID"],
                     IsUnused = false,
                     MonitoringStarted = DateTime.Now.AddDays(-30)
                 },
@@ -390,22 +384,22 @@ namespace DatabaseMcp.Core.Tests
                     DistinctKeys = 1000,
                     ClusteringFactor = 900.2,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "EMAIL" },
+                    ColumnNames = ["EMAIL"],
                     IsUnused = false,
                     MonitoringStarted = DateTime.Now.AddDays(-30)
                 }
-            };
+            ];
 
             SetupReaderForIndexUsageStatistics(indexUsageData);
 
             // Act
-            var result = await _service.GetIndexUsageStatisticsAsync(tableName);
+            List<IndexUsageStatistics> result = await _service.GetIndexUsageStatisticsAsync(tableName);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            
-            var pkIndex = result.First(i => i.IndexName == "PK_EMPLOYEES");
+
+            IndexUsageStatistics pkIndex = result.First(i => i.IndexName == "PK_EMPLOYEES");
             Assert.True(pkIndex.IsUnique);
             Assert.Equal(10000, pkIndex.TotalAccess);
             Assert.Contains("EMPLOYEE_ID", pkIndex.ColumnNames);
@@ -415,7 +409,7 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetIndexUsageStatisticsAsync_WithEmptyTableName_ThrowsArgumentException()
         {
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(
+            ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => _service.GetIndexUsageStatisticsAsync(""));
             Assert.Equal("tableName", exception.ParamName);
         }
@@ -424,8 +418,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetUnusedIndexesAsync_ReturnsUnusedIndexes()
         {
             // Arrange
-            var unusedIndexData = new List<IndexUsageStatistics>
-            {
+            List<IndexUsageStatistics> unusedIndexData =
+            [
                 new IndexUsageStatistics
                 {
                     IndexName = "IDX_UNUSED_1",
@@ -436,7 +430,7 @@ namespace DatabaseMcp.Core.Tests
                     TotalAccess = 0,
                     IsUnused = true,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "MIDDLE_NAME" }
+                    ColumnNames = ["MIDDLE_NAME"]
                 },
                 new IndexUsageStatistics
                 {
@@ -448,14 +442,14 @@ namespace DatabaseMcp.Core.Tests
                     TotalAccess = 0,
                     IsUnused = true,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "DESCRIPTION" }
+                    ColumnNames = ["DESCRIPTION"]
                 }
-            };
+            ];
 
             SetupReaderForIndexUsageStatistics(unusedIndexData);
 
             // Act
-            var result = await _service.GetUnusedIndexesAsync();
+            List<IndexUsageStatistics> result = await _service.GetUnusedIndexesAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -468,9 +462,9 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetUnusedIndexesAsync_WithSpecificTables_ReturnsFilteredUnusedIndexes()
         {
             // Arrange
-            var tableNames = new List<string> { "EMS_RS_AWARD", "EMPLOYEES" };
-            var unusedIndexData = new List<IndexUsageStatistics>
-            {
+            List<string> tableNames = ["EMS_RS_AWARD", "EMPLOYEES"];
+            List<IndexUsageStatistics> unusedIndexData =
+            [
                 new IndexUsageStatistics
                 {
                     IndexName = "IDX_AWARD_UNUSED",
@@ -481,7 +475,7 @@ namespace DatabaseMcp.Core.Tests
                     TotalAccess = 0,
                     IsUnused = true,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "AWARD_DATE" }
+                    ColumnNames = ["AWARD_DATE"]
                 },
                 new IndexUsageStatistics
                 {
@@ -493,14 +487,14 @@ namespace DatabaseMcp.Core.Tests
                     TotalAccess = 0,
                     IsUnused = true,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "MIDDLE_NAME" }
+                    ColumnNames = ["MIDDLE_NAME"]
                 }
-            };
+            ];
 
             SetupReaderForIndexUsageStatistics(unusedIndexData);
 
             // Act
-            var result = await _service.GetUnusedIndexesAsync(tableNames);
+            List<IndexUsageStatistics> result = await _service.GetUnusedIndexesAsync(tableNames);
 
             // Assert
             Assert.NotNull(result);
@@ -515,8 +509,8 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetUnusedIndexesAsync_WithEmptyTableList_ReturnsAllUnusedIndexes()
         {
             // Arrange
-            var unusedIndexData = new List<IndexUsageStatistics>
-            {
+            List<IndexUsageStatistics> unusedIndexData =
+            [
                 new IndexUsageStatistics
                 {
                     IndexName = "IDX_UNUSED_ALL",
@@ -527,18 +521,18 @@ namespace DatabaseMcp.Core.Tests
                     TotalAccess = 0,
                     IsUnused = true,
                     Status = "VALID",
-                    ColumnNames = new List<string> { "SOME_COLUMN" }
+                    ColumnNames = ["SOME_COLUMN"]
                 }
-            };
+            ];
 
             SetupReaderForIndexUsageStatistics(unusedIndexData);
 
             // Act
-            var result = await _service.GetUnusedIndexesAsync(new List<string>());
+            List<IndexUsageStatistics> result = await _service.GetUnusedIndexesAsync([]);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.True(result[0].IsUnused);
         }
 
@@ -550,12 +544,12 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByPerformanceAsync_WhenDatabaseThrowsException_PropagatesException()
         {
             // Arrange
-            var request = new PerformanceAnalysisRequest { TopN = 5 };
-            var expectedException = new InvalidOperationException("Database error");
+            PerformanceAnalysisRequest request = new() { TopN = 5 };
+            InvalidOperationException expectedException = new("Database error");
             _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ThrowsAsync(expectedException);
 
             // Act & Assert
-            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+            InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _service.GetTopSqlByPerformanceAsync(request));
             Assert.Equal(expectedException, actualException);
         }
@@ -564,11 +558,11 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetWaitEventAnalysisAsync_WhenDatabaseThrowsException_PropagatesException()
         {
             // Arrange
-            var expectedException = new InvalidOperationException("Database error");
+            InvalidOperationException expectedException = new("Database error");
             _ = _connectionFactoryMock.Setup(f => f.CreateConnectionAsync()).ThrowsAsync(expectedException);
 
             // Act & Assert
-            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+            InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _service.GetWaitEventAnalysisAsync());
             Assert.Equal(expectedException, actualException);
         }
@@ -671,11 +665,11 @@ namespace DatabaseMcp.Core.Tests
         public async Task GetTopSqlByExecutionsAsync_WithSpecificDateFormat_HandlesDateParametersCorrectly()
         {
             // Arrange - Test the specific date format issue from the MCP client
-            var startTime = DateTime.Parse("2025-07-23T00:00:00");
-            var endTime = DateTime.Parse("2025-07-25T23:59:59");
-            
-            SetupReaderForSqlPerformanceMetrics(new List<SqlPerformanceMetrics>
-            {
+            DateTime startTime = DateTime.Parse("2025-07-23T00:00:00");
+            DateTime endTime = DateTime.Parse("2025-07-25T23:59:59");
+
+            SetupReaderForSqlPerformanceMetrics(
+            [
                 new SqlPerformanceMetrics
                 {
                     SqlId = "TEST_SQL_1",
@@ -684,14 +678,14 @@ namespace DatabaseMcp.Core.Tests
                     ElapsedTimeSeconds = 50.0,
                     CpuTimeSeconds = 25.0
                 }
-            });
+            ]);
 
             // Act
-            var result = await _service.GetTopSqlByExecutionsAsync(10, startTime, endTime);
+            List<SqlPerformanceMetrics> result = await _service.GetTopSqlByExecutionsAsync(10, startTime, endTime);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
+            _ = Assert.Single(result);
             Assert.Equal("TEST_SQL_1", result[0].SqlId);
             _connectionFactoryMock.Verify(f => f.CreateConnectionAsync(), Times.Once);
             _commandMock.Verify(c => c.ExecuteReader(), Times.Once);

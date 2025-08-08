@@ -29,20 +29,22 @@ namespace DatabaseMcp.Core.Services
             _logger.LogInformation("Getting top SQL by performance metrics");
 
             if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
+            }
 
-            var sql = BuildTopSqlQuery(request);
+            string sql = BuildTopSqlQuery(request);
 
             try
             {
-                using var connection = await _connectionFactory.CreateConnectionAsync();
-                using var command = connection.CreateCommand();
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
                 command.CommandText = sql;
 
                 AddSqlParameters(command, request);
 
-                using var reader = command.ExecuteReader();
-                var results = new List<SqlPerformanceMetrics>();
+                using IDataReader reader = command.ExecuteReader();
+                List<SqlPerformanceMetrics> results = [];
 
                 while (reader.Read())
                 {
@@ -63,7 +65,7 @@ namespace DatabaseMcp.Core.Services
         {
             _logger.LogInformation("Getting top SQL by executions");
 
-            var request = new PerformanceAnalysisRequest
+            PerformanceAnalysisRequest request = new()
             {
                 TopN = topN,
                 StartTime = startTime,
@@ -78,7 +80,7 @@ namespace DatabaseMcp.Core.Services
         {
             _logger.LogInformation("Getting top SQL by CPU time");
 
-            var request = new PerformanceAnalysisRequest
+            PerformanceAnalysisRequest request = new()
             {
                 TopN = topN,
                 StartTime = startTime,
@@ -93,7 +95,7 @@ namespace DatabaseMcp.Core.Services
         {
             _logger.LogInformation("Getting top SQL by elapsed time");
 
-            var request = new PerformanceAnalysisRequest
+            PerformanceAnalysisRequest request = new()
             {
                 TopN = topN,
                 StartTime = startTime,
@@ -108,18 +110,18 @@ namespace DatabaseMcp.Core.Services
         {
             _logger.LogInformation("Getting wait event analysis");
 
-            var sql = BuildWaitEventQuery(objectName);
+            string sql = BuildWaitEventQuery(objectName);
 
             try
             {
-                using var connection = await _connectionFactory.CreateConnectionAsync();
-                using var command = connection.CreateCommand();
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
                 command.CommandText = sql;
 
                 AddWaitEventParameters(command, objectName);
 
-                using var reader = command.ExecuteReader();
-                var results = new List<WaitEventMetrics>();
+                using IDataReader reader = command.ExecuteReader();
+                List<WaitEventMetrics> results = [];
 
                 while (reader.Read())
                 {
@@ -141,20 +143,22 @@ namespace DatabaseMcp.Core.Services
             _logger.LogInformation("Getting table usage statistics for {Count} tables", tableNames?.Count ?? 0);
 
             if (tableNames == null || !tableNames.Any())
-                return new List<TableUsageStatistics>();
+            {
+                return [];
+            }
 
-            var sql = BuildTableUsageQuery(tableNames);
+            string sql = BuildTableUsageQuery(tableNames);
 
             try
             {
-                using var connection = await _connectionFactory.CreateConnectionAsync();
-                using var command = connection.CreateCommand();
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
                 command.CommandText = sql;
 
                 AddTableNameParameters(command, tableNames);
 
-                using var reader = command.ExecuteReader();
-                var results = new List<TableUsageStatistics>();
+                using IDataReader reader = command.ExecuteReader();
+                List<TableUsageStatistics> results = [];
 
                 while (reader.Read())
                 {
@@ -176,7 +180,9 @@ namespace DatabaseMcp.Core.Services
             _logger.LogInformation("Getting index usage statistics for table: {TableName}", tableName);
 
             if (string.IsNullOrWhiteSpace(tableName))
+            {
                 throw new ArgumentException("Table name cannot be null or empty", nameof(tableName));
+            }
 
             const string sql = @"
                 SELECT 
@@ -205,17 +211,17 @@ namespace DatabaseMcp.Core.Services
 
             try
             {
-                using var connection = await _connectionFactory.CreateConnectionAsync();
-                using var command = connection.CreateCommand();
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
                 command.CommandText = sql;
 
-                var parameter = command.CreateParameter();
+                IDbDataParameter parameter = command.CreateParameter();
                 parameter.ParameterName = "tableName";
                 parameter.Value = tableName.ToUpper();
-                command.Parameters.Add(parameter);
+                _ = command.Parameters.Add(parameter);
 
-                using var reader = command.ExecuteReader();
-                var results = new List<IndexUsageStatistics>();
+                using IDataReader reader = command.ExecuteReader();
+                List<IndexUsageStatistics> results = [];
 
                 while (reader.Read())
                 {
@@ -234,14 +240,14 @@ namespace DatabaseMcp.Core.Services
 
         public async Task<List<IndexUsageStatistics>> GetUnusedIndexesAsync(List<string> tableNames = null)
         {
-            var tableFilter = tableNames?.Any() == true ? $"for tables: {string.Join(", ", tableNames)}" : "for all tables";
+            string tableFilter = tableNames?.Any() == true ? $"for tables: {string.Join(", ", tableNames)}" : "for all tables";
             _logger.LogInformation("Getting unused indexes {TableFilter}", tableFilter);
-            var sql = BuildUnusedIndexesQuery(tableNames);
+            string sql = BuildUnusedIndexesQuery(tableNames);
 
             try
             {
-                using var connection = await _connectionFactory.CreateConnectionAsync();
-                using var command = connection.CreateCommand();
+                using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
+                using IDbCommand command = connection.CreateCommand();
                 command.CommandText = sql;
 
                 if (tableNames?.Any() == true)
@@ -249,8 +255,8 @@ namespace DatabaseMcp.Core.Services
                     AddTableNameParameters(command, tableNames);
                 }
 
-                using var reader = command.ExecuteReader();
-                var results = new List<IndexUsageStatistics>();
+                using IDataReader reader = command.ExecuteReader();
+                List<IndexUsageStatistics> results = [];
 
                 while (reader.Read())
                 {
@@ -270,7 +276,7 @@ namespace DatabaseMcp.Core.Services
         // Private helper methods for building SQL queries and mapping results
         private static string BuildTopSqlQuery(PerformanceAnalysisRequest request)
         {
-            var sql = new StringBuilder(@"
+            StringBuilder sql = new(@"
                 SELECT * FROM (
                     SELECT 
                         s.SQL_ID,
@@ -292,19 +298,27 @@ namespace DatabaseMcp.Core.Services
                     WHERE s.EXECUTIONS > 0");
 
             if (request.StartTime.HasValue)
-                sql.Append(" AND TO_DATE(s.FIRST_LOAD_TIME, 'YYYY-MM-DD/HH24:MI:SS') >= TO_DATE(:startTime, 'YYYY-MM-DD HH24:MI:SS')");
+            {
+                _ = sql.Append(" AND TO_DATE(s.FIRST_LOAD_TIME, 'YYYY-MM-DD/HH24:MI:SS') >= TO_DATE(:startTime, 'YYYY-MM-DD HH24:MI:SS')");
+            }
 
             if (request.EndTime.HasValue)
-                sql.Append(" AND TO_DATE(s.LAST_LOAD_TIME, 'YYYY-MM-DD/HH24:MI:SS') <= TO_DATE(:endTime, 'YYYY-MM-DD HH24:MI:SS')");
+            {
+                _ = sql.Append(" AND TO_DATE(s.LAST_LOAD_TIME, 'YYYY-MM-DD/HH24:MI:SS') <= TO_DATE(:endTime, 'YYYY-MM-DD HH24:MI:SS')");
+            }
 
             if (!string.IsNullOrEmpty(request.SchemaName))
-                sql.Append(" AND s.PARSING_SCHEMA_NAME = :schemaName");
+            {
+                _ = sql.Append(" AND s.PARSING_SCHEMA_NAME = :schemaName");
+            }
 
             if (!request.IncludeSystemSql)
-                sql.Append(" AND s.PARSING_SCHEMA_NAME NOT IN ('SYS', 'SYSTEM', 'DBSNMP')");
+            {
+                _ = sql.Append(" AND s.PARSING_SCHEMA_NAME NOT IN ('SYS', 'SYSTEM', 'DBSNMP')");
+            }
 
-            sql.Append($" ORDER BY {GetOrderByClause(request.OrderBy)} DESC");
-            sql.Append($") WHERE ROWNUM <= {request.TopN}");
+            _ = sql.Append($" ORDER BY {GetOrderByClause(request.OrderBy)} DESC");
+            _ = sql.Append($") WHERE ROWNUM <= {request.TopN}");
 
             return sql.ToString();
         }
@@ -325,26 +339,26 @@ namespace DatabaseMcp.Core.Services
         {
             if (request.StartTime.HasValue)
             {
-                var param = command.CreateParameter();
+                IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "startTime";
                 param.Value = request.StartTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
-                command.Parameters.Add(param);
+                _ = command.Parameters.Add(param);
             }
 
             if (request.EndTime.HasValue)
             {
-                var param = command.CreateParameter();
+                IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "endTime";
                 param.Value = request.EndTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
-                command.Parameters.Add(param);
+                _ = command.Parameters.Add(param);
             }
 
             if (!string.IsNullOrEmpty(request.SchemaName))
             {
-                var param = command.CreateParameter();
+                IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "schemaName";
                 param.Value = request.SchemaName.ToUpper();
-                command.Parameters.Add(param);
+                _ = command.Parameters.Add(param);
             }
         }
 
@@ -372,47 +386,43 @@ namespace DatabaseMcp.Core.Services
 
         private static DateTime ParseOracleDate(string dateString)
         {
-            if (string.IsNullOrEmpty(dateString))
-                return DateTime.MinValue;
-
-            if (DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-                return result;
-
-            if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-                return result;
-
-            return DateTime.MinValue;
+            return string.IsNullOrEmpty(dateString)
+                ? DateTime.MinValue
+                : DateTime.TryParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result)
+                ? result
+                : DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? result : DateTime.MinValue;
         }
 
         private static long SafeConvertToInt64(object value)
         {
-            if (value == null || value == DBNull.Value) return 0;
+            if (value == null || value == DBNull.Value)
+            {
+                return 0;
+            }
 
             try
             {
                 // Handle decimal values from Oracle
                 if (value is decimal decimalValue)
                 {
-                    if (decimalValue > long.MaxValue) return long.MaxValue;
-                    if (decimalValue < long.MinValue) return long.MinValue;
-                    return Convert.ToInt64(decimalValue);
+                    return decimalValue > long.MaxValue ? long.MaxValue : decimalValue < long.MinValue ? long.MinValue : Convert.ToInt64(decimalValue);
                 }
 
-                var stringValue = value.ToString();
-                if (string.IsNullOrEmpty(stringValue)) return 0;
+                string stringValue = value.ToString();
+                if (string.IsNullOrEmpty(stringValue))
+                {
+                    return 0;
+                }
 
-                if (long.TryParse(stringValue, out var result))
+                if (long.TryParse(stringValue, out long result))
+                {
                     return result;
+                }
 
                 // Try parsing as decimal first, then convert
-                if (decimal.TryParse(stringValue, out var decResult))
-                {
-                    if (decResult > long.MaxValue) return long.MaxValue;
-                    if (decResult < long.MinValue) return long.MinValue;
-                    return Convert.ToInt64(decResult);
-                }
-
-                return 0;
+                return decimal.TryParse(stringValue, out decimal decResult)
+                    ? decResult > long.MaxValue ? long.MaxValue : decResult < long.MinValue ? long.MinValue : Convert.ToInt64(decResult)
+                    : 0;
             }
             catch (OverflowException)
             {
@@ -426,7 +436,10 @@ namespace DatabaseMcp.Core.Services
 
         private static double SafeConvertToDouble(object value)
         {
-            if (value == null || value == DBNull.Value) return 0.0;
+            if (value == null || value == DBNull.Value)
+            {
+                return 0.0;
+            }
 
             try
             {
@@ -436,13 +449,10 @@ namespace DatabaseMcp.Core.Services
                     return Convert.ToDouble(decimalValue);
                 }
 
-                var stringValue = value.ToString();
-                if (string.IsNullOrEmpty(stringValue)) return 0.0;
-
-                if (double.TryParse(stringValue, out var result))
-                    return double.IsInfinity(result) || double.IsNaN(result) ? 0.0 : result;
-
-                return 0.0;
+                string stringValue = value.ToString();
+                return string.IsNullOrEmpty(stringValue)
+                    ? 0.0
+                    : double.TryParse(stringValue, out double result) ? double.IsInfinity(result) || double.IsNaN(result) ? 0.0 : result : 0.0;
             }
             catch (OverflowException)
             {
@@ -456,33 +466,34 @@ namespace DatabaseMcp.Core.Services
 
         private static int SafeConvertToInt32(object value)
         {
-            if (value == null || value == DBNull.Value) return 0;
+            if (value == null || value == DBNull.Value)
+            {
+                return 0;
+            }
 
             try
             {
                 // Handle decimal values from Oracle
                 if (value is decimal decimalValue)
                 {
-                    if (decimalValue > int.MaxValue) return int.MaxValue;
-                    if (decimalValue < int.MinValue) return int.MinValue;
-                    return Convert.ToInt32(decimalValue);
+                    return decimalValue > int.MaxValue ? int.MaxValue : decimalValue < int.MinValue ? int.MinValue : Convert.ToInt32(decimalValue);
                 }
 
-                var stringValue = value.ToString();
-                if (string.IsNullOrEmpty(stringValue)) return 0;
+                string stringValue = value.ToString();
+                if (string.IsNullOrEmpty(stringValue))
+                {
+                    return 0;
+                }
 
-                if (int.TryParse(stringValue, out var result))
+                if (int.TryParse(stringValue, out int result))
+                {
                     return result;
+                }
 
                 // Try parsing as decimal first, then convert
-                if (decimal.TryParse(stringValue, out var decResult))
-                {
-                    if (decResult > int.MaxValue) return int.MaxValue;
-                    if (decResult < int.MinValue) return int.MinValue;
-                    return Convert.ToInt32(decResult);
-                }
-
-                return 0;
+                return decimal.TryParse(stringValue, out decimal decResult)
+                    ? decResult > int.MaxValue ? int.MaxValue : decResult < int.MinValue ? int.MinValue : Convert.ToInt32(decResult)
+                    : 0;
             }
             catch (OverflowException)
             {
@@ -505,10 +516,12 @@ namespace DatabaseMcp.Core.Services
                 // Handle Oracle decimal overflow by trying to get as string
                 try
                 {
-                    var ordinal = reader.GetOrdinal(columnName);
+                    int ordinal = reader.GetOrdinal(columnName);
                     if (reader.IsDBNull(ordinal))
+                    {
                         return DBNull.Value;
-                    
+                    }
+
                     // Try to get as string to avoid decimal overflow
                     return reader.GetString(ordinal);
                 }
@@ -522,10 +535,12 @@ namespace DatabaseMcp.Core.Services
                 // Handle Oracle arithmetic overflow
                 try
                 {
-                    var ordinal = reader.GetOrdinal(columnName);
+                    int ordinal = reader.GetOrdinal(columnName);
                     if (reader.IsDBNull(ordinal))
+                    {
                         return DBNull.Value;
-                    
+                    }
+
                     // Try to get as string to avoid overflow
                     return reader.GetString(ordinal);
                 }
@@ -542,7 +557,7 @@ namespace DatabaseMcp.Core.Services
 
         private static string BuildWaitEventQuery(string objectName)
         {
-            var sql = new StringBuilder(@"
+            StringBuilder sql = new(@"
                 SELECT 
                     EVENT as EVENT_NAME,
                     WAIT_CLASS,
@@ -561,10 +576,10 @@ namespace DatabaseMcp.Core.Services
 
             if (!string.IsNullOrEmpty(objectName))
             {
-                sql.Append(" AND EVENT LIKE '%' || :objectName || '%'");
+                _ = sql.Append(" AND EVENT LIKE '%' || :objectName || '%'");
             }
 
-            sql.Append(" ORDER BY TIME_WAITED DESC");
+            _ = sql.Append(" ORDER BY TIME_WAITED DESC");
 
             return sql.ToString();
         }
@@ -573,10 +588,10 @@ namespace DatabaseMcp.Core.Services
         {
             if (!string.IsNullOrEmpty(objectName))
             {
-                var param = command.CreateParameter();
+                IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "objectName";
                 param.Value = objectName.ToUpper();
-                command.Parameters.Add(param);
+                _ = command.Parameters.Add(param);
             }
         }
 
@@ -599,7 +614,7 @@ namespace DatabaseMcp.Core.Services
 
         private static string BuildTableUsageQuery(List<string> tableNames)
         {
-            var inClause = string.Join(",", tableNames.Select((_, i) => $":p{i}"));
+            string inClause = string.Join(",", tableNames.Select((_, i) => $":p{i}"));
 
             return $@"
                 SELECT 
@@ -628,16 +643,16 @@ namespace DatabaseMcp.Core.Services
         {
             for (int i = 0; i < tableNames.Count; i++)
             {
-                var param = command.CreateParameter();
+                IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = $"p{i}";
                 param.Value = tableNames[i].ToUpper();
-                command.Parameters.Add(param);
+                _ = command.Parameters.Add(param);
             }
         }
 
         private string BuildUnusedIndexesQuery(List<string> tableNames)
         {
-            var sql = new StringBuilder(@"
+            StringBuilder sql = new(@"
                 SELECT 
                     i.INDEX_NAME,
                     i.TABLE_NAME,
@@ -670,11 +685,11 @@ namespace DatabaseMcp.Core.Services
             // Add table name filter if specified
             if (tableNames?.Any() == true)
             {
-                var inClause = string.Join(",", tableNames.Select((_, i) => $":p{i}"));
-                sql.Append($" AND i.TABLE_NAME IN ({inClause})");
+                string inClause = string.Join(",", tableNames.Select((_, i) => $":p{i}"));
+                _ = sql.Append($" AND i.TABLE_NAME IN ({inClause})");
             }
 
-            sql.Append(@"
+            _ = sql.Append(@"
                 GROUP BY 
                     i.INDEX_NAME,
                     i.TABLE_NAME,
@@ -714,7 +729,7 @@ namespace DatabaseMcp.Core.Services
 
         private static IndexUsageStatistics MapIndexUsageStatistics(IDataReader reader)
         {
-            var columnNames = SafeGetValue(reader, "COLUMN_NAMES")?.ToString()?.Split(',') ?? Array.Empty<string>();
+            string[] columnNames = SafeGetValue(reader, "COLUMN_NAMES")?.ToString()?.Split(',') ?? Array.Empty<string>();
 
             return new IndexUsageStatistics
             {

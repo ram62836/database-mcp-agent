@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using DatabaseMcp.Core.Interfaces;
 using DatabaseMcp.Core.Models;
@@ -17,7 +16,7 @@ namespace DatabaseMcp.Core.Services
         public ColumnMetadataService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<ColumnMetadataService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<ColumnMetadata>> GetColumnMetadataAsync(string tableName)
@@ -53,7 +52,7 @@ namespace DatabaseMcp.Core.Services
                         });
                     }
                 }
-                _logger.LogInformation("Retrieved {Count} columns for table {TableName}", columnMetadataList.Count, tableName);                
+                _logger.LogInformation("Retrieved {Count} columns for table {TableName}", columnMetadataList.Count, tableName);
             }
             catch (Exception ex)
             {
