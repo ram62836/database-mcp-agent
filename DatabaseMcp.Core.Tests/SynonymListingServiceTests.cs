@@ -54,7 +54,7 @@ namespace DatabaseMcp.Core.Tests
             Assert.Equal("TABLE1", result[0].BaseObjectName);
 
             // Verify the command was set up correctly
-            _commandMock.VerifySet(c => c.CommandText = It.IsAny<string>());
+            _commandMock.VerifySet(c => c.CommandText = "SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS");
         }
 
         [Fact]

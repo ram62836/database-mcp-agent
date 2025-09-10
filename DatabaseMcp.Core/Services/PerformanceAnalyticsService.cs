@@ -15,6 +15,7 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<PerformanceAnalyticsService> _logger;
+        private readonly string _owner;
 
         public PerformanceAnalyticsService(
             IDbConnectionFactory connectionFactory,
@@ -22,6 +23,7 @@ namespace DatabaseMcp.Core.Services
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<SqlPerformanceMetrics>> GetTopSqlByPerformanceAsync(PerformanceAnalysisRequest request)
@@ -204,7 +206,7 @@ namespace DatabaseMcp.Core.Services
                 FROM ALL_INDEXES i
                 LEFT JOIN ALL_IND_COLUMNS ic ON ic.INDEX_NAME = i.INDEX_NAME AND ic.INDEX_OWNER = i.OWNER
                 WHERE i.TABLE_NAME = :tableName 
-                  AND i.OWNER = USER
+                  AND i.OWNER = :Owner
                 GROUP BY i.INDEX_NAME, i.TABLE_NAME, i.OWNER, i.INDEX_TYPE, i.UNIQUENESS, 
                          i.BLEVEL, i.LEAF_BLOCKS, i.DISTINCT_KEYS, i.CLUSTERING_FACTOR, i.STATUS
                 ORDER BY i.INDEX_NAME";
@@ -219,6 +221,10 @@ namespace DatabaseMcp.Core.Services
                 parameter.ParameterName = "tableName";
                 parameter.Value = tableName.ToUpper();
                 _ = command.Parameters.Add(parameter);
+                IDbDataParameter ownerParam = command.CreateParameter();
+                ownerParam.ParameterName = "Owner";
+                ownerParam.Value = _owner;
+                _ = command.Parameters.Add(ownerParam);
 
                 using IDataReader reader = command.ExecuteReader();
                 List<IndexUsageStatistics> results = [];
@@ -253,6 +259,14 @@ namespace DatabaseMcp.Core.Services
                 if (tableNames?.Any() == true)
                 {
                     AddTableNameParameters(command, tableNames);
+                }
+                else
+                {
+                    // Add owner parameter for queries without table names
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
                 }
 
                 using IDataReader reader = command.ExecuteReader();
@@ -635,7 +649,7 @@ namespace DatabaseMcp.Core.Services
                 LEFT JOIN DBA_TAB_MODIFICATIONS dm ON dm.TABLE_NAME = t.TABLE_NAME AND dm.TABLE_OWNER = t.OWNER
                 LEFT JOIN ALL_PART_TABLES pt ON pt.TABLE_NAME = t.TABLE_NAME AND pt.OWNER = t.OWNER
                 WHERE t.TABLE_NAME IN ({inClause})
-                  AND t.OWNER = USER
+                  AND t.OWNER = :Owner
                 ORDER BY t.TABLE_NAME";
         }
 
@@ -648,6 +662,12 @@ namespace DatabaseMcp.Core.Services
                 param.Value = tableNames[i].ToUpper();
                 _ = command.Parameters.Add(param);
             }
+            
+            // Add owner parameter
+            IDbDataParameter ownerParam = command.CreateParameter();
+            ownerParam.ParameterName = "Owner";
+            ownerParam.Value = Environment.GetEnvironmentVariable("SchemaOwner");
+            _ = command.Parameters.Add(ownerParam);
         }
 
         private string BuildUnusedIndexesQuery(List<string> tableNames)
@@ -677,7 +697,7 @@ namespace DatabaseMcp.Core.Services
                         AND ic.TABLE_NAME = i.TABLE_NAME
                         AND ic.TABLE_OWNER = i.TABLE_OWNER
                 WHERE 
-                    i.OWNER = USER
+                    i.OWNER = :Owner
                     AND i.INDEX_TYPE != 'LOB'
                     AND i.UNIQUENESS = 'NONUNIQUE'
                     AND i.STATUS = 'VALID'");

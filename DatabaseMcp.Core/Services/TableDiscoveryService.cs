@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<TableDiscoveryService> _logger;
+        private readonly string _owner;
 
         public TableDiscoveryService(IDbConnectionFactory connectionFactory, ILogger<TableDiscoveryService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<TableMetadata>> GetTablesMetadataByNamesAsync(List<string> tableNames)
@@ -51,11 +53,21 @@ namespace DatabaseMcp.Core.Services
             {
                 using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
                 IDbCommand command = connection.CreateCommand();
-                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL";
+                command.CommandText = string.IsNullOrEmpty(_owner) 
+                    ? @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName) AS DDL FROM DUAL"
+                    : @"SELECT DBMS_METADATA.GET_DDL('TABLE', :TableName, :Owner) AS DDL FROM DUAL";
                 IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "TableName";
                 param.Value = tableName;
                 _ = command.Parameters.Add(param);
+                
+                if (!string.IsNullOrEmpty(_owner))
+                {
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
+                }
                 return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)

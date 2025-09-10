@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ConstraintGatheringService> _logger;
+        private readonly string _owner;
 
         public ConstraintGatheringService(IDbConnectionFactory connectionFactory, ILogger<ConstraintGatheringService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<ConstraintMetadata>> GetUniqueConstraintsAsync(string tableName)
@@ -27,7 +29,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT AC.CONSTRAINT_NAME, COLUMN_NAME FROM ALL_CONS_COLUMNS ACC JOIN ALL_CONSTRAINTS AC ON ACC.CONSTRAINT_NAME = AC.CONSTRAINT_NAME WHERE ACC.TABLE_NAME = :TableName AND AC.CONSTRAINT_TYPE = 'U' AND AC.OWNER NOT IN ('SYS', 'SYSTEM', 'XDB', 'OUTLN', 'CTXSYS', 'DBSNMP', 'ORDDATA', 'ORDSYS', 'MDSYS', 'WMSYS', 'OLAPSYS', 'EXFSYS', 'SYSMAN', 'APEX_040000', 'FLOWS_FILES') AND AC.OWNER NOT LIKE '%SYS%'";
+                    string query = @"SELECT AC.CONSTRAINT_NAME, COLUMN_NAME FROM ALL_CONS_COLUMNS ACC JOIN ALL_CONSTRAINTS AC ON ACC.CONSTRAINT_NAME = AC.CONSTRAINT_NAME WHERE ACC.TABLE_NAME = :TableName AND AC.CONSTRAINT_TYPE = 'U' AND AC.OWNER = :Owner AND AC.OWNER NOT IN ('SYS', 'SYSTEM', 'XDB', 'OUTLN', 'CTXSYS', 'DBSNMP', 'ORDDATA', 'ORDSYS', 'MDSYS', 'WMSYS', 'OLAPSYS', 'EXFSYS', 'SYSMAN', 'APEX_040000', 'FLOWS_FILES') AND AC.OWNER NOT LIKE '%SYS%'";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -35,6 +37,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -65,7 +71,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT CONSTRAINT_NAME, SEARCH_CONDITION FROM ALL_CONSTRAINTS WHERE TABLE_NAME = :TableName AND CONSTRAINT_TYPE = 'C'";
+                    string query = @"SELECT CONSTRAINT_NAME, SEARCH_CONDITION FROM ALL_CONSTRAINTS WHERE TABLE_NAME = :TableName AND CONSTRAINT_TYPE = 'C' AND OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -73,6 +79,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())

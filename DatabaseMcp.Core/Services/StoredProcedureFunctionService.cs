@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<StoredProcedureFunctionService> _logger;
+        private readonly string _owner;
 
         public StoredProcedureFunctionService(IDbConnectionFactory connectionFactory, ILogger<StoredProcedureFunctionService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<ProcedureFunctionMetadata>> GetStoredProceduresMetadataByNamesAsync(List<string> names)
@@ -88,11 +90,15 @@ namespace DatabaseMcp.Core.Services
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
                     IDbCommand command = connection.CreateCommand();
-                    command.CommandText = @"SELECT ARGUMENT_NAME, DATA_TYPE, IN_OUT FROM ALL_ARGUMENTS WHERE OBJECT_NAME = :objectName AND PACKAGE_NAME IS NULL";
+                    command.CommandText = @"SELECT ARGUMENT_NAME, DATA_TYPE, IN_OUT FROM ALL_ARGUMENTS WHERE OBJECT_NAME = :objectName AND PACKAGE_NAME IS NULL AND OWNER = :Owner";
                     IDbDataParameter param = command.CreateParameter();
                     param.ParameterName = "objectName";
                     param.Value = objectName;
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -127,11 +133,15 @@ namespace DatabaseMcp.Core.Services
             {
                 using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
                 IDbCommand command = connection.CreateCommand();
-                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName) AS DDL FROM DUAL";
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('PROCEDURE', :ProcedureName, :Owner) AS DDL FROM DUAL";
                 IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "ProcedureName";
                 param.Value = procedureName;
                 _ = command.Parameters.Add(param);
+                IDbDataParameter ownerParam = command.CreateParameter();
+                ownerParam.ParameterName = "Owner";
+                ownerParam.Value = _owner;
+                _ = command.Parameters.Add(ownerParam);
                 return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
@@ -153,11 +163,15 @@ namespace DatabaseMcp.Core.Services
             {
                 using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
                 IDbCommand command = connection.CreateCommand();
-                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName) AS DDL FROM DUAL";
+                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('FUNCTION', :FunctionName, :Owner) AS DDL FROM DUAL";
                 IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "FunctionName";
                 param.Value = functionName;
                 _ = command.Parameters.Add(param);
+                IDbDataParameter ownerParam = command.CreateParameter();
+                ownerParam.ParameterName = "Owner";
+                ownerParam.Value = _owner;
+                _ = command.Parameters.Add(ownerParam);
 
                 return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }

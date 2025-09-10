@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ViewEnumerationService> _logger;
+        private readonly string _owner;
 
         public ViewEnumerationService(IDbConnectionFactory connectionFactory, ILogger<ViewEnumerationService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<ViewMetadata>> GetViewsDefinitionByNamesAsync(List<string> viewNames)
@@ -47,11 +49,21 @@ namespace DatabaseMcp.Core.Services
             {
                 using IDbConnection connection = await _connectionFactory.CreateConnectionAsync();
                 IDbCommand command = connection.CreateCommand();
-                command.CommandText = @"SELECT DBMS_METADATA.GET_DDL('VIEW', :ViewName) AS DDL FROM DUAL";
+                command.CommandText = string.IsNullOrEmpty(_owner) 
+                    ? @"SELECT DBMS_METADATA.GET_DDL('VIEW', :ViewName) AS DDL FROM DUAL"
+                    : @"SELECT DBMS_METADATA.GET_DDL('VIEW', :ViewName, :Owner) AS DDL FROM DUAL";
                 IDbDataParameter param = command.CreateParameter();
                 param.ParameterName = "ViewName";
                 param.Value = viewName;
                 _ = command.Parameters.Add(param);
+                
+                if (!string.IsNullOrEmpty(_owner))
+                {
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
+                }
 
                 return command.ExecuteScalar()?.ToString() ?? string.Empty;
             }
