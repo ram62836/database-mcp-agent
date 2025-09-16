@@ -24,7 +24,8 @@
       ],
       "env": {
         "OracleConnectionString": "${input:oracle-connection}",
-        "LogFilePath": "${input:log-file-path}"
+        "LogFilePath": "${input:log-file-path}",
+        "SchemaOwner": "${input:schema-owner-name}"        
       }
     }
   }
