@@ -1,4 +1,7 @@
-<Project>
+<Pr    <!-- Main Package Version - Update this single place to change version across all projects -->
+    <HalaDatabaseAgentVersion>1.0.18</HalaDatabaseAgentVersion>
+    
+    <!-- Assembly Version Properties -->t>
   <!-- Central Version Management for Hala.DatabaseAgent.OracleMcpServer -->
   <PropertyGroup>
     <!-- Main Package Version - Update this single place to change version across all projects -->
