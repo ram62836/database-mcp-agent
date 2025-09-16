@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<SynonymListingService> _logger;
+        private readonly string _owner;
 
         public SynonymListingService(IDbConnectionFactory connectionFactory, ILogger<SynonymListingService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<SynonymMetadata>> ListSynonymsAsync()
@@ -27,10 +29,21 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS";
+                    string query = string.IsNullOrEmpty(_owner) 
+                        ? @"SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS"
+                        : @"SELECT SYNONYM_NAME, TABLE_OWNER, TABLE_NAME FROM ALL_SYNONYMS WHERE OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
+                    
+                    if (!string.IsNullOrEmpty(_owner))
+                    {
+                        IDbDataParameter ownerParam = command.CreateParameter();
+                        ownerParam.ParameterName = "Owner";
+                        ownerParam.Value = _owner;
+                        _ = command.Parameters.Add(ownerParam);
+                    }
+                    
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {

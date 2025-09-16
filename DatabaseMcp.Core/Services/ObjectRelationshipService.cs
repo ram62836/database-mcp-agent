@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ObjectRelationshipService> _logger;
+        private readonly string _owner;
 
         public ObjectRelationshipService(IDbConnectionFactory connectionFactory, ILogger<ObjectRelationshipService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<ObjectRelationshipMetadata>> GetReferenceObjects(string objectName, string objectType)
@@ -33,7 +35,7 @@ namespace DatabaseMcp.Core.Services
             }
 
             List<ObjectRelationshipMetadata> objectRelationShips = [];
-            string query = @"SELECT DISTINCT d.name AS OBJECT_NAME, d.type AS OBJECT_TYPE FROM user_dependencies d WHERE d.referenced_name = UPPER(:objectName) AND d.referenced_type = UPPER(:objectType) AND d.name NOT LIKE 'BIN$%' AND d.referenced_owner NOT IN ('SYS', 'SYSTEM') ORDER BY d.name, d.type";
+            string query = @"SELECT DISTINCT d.name AS OBJECT_NAME, d.type AS OBJECT_TYPE FROM user_dependencies d WHERE d.referenced_name = UPPER(:objectName) AND d.referenced_type = UPPER(:objectType) AND d.name NOT LIKE 'BIN$%' AND d.referenced_owner = :owner AND d.referenced_owner NOT IN ('SYS', 'SYSTEM') ORDER BY d.name, d.type";
             try
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
@@ -48,6 +50,10 @@ namespace DatabaseMcp.Core.Services
                     param2.ParameterName = "objectType";
                     param2.Value = objectType.ToUpper();
                     _ = command.Parameters.Add(param2);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {

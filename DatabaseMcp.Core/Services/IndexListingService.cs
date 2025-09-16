@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<IndexListingService> _logger;
+        private readonly string _owner;
 
         public IndexListingService(IDbConnectionFactory connectionFactory, ILogger<IndexListingService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<IndexMetadata>> ListIndexesAsync(string tableName)
@@ -27,7 +29,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT INDEX_NAME, UNIQUENESS FROM ALL_INDEXES WHERE TABLE_NAME = :TableName";
+                    string query = @"SELECT INDEX_NAME, UNIQUENESS FROM ALL_INDEXES WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -35,6 +37,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -64,7 +70,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT COLUMN_NAME FROM ALL_IND_COLUMNS WHERE INDEX_NAME = :IndexName";
+                    string query = @"SELECT COLUMN_NAME FROM ALL_IND_COLUMNS WHERE INDEX_NAME = :IndexName AND INDEX_OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -72,6 +78,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "IndexName";
                     param.Value = indexName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())

@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<KeyIdentificationService> _logger;
+        private readonly string _owner;
 
         public KeyIdentificationService(IDbConnectionFactory connectionFactory, ILogger<KeyIdentificationService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<KeyMetadata>> GetPrimaryKeysAsync(string tableName)
@@ -27,7 +29,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'P' AND cons.TABLE_NAME = :TableName";
+                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'P' AND cons.TABLE_NAME = :TableName AND cons.OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -35,6 +37,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -65,7 +71,7 @@ namespace DatabaseMcp.Core.Services
             {
                 using (IDbConnection connection = await _connectionFactory.CreateConnectionAsync())
                 {
-                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R' AND cons.TABLE_NAME = :TableName";
+                    string query = @"SELECT cols.COLUMN_NAME, cons.CONSTRAINT_NAME, cons.R_CONSTRAINT_NAME FROM ALL_CONS_COLUMNS cols JOIN ALL_CONSTRAINTS cons ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME WHERE cons.CONSTRAINT_TYPE = 'R' AND cons.TABLE_NAME = :TableName AND cons.OWNER = :Owner";
 
                     using IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -73,6 +79,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName.ToUpper();
                     _ = command.Parameters.Add(param);
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using IDataReader reader = command.ExecuteReader();
                     while (reader.Read())

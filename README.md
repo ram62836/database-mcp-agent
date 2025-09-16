@@ -5,6 +5,22 @@ A modular database access agent for AI assistants using the Model Context Protoc
 [![NuGet Version](https://img.shields.io/nuget/v/Hala.DatabaseAgent.OracleMcpServer.svg)](https://www.nuget.org/packages/Hala.DatabaseAgent.OracleMcpServer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## ⚠️ Important Changes in Latest Release (1.0.18)
+
+### Breaking Changes
+> ⚠️ If upgrading from version 1.0.17 or earlier, please read this section carefully
+- **New Required Environment Variable**: `SchemaOwner` 
+  - Now mandatory for all database operations
+  - Must be set to specify the target schema context
+  - Previous behavior of defaulting to connected user's schema has been removed
+  - Example: `SchemaOwner="HR"` for operating in the HR schema
+
+### Migration Steps
+1. Add `SchemaOwner` environment variable to your configuration
+2. Set it to the schema name you want to analyze
+3. Update any automation scripts or CI/CD pipelines that use this package
+4. Refer to Configuration section below for complete setup
+
 **Hala Database Agent** enables AI assistants to:
 - Analyze database schema, tables, columns, and relationships
 - Map dependencies between database objects
@@ -55,7 +71,8 @@ The `dnx` command used for MCP server integration requires the .NET 10 SDK. Foll
       ],
       "env": {
         "OracleConnectionString": "${input:oracle-connection-string}",
-        "LogFilePath": "${input:log-file-path}"
+        "LogFilePath": "${input:log-file-path}",
+        "SchemaOwner": "${input:schema-owner-name}"
       }
     }
   }
@@ -70,6 +87,9 @@ The MCP agent uses environment variables for configuration:
 ```bash
 # Oracle connection string
 export OracleConnectionString="User Id=system;Password=oracle;Data Source=localhost:1521/XEPDB1;"
+
+# Schema owner name - specifies the schema for all database operations
+export SchemaOwner="HR"
 ```
 
 ### Optional Configuration
@@ -185,7 +205,8 @@ Configure Claude Desktop to use your Database MCP Agent:
       ],
       "env": {
         "OracleConnectionString": "YOUR_ORACLE_CONNECTION_STRING_HERE",
-        "LogFilePath": "YOUR_LOG_FILE_PATH_HERE"
+        "LogFilePath": "YOUR_LOG_FILE_PATH_HERE",
+        "SchemaOwner": "YOUR_SCHEMA_OWNER_HERE"
       }
     }
   }
@@ -233,8 +254,9 @@ For complete examples, see [examples/claude-desktop-config.json](examples/claude
         "--yes"
       ],
       "env": {
-        "OracleConnectionString": "${input:oracle-connection-string}",
-        "LogFilePath": "${input:log-file-path}"
+        "OracleConnectionString": "{input:oracle-connection-string}",
+        "LogFilePath": "${input:log-file-path}",
+        "SchemaOwner": "${input:schema-owner-name}"
       }
     }
   }

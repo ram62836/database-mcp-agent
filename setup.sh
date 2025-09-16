@@ -49,6 +49,7 @@ echo "1. Install the package: dotnet tool install --global --add-source nupkg Ha
 echo "2. Set environment variables for database connection:"
 echo "   export OracleConnectionString=\"your-connection-string\""
 echo "   export LogFilePath=\"$HOME/database-mcp-agent/logs\""
+echo "   export SchemaOwner=\"your-schema-name\"  # Required: Schema owner for database operations"
 echo "3. Run the MCP server: oracle-mcp-server"
 echo ""
 echo "For more information, see the README.md file."

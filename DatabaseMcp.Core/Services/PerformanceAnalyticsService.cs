@@ -15,6 +15,7 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<PerformanceAnalyticsService> _logger;
+        private readonly string _owner;
 
         public PerformanceAnalyticsService(
             IDbConnectionFactory connectionFactory,
@@ -22,6 +23,7 @@ namespace DatabaseMcp.Core.Services
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger;
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<SqlPerformanceMetrics>> GetTopSqlByPerformanceAsync(PerformanceAnalysisRequest request)
@@ -70,7 +72,8 @@ namespace DatabaseMcp.Core.Services
                 TopN = topN,
                 StartTime = startTime,
                 EndTime = endTime,
-                OrderBy = "EXECUTIONS"
+                OrderBy = "EXECUTIONS",
+                SchemaName = _owner
             };
 
             return await GetTopSqlByPerformanceAsync(request);
@@ -85,7 +88,8 @@ namespace DatabaseMcp.Core.Services
                 TopN = topN,
                 StartTime = startTime,
                 EndTime = endTime,
-                OrderBy = "CPU_TIME"
+                OrderBy = "CPU_TIME",
+                SchemaName = _owner
             };
 
             return await GetTopSqlByPerformanceAsync(request);
@@ -100,7 +104,8 @@ namespace DatabaseMcp.Core.Services
                 TopN = topN,
                 StartTime = startTime,
                 EndTime = endTime,
-                OrderBy = "ELAPSED_TIME"
+                OrderBy = "ELAPSED_TIME",
+                SchemaName = _owner
             };
 
             return await GetTopSqlByPerformanceAsync(request);
@@ -204,7 +209,7 @@ namespace DatabaseMcp.Core.Services
                 FROM ALL_INDEXES i
                 LEFT JOIN ALL_IND_COLUMNS ic ON ic.INDEX_NAME = i.INDEX_NAME AND ic.INDEX_OWNER = i.OWNER
                 WHERE i.TABLE_NAME = :tableName 
-                  AND i.OWNER = USER
+                  AND i.OWNER = :Owner
                 GROUP BY i.INDEX_NAME, i.TABLE_NAME, i.OWNER, i.INDEX_TYPE, i.UNIQUENESS, 
                          i.BLEVEL, i.LEAF_BLOCKS, i.DISTINCT_KEYS, i.CLUSTERING_FACTOR, i.STATUS
                 ORDER BY i.INDEX_NAME";
@@ -219,6 +224,10 @@ namespace DatabaseMcp.Core.Services
                 parameter.ParameterName = "tableName";
                 parameter.Value = tableName.ToUpper();
                 _ = command.Parameters.Add(parameter);
+                IDbDataParameter ownerParam = command.CreateParameter();
+                ownerParam.ParameterName = "Owner";
+                ownerParam.Value = _owner;
+                _ = command.Parameters.Add(ownerParam);
 
                 using IDataReader reader = command.ExecuteReader();
                 List<IndexUsageStatistics> results = [];
@@ -253,6 +262,14 @@ namespace DatabaseMcp.Core.Services
                 if (tableNames?.Any() == true)
                 {
                     AddTableNameParameters(command, tableNames);
+                }
+                else
+                {
+                    // Add owner parameter for queries without table names
+                    IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
                 }
 
                 using IDataReader reader = command.ExecuteReader();
@@ -559,33 +576,55 @@ namespace DatabaseMcp.Core.Services
         {
             StringBuilder sql = new(@"
                 SELECT 
-                    EVENT as EVENT_NAME,
-                    WAIT_CLASS,
-                    TOTAL_WAITS,
-                    TIME_WAITED / 100 as TOTAL_WAIT_TIME_SECONDS,
-                    CASE WHEN TOTAL_WAITS > 0 THEN (TIME_WAITED / TOTAL_WAITS) / 10 ELSE 0 END as AVG_WAIT_TIME_MS,
-                    TIME_WAITED_MICRO / (SELECT SUM(TIME_WAITED_MICRO) FROM V$SYSTEM_EVENT) * 100 as TIME_WAITED_PERCENT,
-                    '' as DESCRIPTION,
+                    w.EVENT as EVENT_NAME,
+                    w.WAIT_CLASS,
+                    w.TOTAL_WAITS,
+                    w.TIME_WAITED / 100 as TOTAL_WAIT_TIME_SECONDS,
+                    CASE WHEN w.TOTAL_WAITS > 0 THEN (w.TIME_WAITED / w.TOTAL_WAITS) / 10 ELSE 0 END as AVG_WAIT_TIME_MS,
+                    w.TIME_WAITED_MICRO / (SELECT SUM(TIME_WAITED_MICRO) FROM V$SYSTEM_EVENT) * 100 as TIME_WAITED_PERCENT,
+                    NVL(o.OBJECT_NAME, '') as DESCRIPTION,
                     SYSDATE as SAMPLE_TIME,
-                    '' as OBJECT_NAME,
-                    '' as OBJECT_OWNER
-                FROM V$SYSTEM_EVENT 
-                WHERE EVENT NOT LIKE 'SQL*Net%'
-                  AND EVENT NOT LIKE '%idle%'
-                  AND TIME_WAITED > 0");
+                    NVL(o.OBJECT_NAME, '') as OBJECT_NAME,
+                    NVL(o.OWNER, '') as OBJECT_OWNER
+                FROM V$SYSTEM_EVENT w
+                LEFT JOIN (
+                    SELECT DISTINCT 
+                        obj.OBJECT_NAME,
+                        obj.OWNER,
+                        CASE 
+                            WHEN obj.OBJECT_TYPE = 'TABLE' THEN obj.OBJECT_NAME
+                            WHEN obj.OBJECT_TYPE = 'INDEX' THEN obj.OBJECT_NAME
+                            ELSE obj.OBJECT_NAME
+                        END as RELATED_OBJECT
+                    FROM ALL_OBJECTS obj
+                    WHERE obj.OWNER = :Owner
+                      AND obj.OBJECT_TYPE IN ('TABLE', 'INDEX', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION', 'PACKAGE')
+                ) o ON (w.EVENT LIKE '%' || o.RELATED_OBJECT || '%' OR w.EVENT LIKE '%' || o.OBJECT_NAME || '%')
+                WHERE w.EVENT NOT LIKE 'SQL*Net%'
+                  AND w.EVENT NOT LIKE '%idle%'
+                  AND w.TIME_WAITED > 0");
 
             if (!string.IsNullOrEmpty(objectName))
             {
-                _ = sql.Append(" AND EVENT LIKE '%' || :objectName || '%'");
+                _ = sql.Append(" AND (w.EVENT LIKE '%' || :objectName || '%' OR o.OBJECT_NAME LIKE '%' || :objectName || '%')");
             }
 
-            _ = sql.Append(" ORDER BY TIME_WAITED DESC");
+            // Filter to show only wait events that are likely related to our schema objects
+            _ = sql.Append(" AND (o.OWNER = :Owner OR w.EVENT IN ('db file sequential read', 'db file scattered read', 'direct path read', 'direct path write'))");
+
+            _ = sql.Append(" ORDER BY w.TIME_WAITED DESC");
 
             return sql.ToString();
         }
 
-        private static void AddWaitEventParameters(IDbCommand command, string objectName)
+        private void AddWaitEventParameters(IDbCommand command, string objectName)
         {
+            // Always add owner parameter for schema filtering
+            IDbDataParameter ownerParam = command.CreateParameter();
+            ownerParam.ParameterName = "Owner";
+            ownerParam.Value = _owner;
+            _ = command.Parameters.Add(ownerParam);
+
             if (!string.IsNullOrEmpty(objectName))
             {
                 IDbDataParameter param = command.CreateParameter();
@@ -635,7 +674,7 @@ namespace DatabaseMcp.Core.Services
                 LEFT JOIN DBA_TAB_MODIFICATIONS dm ON dm.TABLE_NAME = t.TABLE_NAME AND dm.TABLE_OWNER = t.OWNER
                 LEFT JOIN ALL_PART_TABLES pt ON pt.TABLE_NAME = t.TABLE_NAME AND pt.OWNER = t.OWNER
                 WHERE t.TABLE_NAME IN ({inClause})
-                  AND t.OWNER = USER
+                  AND t.OWNER = :Owner
                 ORDER BY t.TABLE_NAME";
         }
 
@@ -648,6 +687,12 @@ namespace DatabaseMcp.Core.Services
                 param.Value = tableNames[i].ToUpper();
                 _ = command.Parameters.Add(param);
             }
+            
+            // Add owner parameter
+            IDbDataParameter ownerParam = command.CreateParameter();
+            ownerParam.ParameterName = "Owner";
+            ownerParam.Value = Environment.GetEnvironmentVariable("SchemaOwner");
+            _ = command.Parameters.Add(ownerParam);
         }
 
         private string BuildUnusedIndexesQuery(List<string> tableNames)
@@ -677,7 +722,7 @@ namespace DatabaseMcp.Core.Services
                         AND ic.TABLE_NAME = i.TABLE_NAME
                         AND ic.TABLE_OWNER = i.TABLE_OWNER
                 WHERE 
-                    i.OWNER = USER
+                    i.OWNER = :Owner
                     AND i.INDEX_TYPE != 'LOB'
                     AND i.UNIQUENESS = 'NONUNIQUE'
                     AND i.STATUS = 'VALID'");

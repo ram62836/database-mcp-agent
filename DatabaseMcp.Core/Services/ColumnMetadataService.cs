@@ -12,11 +12,13 @@ namespace DatabaseMcp.Core.Services
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ILogger<ColumnMetadataService> _logger;
+        private readonly string _owner;
 
         public ColumnMetadataService(IDbConnectionFactory connectionFactory, IConfiguration config, ILogger<ColumnMetadataService> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _owner = Environment.GetEnvironmentVariable("SchemaOwner");
         }
 
         public async Task<List<ColumnMetadata>> GetColumnMetadataAsync(string tableName)
@@ -31,7 +33,7 @@ namespace DatabaseMcp.Core.Services
                     string query = @"
                         SELECT COLUMN_NAME, DATA_TYPE, NULLABLE, DATA_DEFAULT
                         FROM ALL_TAB_COLUMNS
-                        WHERE TABLE_NAME = :TableName";
+                        WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using System.Data.IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -39,6 +41,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName?.ToUpper();
                     _ = command.Parameters.Add(param);
+                    System.Data.IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using System.Data.IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -73,7 +79,7 @@ namespace DatabaseMcp.Core.Services
                     string query = @"
                         SELECT COLUMN_NAME
                         FROM ALL_TAB_COLUMNS
-                        WHERE TABLE_NAME = :TableName";
+                        WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using System.Data.IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -81,6 +87,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName?.ToUpper();
                     _ = command.Parameters.Add(param);
+                    System.Data.IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using System.Data.IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -109,7 +119,7 @@ namespace DatabaseMcp.Core.Services
                     string query = @"
                         SELECT COLUMN_NAME, DATA_TYPE
                         FROM ALL_TAB_COLUMNS
-                        WHERE TABLE_NAME = :TableName";
+                        WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using System.Data.IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -117,6 +127,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName?.ToUpper();
                     _ = command.Parameters.Add(param);
+                    System.Data.IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using System.Data.IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -149,7 +163,7 @@ namespace DatabaseMcp.Core.Services
                     string query = @"
                         SELECT COLUMN_NAME, NULLABLE
                         FROM ALL_TAB_COLUMNS
-                        WHERE TABLE_NAME = :TableName";
+                        WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using System.Data.IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -157,6 +171,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName?.ToUpper();
                     _ = command.Parameters.Add(param);
+                    System.Data.IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using System.Data.IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -189,7 +207,7 @@ namespace DatabaseMcp.Core.Services
                     string query = @"
                         SELECT COLUMN_NAME, DATA_DEFAULT
                         FROM ALL_TAB_COLUMNS
-                        WHERE TABLE_NAME = :TableName";
+                        WHERE TABLE_NAME = :TableName AND OWNER = :Owner";
 
                     using System.Data.IDbCommand command = connection.CreateCommand();
                     command.CommandText = query;
@@ -197,6 +215,10 @@ namespace DatabaseMcp.Core.Services
                     param.ParameterName = "TableName";
                     param.Value = tableName?.ToUpper();
                     _ = command.Parameters.Add(param);
+                    System.Data.IDbDataParameter ownerParam = command.CreateParameter();
+                    ownerParam.ParameterName = "Owner";
+                    ownerParam.Value = _owner;
+                    _ = command.Parameters.Add(ownerParam);
 
                     using System.Data.IDataReader reader = command.ExecuteReader();
                     while (reader.Read())
