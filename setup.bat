@@ -61,6 +61,7 @@ echo 1. Install the package: dotnet tool install --global --add-source nupkg Hal
 echo 2. Set environment variables for database connection:
 echo    $env:OracleConnectionString="your-connection-string"
 echo    $env:LogFilePath="%USERPROFILE%\database-mcp-agent\logs"
+echo    $env:SchemaOwner="your-schema-name"  REM Required: Schema owner for database operations
 echo 3. Run the MCP server: oracle-mcp-server
 echo.
 echo For more information, see the README.md file.

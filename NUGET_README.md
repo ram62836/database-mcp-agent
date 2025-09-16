@@ -2,6 +2,16 @@
 
 Oracle Database MCP Agent with 30+ tools for AI-powered database analysis.
 
+## ⚠️ Breaking Changes in Latest Release
+
+### Version 1.0.18
+- **New Required Environment Variable**: `SchemaOwner` is now mandatory for all database operations
+  > ⚠️ Upgrading from 1.0.17 or earlier requires configuration changes
+  - All users must set this variable to specify the schema context
+  - Affects all database operations and analysis tools
+  - Previous versions defaulted to connected user's schema
+  - Example: `SchemaOwner="HR"` for HR schema operations
+
 ##  VS Code Integration
 
 Add to your VS Code MCP settings to automatically install and configure:
@@ -14,7 +24,8 @@ Add to your VS Code MCP settings to automatically install and configure:
       "args": ["Hala.DatabaseAgent.OracleMcpServer", "--yes"],
       "env": {
         "OracleConnectionString": "your-oracle-connection-string",
-        "LogFilePath": "log-file-directory"
+        "LogFilePath": "log-file-directory",
+        "SchemaOwner": "schema-owner-name"
       }
     }
   }
@@ -34,6 +45,7 @@ Set your Oracle connection string in the environment variables:
 
 **Required:**
 - `OracleConnectionString` - Your Oracle database connection string
+- `SchemaOwner` - Target schema name for all database operations (new requirement)
 
 ## 🔍 Example Connection Strings
 

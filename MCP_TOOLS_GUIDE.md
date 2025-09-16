@@ -2,6 +2,25 @@
 
 This document details all tools available in the Oracle Database MCP Agent. Each tool is documented with its purpose, parameters, example usage, and sample prompts.
 
+## Schema Configuration
+
+The Oracle Database MCP Agent requires a schema context through the mandatory `SchemaOwner` environment variable. This defines the primary schema context for all database operations and analysis.
+
+### Configuration
+The `SchemaOwner` environment variable must be set to specify the schema context:
+```bash
+export SchemaOwner="HR"  # Set HR as the primary schema context
+```
+
+### Impact on Tools
+The `SchemaOwner` setting affects all operations:
+- All metadata discovery tools will operate within the specified schema
+- SQL execution will use the specified schema as the default context
+- Dependency analysis will focus on relationships within the specified schema
+- Performance analytics will be scoped to the specified schema's objects
+
+This mandatory setting ensures consistent and predictable behavior across all database operations by providing a clear schema context.
+
 ## Table of Contents
 
 - [Table & Metadata Discovery](#table--metadata-discovery)
